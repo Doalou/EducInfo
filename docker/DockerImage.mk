@@ -1,5 +1,5 @@
 AUTHOR ?= doalou
-WEB_SITE ?= doalou.org
+WEB_SITE ?= doalo.fr
 
 # Base docker image
 BASE_IMAGE_REGISTRY ?= docker.io
@@ -16,7 +16,7 @@ endif
 OUTPUT_IMAGE_REGISTRY ?= docker.io
 OUTPUT_IMAGE_PATH ?= doalou
 OUTPUT_IMAGE_NAME ?= educinfo
-OUTPUT_IMAGE_VERSION ?= 1.0.0
+OUTPUT_IMAGE_VERSION ?= 1.0.1
 ifeq ($(strip $(OUTPUT_IMAGE_PATH)),)
 	OUTPUT_IMAGE_FINAL := $(OUTPUT_IMAGE_REGISTRY)/$(OUTPUT_IMAGE_NAME)
 else

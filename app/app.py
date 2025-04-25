@@ -1,10 +1,10 @@
 from datetime import datetime, date, timedelta
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, login_required, logout_user, current_user
-from config import Config
-from extensions import db, csrf, login_manager, logger
-from models import User, Absence, WidgetConfig, Event, SiteConfig, WeatherConfig, MenuItem
-from forms import (LoginForm, AbsenceForm, WidgetConfigForm, EventForm, 
+from app.config import Config
+from app.extensions import db, csrf, login_manager, logger
+from app.models import User, Absence, WidgetConfig, Event, SiteConfig, WeatherConfig, MenuItem
+from app.forms import (LoginForm, AbsenceForm, WidgetConfigForm, EventForm, 
                   ChangePasswordForm, SiteConfigForm, WeatherConfigForm, CTSForm, MenuItemForm)
 import requests
 
@@ -531,26 +531,3 @@ def get_weather_icon(weather_code):
         15: "🌨️",
     }
     return weather_icons.get(weather_code, "🌡️")
-
-if __name__ == '__main__':
-    try:
-        with app.app_context():
-            initialize_database()
-            
-        try:
-            app.run(debug=False, use_reloader=False)
-        except OSError as socket_error:
-            if socket_error.winerror == 10038:
-                logger.error("Erreur de socket Windows. Tentative de redémarrage du serveur...")
-                import time
-                time.sleep(1)
-                app.run(debug=False, use_reloader=False)
-            else:
-                logger.error(f"Erreur de socket non gérée: {socket_error}")
-                raise
-    except SystemExit as e:
-        logger.critical("Arrêt du programme suite à une erreur d'initialisation")
-        raise
-    except Exception as e:
-        logger.critical(f"Erreur inattendue: {e}")
-        raise SystemExit(1)

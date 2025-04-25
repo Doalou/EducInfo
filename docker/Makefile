@@ -6,12 +6,12 @@ BASE_IMAGE_TAGS ?= 3.12-slim-bookworm
 
 # Output docker image
 AUTHOR ?= doalou
-WEB_SITE ?= doalou.org
+WEB_SITE ?= doalo.fr
 
 OUTPUT_IMAGE_REGISTRY ?= docker.io
 OUTPUT_IMAGE_PATH ?= doalou
 OUTPUT_IMAGE_NAME ?= educinfo
-OUTPUT_IMAGE_VERSION ?= 1.0.0
+OUTPUT_IMAGE_VERSION ?= 1.0.1
 
 WORKDIR ?= /work
 

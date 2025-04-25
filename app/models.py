@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 from datetime import date, datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from extensions import db
+from app.extensions import db
 from flask import current_app
 
 class User(UserMixin, db.Model):

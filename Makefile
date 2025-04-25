@@ -5,9 +5,9 @@ PROJECT_NAME ?= educinfo
 AUTHOR ?= doalou
 REGISTRY ?= docker.io
 BASE_IMAGE_REGISTRY ?= docker.io
-WEB_SITE ?= doalou.org
+WEB_SITE ?= doalo.fr
 
-IMAGE_VERSION ?= 1.0.0
+IMAGE_VERSION ?= 1.0.1
 IMAGE_NAME ?= $(PROJECT_NAME)
 
 # Max CPU and memory

@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, BooleanField, TextAreaField, Dat
 from wtforms.fields import SelectMultipleField
 from wtforms.validators import DataRequired, Length, ValidationError, Regexp, EqualTo, Optional
 from datetime import date
-from models import ThemeConfig, MenuItem
+from app.models import ThemeConfig, MenuItem
 
 class LoginForm(FlaskForm):
     identifiant = StringField('Identifiant', validators=[
