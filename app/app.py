@@ -23,38 +23,37 @@ def initialize_database():
     """Initialise la base de données avec les configurations par défaut"""
     try:
         with app.app_context():
-            # Vérifie si les tables existent déjà
             db.create_all()
             
             # Initialisation de l'utilisateur admin
-            admin = User.query.filter_by(identifiant='admin').first()
+            admin = User.query.filter_by(identifiant=app.config.get('DEFAULT_ADMIN_ID', 'admin')).first()
             if not admin:
-                admin = User(identifiant='admin', role='admin')
-                admin.set_password('admin123')
+                admin = User(
+                    identifiant=app.config.get('DEFAULT_ADMIN_ID', 'admin'), 
+                    role='admin'
+                )
+                admin.set_password(app.config.get('DEFAULT_ADMIN_PASSWORD', 'admin123'))
                 db.session.add(admin)
             
-            # Initialisation des configurations
-            configs = {
-                'weather': WeatherConfig,
-                'site': SiteConfig,
-                'widget': WidgetConfig
+            # Initialisation des configurations si elles n'existent pas
+            configs_to_check = {
+                WeatherConfig: WeatherConfig(),
+                SiteConfig: SiteConfig(),
+                WidgetConfig: WidgetConfig()
             }
-            
-            for config_name, config_class in configs.items():
+            for config_class, default_instance in configs_to_check.items():
                 if not config_class.query.first():
-                    db.session.add(config_class())
+                    db.session.add(default_instance)
             
-            try:
-                db.session.commit()
-                logger.info('Base de données initialisée avec succès')
-            except Exception as commit_error:
-                logger.error(f"Erreur lors du commit: {commit_error}")
-                db.session.rollback()
-                raise
+            # Commit des changements initiaux (admin, configs)
+            db.session.commit()
+            logger.info('Base de données initialisée ou vérifiée avec succès')
                 
     except Exception as e:
-        logger.error(f"Erreur fatale d'initialisation de la base de données: {e}")
-        raise SystemExit(1)
+        db.session.rollback() # Assurer le rollback en cas d'erreur
+        logger.error(f"Erreur lors de l'initialisation de la base de données: {e}", exc_info=True)
+        # Rendre l'erreur fatale pour l'exécution
+        raise SystemExit(f"Erreur BDD: {e}")
 
 @app.context_processor
 def utility_processor():
@@ -125,50 +124,71 @@ def home():
         logger.error(f'Erreur page d\'accueil: {str(e)}')
         return f"Erreur : {str(e)}", 500
 
+# Constantes CTS
+CTS_API_TIMEOUT = 5
+CTS_PREVIEW_INTERVAL = "PT2H"
+CTS_MAX_VISITS = 10
+CTS_ADMIN_PREVIEW_INTERVAL = "PT30M"
+CTS_ADMIN_MAX_VISITS = 5
+
+def _fetch_cts_data(stop_code, vehicle_mode, api_token, base_url, preview_interval, max_visits):
+    """Fonction helper pour interroger l'API CTS."""
+    if not stop_code or not stop_code.strip():
+        logger.warning("Code d'arrêt CTS manquant ou vide")
+        return []
+    
+    effective_api_token = api_token or app.config.get('CTS_API_TOKEN')
+    if not effective_api_token:
+        logger.error("Token API CTS manquant (ni dans config widget, ni dans config app)")
+        return []
+
+    endpoint = f"{base_url}/v1/siri/2.0/stop-monitoring"
+    params = {
+        "MonitoringRef": stop_code,
+        "VehicleMode": vehicle_mode or "undefined",
+        "PreviewInterval": preview_interval,
+        "MaximumStopVisits": max_visits
+    }
+
+    logger.info(f"Requête CTS: {endpoint} avec params {params}")
+    try:
+        response = requests.get(
+            endpoint, 
+            params=params,
+            auth=(effective_api_token, ""),
+            timeout=CTS_API_TIMEOUT
+        )
+        response.raise_for_status() # Lève une exception pour les codes d'erreur HTTP
+        
+        data = response.json()
+        # Utilisation de .get() pour éviter les KeyError
+        delivery = data.get("ServiceDelivery", {}).get("StopMonitoringDelivery", [{}])[0]
+        visits = delivery.get("MonitoredStopVisit", [])
+        logger.info(f"Nombre de passages CTS trouvés: {len(visits)}")
+        return visits
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Erreur lors de l'appel API CTS: {e}")
+        return []
+    except (KeyError, IndexError, TypeError) as e:
+        logger.error(f"Erreur lors du parsing de la réponse CTS: {e} - Réponse: {response.text if 'response' in locals() else 'N/A'}")
+        return []
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors de la récupération CTS: {e}")
+        return []
+
 def get_cts_arrivals(config):
     if not config.show_transports:
         logger.info("Widget transport désactivé")
         return []
-    
-    if not config.cts_stop_code:
-        logger.warning("Code d'arrêt CTS non configuré")
-        return []
-    
-    try:
-        endpoint = f"{app.config['CTS_BASE_URL']}/v1/siri/2.0/stop-monitoring"
-        api_token = config.cts_api_token or app.config['CTS_API_TOKEN']
-        
-        if not api_token:
-            logger.error("Token API CTS manquant")
-            return []
 
-        params = {
-            "MonitoringRef": config.cts_stop_code,
-            "VehicleMode": config.cts_vehicle_mode or "undefined",
-            "PreviewInterval": "PT2H",
-            "MaximumStopVisits": 10
-        }
-
-        logger.info(f"Requête CTS: {endpoint} avec arrêt {config.cts_stop_code}")
-        response = requests.get(
-            endpoint, 
-            params=params,
-            auth=(api_token, ""),
-            timeout=5
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            visits = data["ServiceDelivery"]["StopMonitoringDelivery"][0].get("MonitoredStopVisit", [])
-            visits = visits[:10]
-            logger.info(f"Nombre de passages trouvés après limitation : {len(visits)}")
-            return visits
-        
-        logger.error(f"Erreur CTS: statut {response.status_code}, réponse: {response.text}")
-        return []
-    except Exception as e:
-        logger.error(f"Erreur CTS: {str(e)}")
-        return []
+    return _fetch_cts_data(
+        stop_code=config.cts_stop_code,
+        vehicle_mode=config.cts_vehicle_mode,
+        api_token=config.cts_api_token, # Le token spécifique au widget
+        base_url=app.config['CTS_BASE_URL'],
+        preview_interval=CTS_PREVIEW_INTERVAL,
+        max_visits=CTS_MAX_VISITS
+    )
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -205,123 +225,131 @@ def admin_dashboard():
     }
     
     configs = {
-        'widget': WidgetConfig.query.first() or WidgetConfig(),
+        'widget': WidgetConfig.query.first_or_404(), # Use first_or_404 for required configs
         'site': SiteConfig.get_config(),
         'weather': WeatherConfig.get_config()
     }
     
-    # Pré-remplissage des formulaires
-    if not forms['widget_form'].is_submitted():
-        widget_config = configs['widget']
-        forms['widget_form'].show_menu_cantine.data = widget_config.show_menu_cantine
-        forms['widget_form'].show_transports.data = widget_config.show_transports
-        forms['widget_form'].cts_stop_code.data = widget_config.cts_stop_code
-        forms['widget_form'].cts_vehicle_mode.data = widget_config.cts_vehicle_mode
-        forms['widget_form'].cts_api_token.data = widget_config.cts_api_token
-
-    # Pré-remplissage des formulaires
+    # Pré-remplissage des formulaires via l'argument obj si pas soumis
     if not forms['widget_form'].is_submitted():
         forms['widget_form'] = WidgetConfigForm(obj=configs['widget'])
     if not forms['site_form'].is_submitted():
-        forms['site_form'].site_name.data = configs['site'].site_name
+        forms['site_form'] = SiteConfigForm(obj=configs['site'])
     if not forms['weather_form'].is_submitted():
-        forms['weather_form'].api_key.data = configs['weather'].api_key
-        forms['weather_form'].city.data = configs['weather'].city
-        forms['weather_form'].show_weather.data = configs['weather'].show_weather
+        forms['weather_form'] = WeatherConfigForm(obj=configs['weather'])
+
+    # Variables pour la prévisualisation CTS
+    cts_results = None
+    searched_cts_stop = None
+    searched_vehicle_mode = None
 
     # Traitement du POST
     if request.method == 'POST':
-        # Traitement du formulaire de configuration des widgets
-        if 'submit_widget' in request.form:
-            if forms['widget_form'].validate_on_submit():
-                widget_config = configs['widget']
-
-                if 'show_menu_cantine' in request.form:
-                    widget_config.show_menu_cantine = forms['widget_form'].show_menu_cantine.data
-
-                if 'show_transports' in request.form:
-                    widget_config.show_transports = forms['widget_form'].show_transports.data
-                    if widget_config.show_transports:
-                        widget_config.cts_stop_code = forms['widget_form'].cts_stop_code.data
-                        widget_config.cts_vehicle_mode = forms['widget_form'].cts_vehicle_mode.data
-                        widget_config.cts_api_token = forms['widget_form'].cts_api_token.data
-                widget_config.cts_stop_display = forms['widget_form'].cts_stop_display.data
-
-                db.session.commit()
-                flash('Configuration widgets mise à jour', 'success')
-            return redirect(url_for('admin_dashboard'))
-        
         # Traitement du formulaire de recherche CTS pour prévisualisation
         if 'submit_cts' in request.form or 'submit_cts_save' in request.form:
-            cts_stop_code = (forms['cts_form'].stop_code.data or "").strip()
-            cts_vehicle_mode = forms['cts_form'].vehicle_mode.data or "undefined"
-            endpoint = f"{app.config['CTS_BASE_URL']}/v1/siri/2.0/stop-monitoring"
-            params = {
-                "MonitoringRef": cts_stop_code,
-                "VehicleMode": cts_vehicle_mode,
-                "PreviewInterval": "PT30M",
-                "MaximumStopVisits": 5
-            }
-            try:
-                response = requests.get(endpoint, params=params,
-                                        auth=(configs['widget'].cts_api_token or app.config['CTS_API_TOKEN'], ""))
-                if response.status_code == 200:
-                    data = response.json()
-                    try:
-                        cts_results = data["ServiceDelivery"]["StopMonitoringDelivery"][0]["MonitoredStopVisit"]
-                    except (KeyError, IndexError):
-                        cts_results = []
-                        flash("Aucune donnée trouvée pour cet arrêt", "info")
-                else:
-                    cts_results = []
-                    flash("Erreur lors de la récupération des données CTS", "danger")
-            except Exception as e:
-                cts_results = []
-                flash("Erreur lors de l'appel à l'API CTS", "danger")
-            
-            # Si l'admin clique sur "Utiliser ce stop pour l'affichage", on enregistre les infos dans le widget
-            if 'submit_cts_save' in request.form:
+            if forms['cts_form'].validate_on_submit(): # Valider le formulaire CTS
+                searched_cts_stop = forms['cts_form'].stop_code.data
+                searched_vehicle_mode = forms['cts_form'].vehicle_mode.data
+                
+                cts_results = _fetch_cts_data(
+                    stop_code=searched_cts_stop,
+                    vehicle_mode=searched_vehicle_mode,
+                    api_token=configs['widget'].cts_api_token, # Utilise le token du widget pour la prévisualisation
+                    base_url=app.config['CTS_BASE_URL'],
+                    preview_interval=CTS_ADMIN_PREVIEW_INTERVAL,
+                    max_visits=CTS_ADMIN_MAX_VISITS
+                )
+                
+                if not cts_results and searched_cts_stop:
+                    flash("Aucune donnée trouvée pour cet arrêt ou erreur API", "warning")
+                elif cts_results:
+                     flash(f"{len(cts_results)} passages trouvés pour l'arrêt {searched_cts_stop}.", "info")
+                
+                # Si l'admin clique sur "Utiliser ce stop", on enregistre
+                if 'submit_cts_save' in request.form and searched_cts_stop:
+                    widget_config = configs['widget']
+                    widget_config.cts_stop_code = searched_cts_stop
+                    widget_config.cts_vehicle_mode = searched_vehicle_mode
+                    # Ne pas écraser le token ici, il est géré par le form widget
+                    db.session.commit()
+                    flash("Code d'arrêt CTS enregistré pour l'affichage.", 'success')
+                    return redirect(url_for('admin_dashboard'))
+            else:
+                flash("Erreur dans le formulaire de recherche CTS.", "danger")
+                # Ne pas rediriger, afficher les erreurs du formulaire
+
+        # Traitement du formulaire de configuration des widgets
+        elif 'submit_widget' in request.form:
+            form = forms['widget_form'] # Alias pour la clarté
+            if form.validate_on_submit():
                 widget_config = configs['widget']
-                widget_config.cts_stop_code = cts_stop_code
-                widget_config.cts_vehicle_mode = cts_vehicle_mode
-                db.session.commit()
-                flash("Le code d'arrêt CTS a été enregistré pour l'affichage sur la page d'accueil", 'success')
+                
+                # Mettre à jour la config depuis les données validées du formulaire
+                widget_config.show_menu_cantine = form.show_menu_cantine.data
+                widget_config.show_transports = form.show_transports.data
+                widget_config.cts_stop_display = form.cts_stop_display.data
+                
+                # Mettre à jour les champs CTS seulement si le widget transport est activé
+                if widget_config.show_transports:
+                    widget_config.cts_stop_code = form.cts_stop_code.data
+                    widget_config.cts_vehicle_mode = form.cts_vehicle_mode.data
+                    widget_config.cts_api_token = form.cts_api_token.data
+                else:
+                    # Optionnel: Réinitialiser les champs CTS si le widget est désactivé
+                    # widget_config.cts_stop_code = ""
+                    # widget_config.cts_vehicle_mode = "undefined"
+                    # widget_config.cts_api_token = ""
+                    pass # Garder les valeurs précédentes si désactivé
+
+                try:
+                    db.session.commit()
+                    flash('Configuration widgets mise à jour', 'success')
+                except Exception as e:
+                    db.session.rollback()
+                    logger.error(f"Erreur lors de la sauvegarde config widget: {e}")
+                    flash('Erreur lors de la mise à jour de la configuration.', 'danger')
+                
                 return redirect(url_for('admin_dashboard'))
-            
-            return render_template(
-                'admin_dashboard.html',
-                absences=Absence.query.all(),
-                widget_config=configs['widget'],
-                future_events=Event.get_upcoming_events(),
-                **forms,
-                cts_results=cts_results,
-                searched_cts_stop=cts_stop_code,
-                searched_vehicle_mode=cts_vehicle_mode
-            )
-        
+            else:
+                 # Afficher les erreurs de validation du formulaire Widget
+                 flash('Erreur dans le formulaire de configuration des widgets.', 'danger')
+                 # Ne pas rediriger pour voir les erreurs
+
         # Traitement des autres formulaires (absences, événements, site, météo, etc.)
-        form_handlers = {
-            'delete_absence': handle_absence_deletion,
-            'submit_absence': handle_absence_update,
-            'submit_password': handle_password_change,
-            'submit_event': handle_event_creation,
-            'delete_event': handle_event_deletion,
-            'submit_site': handle_site_config,
-            'submit_weather': handle_weather_config,
-            'submit_menu_item': handle_menu_item_creation,
-            'delete_menu_item': handle_menu_item_deletion
-        }
-        for action, handler in form_handlers.items():
-            if action in request.form:
-                return handler(request, forms, configs)
-    
+        else:
+            form_handlers = {
+                'delete_absence': handle_absence_deletion,
+                'submit_absence': handle_absence_update,
+                'submit_password': handle_password_change,
+                'submit_event': handle_event_creation,
+                'delete_event': handle_event_deletion,
+                'submit_site': handle_site_config,
+                'submit_weather': handle_weather_config,
+                'submit_menu_item': handle_menu_item_creation,
+                'delete_menu_item': handle_menu_item_deletion
+            }
+            action_handled = False
+            for action, handler in form_handlers.items():
+                if action in request.form:
+                    action_handled = True
+                    return handler(request, forms, configs)
+            if not action_handled:
+                 # Gérer le cas où aucun bouton connu n'a été soumis (peut arriver si le HTML change)
+                 logger.warning("Formulaire POST reçu sans action connue dans admin_dashboard")
+                 flash("Action non reconnue.", "warning")
+
+    # Rendu pour GET ou si POST non redirigé (ex: erreur form CTS ou Widget)
     return render_template(
         'admin_dashboard.html',
         absences=Absence.query.all(),
-        widget_config=configs['widget'],
+        widget_config=configs['widget'], # Peut-être redondant si forms['widget_form'].obj est utilisé dans le template
         future_events=Event.get_upcoming_events(),
         menu_items=MenuItem.get_todays_menu(),
-        **forms
+        **forms,
+        # Passer les résultats CTS même si None
+        cts_results=cts_results,
+        searched_cts_stop=searched_cts_stop,
+        searched_vehicle_mode=searched_vehicle_mode
     )
 
 def handle_absence_deletion(request, forms, configs):
@@ -468,31 +496,51 @@ def get_weather():
         if not weather_config.show_weather:
             return jsonify({'error': 'Météo désactivée'}), 200
 
+        # Utilisation de config directement
+        api_key = weather_config.api_key or app.config.get('WEATHER_API_KEY')
+        city = weather_config.city or app.config.get('WEATHER_CITY')
+        
+        if not api_key or not city:
+             logger.error("Clé API ou ville manquante pour la météo")
+             return jsonify({'error': 'Configuration météo incomplète'}), 500
+
         response = requests.get(
             "https://api.openweathermap.org/data/2.5/weather",
             params={
-                "q": weather_config.city,
-                "appid": weather_config.api_key,
+                "q": city,
+                "appid": api_key,
                 "units": "metric",
                 "lang": "fr"
-            }
+            },
+            timeout=CTS_API_TIMEOUT # Réutiliser le timeout
         )
+        response.raise_for_status()
 
-        if response.status_code == 200:
-            data = response.json()
-            description = data['weather'][0]['description']
+        data = response.json()
+        # Accès sécurisé aux données
+        weather_data = data.get('weather', [{}])[0]
+        main_data = data.get('main', {})
+        temp = main_data.get('temp')
+        description = weather_data.get('description', 'N/A')
+        icon = weather_data.get('icon', 'N/A')
+
+        if temp is not None:
             description = description[:1].upper() + description[1:]
-
             return jsonify({
-                'temp': round(data['main']['temp']),
+                'temp': round(temp),
                 'description': description,
-                'icon': data['weather'][0]['icon']
+                'icon': icon
             })
-        
-        return jsonify({'error': 'Données météo non disponibles'}), 500
+        else:
+             logger.error(f"Données de température manquantes dans la réponse OpenWeather: {data}")
+             return jsonify({'error': 'Données météo invalides'}), 500
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Erreur API OpenWeather: {e}")
+        return jsonify({'error': 'Erreur de communication météo'}), 500
     except Exception as e:
-        logger.error(f'Erreur météo: {e}')
-        return jsonify({'error': str(e)}), 500
+        logger.error(f'Erreur get_weather: {e}')
+        return jsonify({'error': 'Erreur interne serveur météo'}), 500
 
 def get_weather_description(weather_code):
     weather_codes = {

@@ -1,7 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+    /* Styles pour l'onglet actif */
+    .tab-button.active {
+        background-color: rgb(79 70 229); /* bg-indigo-700 */
+        color: white;
+    }
+    .tab-button:not(.active):hover {
+        background-color: rgb(224 231 255); /* bg-indigo-100 */
+        color: rgb(67 56 202); /* text-indigo-800 */
+    }
+</style>
 <div class="min-h-full p-4">
-    <!-- Navigation par onglets (réduite) -->
+    <!-- Navigation par onglets -->
     <nav class="flex gap-3 mb-6" role="tablist">
         {% set tabs = [
             ('absences', 'Absences', '👥'),
@@ -10,7 +21,8 @@
             ('settings', 'Paramètres', '⚙️')
         ] %}
         {% for id, label, icon in tabs %}
-            <button class="tab-button px-6 py-3 rounded-xl text-base font-medium transition-all" 
+            <button id="tab-{{ id }}" 
+                    class="tab-button px-6 py-3 rounded-xl text-base font-medium transition-all text-gray-600 bg-gray-100"
                     onclick="showTab('{{ id }}')"
                     role="tab"
                     aria-selected="false"
@@ -28,36 +40,41 @@
         </h2>
         
         <div class="grid grid-cols-12 gap-6">
-            <!-- Formulaire d'ajout (réduit) -->
+            <!-- Formulaire d'ajout -->
             <div class="col-span-4">
                 <form method="POST" class="space-y-4 bg-gray-50 p-4 rounded-lg">
                     {{ absence_form.hidden_tag() }}
-                    {{ absence_form.professeur(class="w-full rounded-lg border-gray-300 text-sm py-2 px-3", placeholder="Nom du professeur") }}
-                    <div class="grid grid-cols-2 gap-2">
-                        {% for choice in absence_form.jours.choices %}
-                        <label class="flex items-center space-x-2 bg-white p-2 rounded-lg border hover:bg-gray-50">
-                            <input type="checkbox" name="jours" value="{{ choice[0] }}" 
-                                   class="w-4 h-4 text-indigo-600 rounded">
-                            <span class="text-sm">{{ choice[1] }}</span>
-                        </label>
-                        {% endfor %}
+                    <div>
+                        <label for="{{ absence_form.professeur.id }}" class="sr-only">Nom du professeur</label>
+                        {{ absence_form.professeur(class="w-full rounded-lg border-gray-300 text-sm py-2 px-3", placeholder="Nom du professeur") }}
                     </div>
-                    <button type="submit" name="submit_absence" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
-                        Ajouter
+                    <fieldset>
+                         <legend class="text-sm font-medium text-gray-700 mb-2">Jours d'absence</legend>
+                        <div class="grid grid-cols-2 gap-2">
+                            {% for choice in absence_form.jours.choices %}
+                            <label class="flex items-center space-x-2 bg-white p-2 rounded-lg border hover:bg-gray-50 cursor-pointer">
+                                {{ absence_form.jours(id='jours-' ~ choice[0], value=choice[0], class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500") }}
+                                <span class="text-sm">{{ choice[1] }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </fieldset>
+                    <button type="submit" name="submit_absence" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Ajouter / Mettre à jour
                     </button>
                 </form>
             </div>
 
-            <!-- Liste des absences (plus compacte) -->
+            <!-- Liste des absences -->
             <div class="col-span-8 bg-gray-50 p-4 rounded-lg">
                 <h3 class="text-lg font-semibold mb-4">Absences en cours</h3>
                 {% if absences %}
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {% for absence in absences %}
-                        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex flex-col">
-                                <p class="text-xl font-medium mb-3">{{ absence.professeur }}</p>
-                                <p class="text-gray-600 text-lg">
+                        <div class="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+                            <div>
+                                <p class="text-lg font-medium mb-2">{{ absence.professeur }}</p>
+                                <p class="text-gray-600 text-sm">
                                     {% set jours = [] %}
                                     {%- if absence.lundi %}{% set _ = jours.append('Lun') %}{% endif -%}
                                     {%- if absence.mardi %}{% set _ = jours.append('Mar') %}{% endif -%}
@@ -65,15 +82,15 @@
                                     {%- if absence.jeudi %}{% set _ = jours.append('Jeu') %}{% endif -%}
                                     {%- if absence.vendredi %}{% set _ = jours.append('Ven') %}{% endif -%}
                                     {%- if absence.samedi %}{% set _ = jours.append('Sam') %}{% endif -%}
-                                    {{ jours|join(' - ') }}
+                                    {{ jours|join(' - ') if jours else 'Aucun jour sélectionné' }}
                                 </p>
-                                <form method="POST" class="mt-4">
-                                    <input type="hidden" name="delete_absence" value="{{ absence.id }}">
-                                    <button type="submit" class="text-red-600 hover:text-red-800 p-2 text-2xl">
-                                        🗑️
-                                    </button>
-                                </form>
                             </div>
+                            <form method="POST" class="mt-3 text-right" onsubmit="return confirm('Voulez-vous vraiment supprimer l\'absence de {{ absence.professeur }} ?');">
+                                <input type="hidden" name="delete_absence" value="{{ absence.id }}">
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-medium p-1 rounded hover:bg-red-100 transition-colors" title="Supprimer">
+                                    Supprimer 🗑️
+                                </button>
+                            </form>
                         </div>
                         {% endfor %}
                     </div>
@@ -88,293 +105,392 @@
     </div>
 
     <!-- Panneau des événements -->
-    <div id="events-panel" class="tab-panel bg-white rounded-2xl shadow-xl p-8 hidden h-[calc(100vh-12rem)]">
-        <h2 class="text-4xl font-bold mb-8 flex items-center">
-            <span class="text-5xl mr-4">📅</span> Gestion des événements
+    <div id="events-panel" class="tab-panel bg-white rounded-xl shadow-lg p-6 hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+            <span class="text-3xl mr-3">📅</span> Gestion des événements
         </h2>
         
-        <div class="grid grid-cols-12 gap-8 h-[calc(100%-5rem)] overflow-hidden">
+        <div class="grid grid-cols-12 gap-6">
             <!-- Formulaire d'ajout -->
-            <div class="col-span-5 space-y-6 h-full overflow-y-auto pr-4">
-                <form method="POST" class="bg-gray-50 p-6 rounded-xl space-y-6">
-                    {{ event_form.hidden_tag() }}
-                    {{ event_form.title(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Titre de l'événement") }}
-                    {{ event_form.date(class="w-full rounded-xl border-gray-300 text-lg py-3", type="date") }}
-                    {{ event_form.description(class="w-full rounded-xl border-gray-300 text-lg", rows="4", placeholder="Description (optionnel)") }}
-                    {{ event_form.submit_event(class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700") }}
-                </form>
+            <div class="col-span-5">
+                 <form method="POST" class="bg-gray-50 p-6 rounded-lg space-y-4">
+                     {{ event_form.hidden_tag() }}
+                     <div>
+                         <label for="{{ event_form.title.id }}" class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                         {{ event_form.title(class="w-full rounded-lg border-gray-300", placeholder="Titre de l'événement") }}
+                     </div>
+                     <div>
+                         <label for="{{ event_form.date.id }}" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                         {{ event_form.date(class="w-full rounded-lg border-gray-300", type="date") }}
+                     </div>
+                     <div>
+                         <label for="{{ event_form.description.id }}" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                         {{ event_form.description(class="w-full rounded-lg border-gray-300", rows="3", placeholder="Description (optionnel)") }}
+                     </div>
+                     {{ event_form.submit_event(class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500") }}
+                 </form>
             </div>
 
             <!-- Liste des événements -->
-            <div class="col-span-7 bg-gray-50 p-6 rounded-xl h-full overflow-y-auto">
-                <h3 class="text-2xl font-semibold mb-6">Événements à venir</h3>
+            <div class="col-span-7 bg-gray-50 p-4 rounded-lg h-[calc(100vh-18rem)] overflow-y-auto">
+                <h3 class="text-lg font-semibold mb-4">Événements à venir</h3>
                 {% if future_events %}
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-3">
                         {% for event in future_events %}
-                        <div class="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all">
-                            <div class="flex justify-between items-start">
-                                <div class="space-y-2">
-                                    <h4 class="text-xl font-bold text-gray-900">{{ event.title }}</h4>
-                                    <p class="text-indigo-600">{{ event.date.strftime('%d/%m/%Y') }}</p>
-                                    {% if event.description %}
-                                    <p class="text-gray-600">{{ event.description }}</p>
-                                    {% endif %}
-                                </div>
-                                <form method="POST">
-                                    <input type="hidden" name="delete_event" value="{{ event.id }}">
-                                    <button type="submit" class="text-red-600 hover:text-red-800 p-2">
-                                        <span class="text-2xl">🗑️</span>
-                                    </button>
-                                </form>
+                        <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all flex justify-between items-start">
+                            <div class="flex-1 mr-4">
+                                <h4 class="text-md font-bold text-gray-900">{{ event.title }}</h4>
+                                <p class="text-sm text-indigo-600">{{ event.date.strftime('%d/%m/%Y') }}</p>
+                                {% if event.description %}
+                                <p class="text-sm text-gray-600 mt-1">{{ event.description }}</p>
+                                {% endif %}
                             </div>
+                            <form method="POST" onsubmit="return confirm('Voulez-vous vraiment supprimer l\'événement {{ event.title }} ?');">
+                                <input type="hidden" name="delete_event" value="{{ event.id }}">
+                                <button type="submit" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors" title="Supprimer">
+                                     🗑️
+                                </button>
+                            </form>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-gray-500 text-center">Aucun événement prévu</p>
+                    <p class="text-center text-gray-500 py-6">Aucun événement prévu</p>
                 {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Panneau de la cantine -->
-    <div id="cantine-panel" class="tab-panel bg-white rounded-2xl shadow-xl p-8 hidden h-[calc(100vh-12rem)]">
-        <h2 class="text-4xl font-bold mb-8 flex items-center">
-            <span class="text-5xl mr-4">🍽️</span> Gestion du Menu
+    <div id="cantine-panel" class="tab-panel bg-white rounded-xl shadow-lg p-6 hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+            <span class="text-3xl mr-3">🍽️</span> Gestion du Menu Cantine
         </h2>
         
-        <div class="grid grid-cols-12 gap-8 h-[calc(100%-5rem)] overflow-hidden">
+        <div class="grid grid-cols-12 gap-6">
             <!-- Formulaire d'ajout -->
-            <div class="col-span-5 space-y-6 h-full overflow-y-auto pr-4">
-                <form method="POST" class="bg-gray-50 p-6 rounded-xl space-y-6">
+            <div class="col-span-5">
+                <form method="POST" class="bg-gray-50 p-6 rounded-lg space-y-4">
                     {{ menu_form.hidden_tag() }}
-                    {{ menu_form.category(class="w-full rounded-xl border-gray-300 text-lg py-3") }}
-                    {{ menu_form.name(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Nom du plat") }}
-                    {{ menu_form.description(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Description (optionnel)") }}
-                    <div class="space-y-3">
-                        <label class="text-lg font-medium text-gray-700">Caractéristiques</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            {% for value, label in menu_form.icons.choices %}
-                            <label class="flex items-center p-3 bg-white rounded-xl border hover:bg-gray-50">
-                                <input type="checkbox" name="icons" value="{{ value }}" class="w-5 h-5 text-indigo-600 mr-3">
-                                <span class="text-lg">{{ label }}</span>
-                            </label>
-                            {% endfor %}
-                        </div>
+                    <div>
+                         <label for="{{ menu_form.category.id }}" class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                         {{ menu_form.category(class="w-full rounded-lg border-gray-300") }}
                     </div>
-                    {{ menu_form.date(class="w-full rounded-xl border-gray-300 text-lg py-3") }}
-                    {{ menu_form.submit_menu_item(class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700") }}
+                    <div>
+                         <label for="{{ menu_form.name.id }}" class="block text-sm font-medium text-gray-700 mb-1">Nom du plat</label>
+                         {{ menu_form.name(class="w-full rounded-lg border-gray-300", placeholder="Nom du plat") }}
+                     </div>
+                    <div>
+                         <label for="{{ menu_form.description.id }}" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                         {{ menu_form.description(class="w-full rounded-lg border-gray-300", placeholder="Description (optionnel)") }}
+                    </div>
+                    <fieldset>
+                         <legend class="text-sm font-medium text-gray-700 mb-2">Caractéristiques</legend>
+                         <div class="grid grid-cols-2 gap-2">
+                             {% for value, label in menu_form.icons.choices %}
+                             <label class="flex items-center p-2 bg-white rounded-lg border hover:bg-gray-50 cursor-pointer">
+                                 {{ menu_form.icons(id='icon-' ~ value, value=value, class="w-4 h-4 text-indigo-600 mr-2 border-gray-300 rounded focus:ring-indigo-500") }}
+                                 <span class="text-sm">{{ label }}</span>
+                             </label>
+                             {% endfor %}
+                         </div>
+                    </fieldset>
+                    <div>
+                        <label for="{{ menu_form.date.id }}" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        {{ menu_form.date(class="w-full rounded-lg border-gray-300") }}
+                    </div>
+                    {{ menu_form.submit_menu_item(class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500") }}
                 </form>
             </div>
 
             <!-- Liste des plats -->
-            <div class="col-span-7 bg-gray-50 p-6 rounded-xl h-full overflow-y-auto">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Menu du jour</h3>
+            <div class="col-span-7 bg-gray-50 p-4 rounded-lg h-[calc(100vh-18rem)] overflow-y-auto">
+                <div class="flex items-center justify-between mb-4 sticky top-0 bg-gray-50 py-2">
+                    <h3 class="text-lg font-semibold">Menu du jour ({{ menu_items[0].date.strftime('%d/%m/%Y') if menu_items else 'N/A' }})</h3>
                     <form method="POST" class="flex items-center">
                         {{ widget_form.hidden_tag() }}
                         <div class="flex items-center space-x-2">
-                            {{ widget_form.show_menu_cantine(class="w-5 h-5 text-indigo-600") }}
-                            {{ widget_form.show_menu_cantine.label(class="text-sm text-gray-700") }}
+                            {{ widget_form.show_menu_cantine(class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500") }}
+                            <label for="{{ widget_form.show_menu_cantine.id }}" class="text-sm text-gray-700">{{ widget_form.show_menu_cantine.label.text }}</label>
                         </div>
-                        {{ widget_form.submit_widget(class="ml-4 px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700") }}
+                        <button type="submit" name="submit_widget" class="ml-3 px-3 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500" title="Enregistrer le statut d'affichage">Enr.</button>
                     </form>
                 </div>
 
                 {% if menu_items %}
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         {% for cat_id, cat_name, cat_icon in MenuItem.get_menu_categories() %}
-                            {% set category_items = [] %}
-                            {% for item in menu_items %}
-                                {% if item.category == cat_id %}
-                                    {% set _ = category_items.append(item) %}
-                                {% endif %}
-                            {% endfor %}
-
+                            {% set category_items = menu_items|selectattr('category', 'equalto', cat_id)|list %}
                             {% if category_items %}
-                                <div class="space-y-2">
-                                    <h4 class="flex items-center font-medium text-gray-700">
-                                        <span class="text-xl mr-2">{{ cat_icon }}</span>
+                                <div class="mb-3">
+                                    <h4 class="flex items-center font-medium text-gray-700 mb-2">
+                                        <span class="text-lg mr-2">{{ cat_icon }}</span>
                                         {{ cat_name }}
                                     </h4>
-                                    {% for item in category_items %}
-                                        <div class="flex items-center justify-between bg-white p-3 rounded-lg">
-                                            <div class="flex-1">
-                                                <div class="font-medium">{{ item.name }}</div>
-                                                {% if item.description %}
-                                                    <div class="text-sm text-gray-600">{{ item.description }}</div>
-                                                {% endif %}
-                                                {% if item.icons %}
-                                                    <div class="text-lg mt-1">{{ item.icons }}</div>
-                                                {% endif %}
+                                    <div class="space-y-2">
+                                        {% for item in category_items %}
+                                            <div class="flex items-start justify-between bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                                                <div class="flex-1 mr-3">
+                                                    <div class="font-medium">{{ item.name }}</div>
+                                                    {% if item.description %}
+                                                        <div class="text-xs text-gray-600">{{ item.description }}</div>
+                                                    {% endif %}
+                                                    {% if item.icons %}
+                                                        <div class="text-md mt-1">{{ item.icons }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <form method="POST" class="flex-shrink-0" onsubmit="return confirm('Voulez-vous vraiment supprimer le plat \'{{ item.name }}\' ?');">
+                                                    <input type="hidden" name="delete_menu_item" value="{{ item.id }}">
+                                                    <button type="submit" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors" title="Supprimer">
+                                                        🗑️
+                                                    </button>
+                                                </form>
                                             </div>
-                                            <form method="POST" class="ml-4">
-                                                <input type="hidden" name="delete_menu_item" value="{{ item.id }}">
-                                                <button type="submit" class="text-red-600 hover:text-red-800">
-                                                    <span class="text-xl">🗑️</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    {% endfor %}
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             {% endif %}
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-center text-gray-500 py-4">Aucun plat ajouté pour aujourd'hui</p>
+                    <p class="text-center text-gray-500 py-6">Aucun plat ajouté pour aujourd'hui</p>
                 {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Panneau des paramètres -->
-    <div id="settings-panel" class="tab-panel bg-white rounded-2xl shadow-xl p-8 hidden h-[calc(100vh-12rem)]">
-        <h2 class="text-4xl font-bold mb-8 flex items-center">
-            <span class="text-5xl mr-4">⚙️</span> Paramètres
+    <div id="settings-panel" class="tab-panel bg-white rounded-xl shadow-lg p-6 hidden">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+            <span class="text-3xl mr-3">⚙️</span> Paramètres Généraux
         </h2>
         
-        <div class="grid grid-cols-12 gap-8 h-[calc(100%-5rem)] overflow-hidden">
-            <!-- Colonne de gauche : Configurations principales -->
-            <div class="col-span-4 space-y-6 h-full overflow-y-auto pr-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Colonne 1: Site & Mdp -->
+            <div class="space-y-6">
                 <!-- Configuration du site -->
-                <div class="bg-gray-50 p-6 rounded-xl">
-                    <h3 class="text-2xl font-semibold mb-6">Configuration de l'établissement</h3>
-                    <form method="POST" class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Établissement</h3>
+                    <form method="POST" class="space-y-3">
                         {{ site_form.hidden_tag() }}
-                        {{ site_form.site_name(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Nom de l'établissement") }}
-                        {{ site_form.submit_site(class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700") }}
+                        <div>
+                            <label for="{{ site_form.site_name.id }}" class="sr-only">Nom</label>
+                            {{ site_form.site_name(class="w-full rounded-lg border-gray-300", placeholder="Nom de l'établissement") }}
+                        </div>
+                        {{ site_form.submit_site(class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700") }}
                     </form>
                 </div>
 
                 <!-- Modification du mot de passe -->
-                <div class="bg-gray-50 p-6 rounded-xl">
-                    <h3 class="text-2xl font-semibold mb-6">Modification du mot de passe</h3>
-                    <form method="POST" class="space-y-4">
-                        {{ password_form.hidden_tag() }}
-                        {{ password_form.current_password(class="w-full rounded-xl border-gray-300 text-lg", placeholder="Mot de passe actuel") }}
-                        {{ password_form.new_password(class="w-full rounded-xl border-gray-300 text-lg", placeholder="Nouveau mot de passe") }}
-                        {{ password_form.confirm_password(class="w-full rounded-xl border-gray-300 text-lg", placeholder="Confirmer le mot de passe") }}
-                        {{ password_form.submit_password(class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700") }}
-                    </form>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Mot de passe Admin</h3>
+                     <form method="POST" class="space-y-3">
+                         {{ password_form.hidden_tag() }}
+                         <div>
+                            <label for="{{ password_form.current_password.id }}" class="sr-only">Actuel</label>
+                            {{ password_form.current_password(class="w-full rounded-lg border-gray-300", placeholder="Mot de passe actuel") }}
+                         </div>
+                         <div>
+                            <label for="{{ password_form.new_password.id }}" class="sr-only">Nouveau</label>
+                            {{ password_form.new_password(class="w-full rounded-lg border-gray-300", placeholder="Nouveau mot de passe") }}
+                         </div>
+                         <div>
+                            <label for="{{ password_form.confirm_password.id }}" class="sr-only">Confirmer</label>
+                            {{ password_form.confirm_password(class="w-full rounded-lg border-gray-300", placeholder="Confirmer le nouveau mot de passe") }}
+                         </div>
+                         {{ password_form.submit_password(class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700") }}
+                     </form>
                 </div>
             </div>
 
-            <!-- Colonne centrale : Configuration météo et transports -->
-            <div class="col-span-4 space-y-6 h-full overflow-y-auto pr-4">
-                <!-- Configuration de la météo -->
-                <div class="bg-gray-50 p-6 rounded-xl">
-                    <h3 class="text-2xl font-semibold mb-6">Configuration de la météo</h3>
-                    <form method="POST" class="space-y-4">
-                        {{ weather_form.hidden_tag() }}
-                        <div class="flex items-center mb-6">
-                            {{ weather_form.show_weather(class="w-6 h-6 mr-3") }}
-                            {{ weather_form.show_weather.label(class="text-lg text-gray-700") }}
-                        </div>
-                        {{ weather_form.city(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Ville") }}
-                        {{ weather_form.api_key(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Clé API OpenWeather") }}
-                        <div class="text-sm text-gray-600 mt-2 p-3 bg-blue-50 rounded-lg">
-                            <p class="mb-2">Pour obtenir une clé API OpenWeather gratuite :</p>
-                            <ol class="list-decimal list-inside space-y-1">
-                                <li>Visitez <a href="https://openweathermap.org/api" target="_blank" class="text-blue-600 hover:underline">openweathermap.org/api</a></li>
-                                <li>Créez un compte gratuit</li>
-                                <li>Dans votre tableau de bord, allez dans "API keys"</li>
-                                <li>Copiez votre clé API et collez-la ici</li>
-                            </ol>
-                            <p class="mt-2 text-xs">Note : La clé peut prendre jusqu'à 2 heures pour être activée après sa création.</p>
-                        </div>
-                        {{ weather_form.submit_weather(class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700 mt-4") }}
-                    </form>
+            <!-- Colonne 2: Widgets -->
+            <div class="space-y-6">
+                 <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Widgets Page d'Accueil</h3>
+                     <form method="POST" class="space-y-4">
+                         {{ widget_form.hidden_tag() }}
+                         <fieldset class="space-y-2">
+                             <legend class="sr-only">Activer/Désactiver les widgets</legend>
+                             <div class="flex items-center bg-white p-3 rounded-lg border">
+                                 {{ widget_form.show_menu_cantine(class="w-4 h-4 text-indigo-600 rounded border-gray-300 mr-2") }}
+                                 <label for="{{ widget_form.show_menu_cantine.id }}" class="text-sm font-medium text-gray-700">Afficher le menu de la cantine</label>
+                             </div>
+                             <div class="flex items-center bg-white p-3 rounded-lg border">
+                                 {{ widget_form.show_transports(class="w-4 h-4 text-indigo-600 rounded border-gray-300 mr-2") }}
+                                 <label for="{{ widget_form.show_transports.id }}" class="text-sm font-medium text-gray-700">Afficher les transports CTS</label>
+                             </div>
+                         </fieldset>
+                         
+                         <!-- Champs CTS conditionnels (simplifié) -->
+                         <div id="cts-fields" class="space-y-3 pt-3 border-t border-gray-200 mt-4 {% if not widget_config.show_transports %}hidden{% endif %}">
+                             <h4 class="text-md font-medium text-gray-600">Configuration CTS</h4>
+                             <div>
+                                <label for="{{ widget_form.cts_stop_code.id }}" class="sr-only">Code Arrêt</label>
+                                {{ widget_form.cts_stop_code(class="w-full rounded-lg border-gray-300 text-sm", placeholder="Code arrêt CTS (ex: 247a)") }}
+                             </div>
+                             <div>
+                                <label for="{{ widget_form.cts_vehicle_mode.id }}" class="sr-only">Mode</label>
+                                {{ widget_form.cts_vehicle_mode(class="w-full rounded-lg border-gray-300 text-sm") }}
+                             </div>
+                              <div>
+                                <label for="{{ widget_form.cts_stop_display.id }}" class="sr-only">Nom Affiché</label>
+                                {{ widget_form.cts_stop_display(class="w-full rounded-lg border-gray-300 text-sm", placeholder="Nom arrêt affiché (optionnel)") }}
+                             </div>
+                             <div>
+                                <label for="{{ widget_form.cts_api_token.id }}" class="sr-only">Token API</label>
+                                {{ widget_form.cts_api_token(class="w-full rounded-lg border-gray-300 text-sm", placeholder="Token API CTS (optionnel)") }}
+                             </div>
+                         </div>
+
+                         {{ widget_form.submit_widget(class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700") }}
+                     </form>
+                     
+                     <script>
+                        // Script pour afficher/masquer les champs CTS
+                        const showTransportCheckbox = document.getElementById('{{ widget_form.show_transports.id }}');
+                        const ctsFieldsDiv = document.getElementById('cts-fields');
+                        if (showTransportCheckbox && ctsFieldsDiv) {
+                            showTransportCheckbox.addEventListener('change', function() {
+                                ctsFieldsDiv.classList.toggle('hidden', !this.checked);
+                            });
+                        }
+                    </script>
                 </div>
             </div>
+            
+            <!-- Colonne 3: Météo & Recherche CTS -->
+            <div class="space-y-6">
+                <!-- Config Météo -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Météo</h3>
+                     <form method="POST" class="space-y-3">
+                         {{ weather_form.hidden_tag() }}
+                         <fieldset class="space-y-2">
+                             <legend class="sr-only">Options Météo</legend>
+                             <div class="flex items-center bg-white p-3 rounded-lg border">
+                                 {{ weather_form.show_weather(class="w-4 h-4 text-indigo-600 rounded border-gray-300 mr-2") }}
+                                 <label for="{{ weather_form.show_weather.id }}" class="text-sm font-medium text-gray-700">Afficher la météo</label>
+                             </div>
+                         </fieldset>
+                         <div>
+                             <label for="{{ weather_form.city.id }}" class="sr-only">Ville</label>
+                             {{ weather_form.city(class="w-full rounded-lg border-gray-300", placeholder="Ville (ex: Paris)") }}
+                         </div>
+                         <div>
+                             <label for="{{ weather_form.api_key.id }}" class="sr-only">Clé API</label>
+                             {{ weather_form.api_key(class="w-full rounded-lg border-gray-300", placeholder="Clé API OpenWeatherMap") }}
+                         </div>
+                         {{ weather_form.submit_weather(class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700") }}
+                     </form>
+                </div>
 
-            <!-- Colonne droite : Configuration des transports -->
-            <div class="col-span-4 space-y-6 h-full overflow-y-auto">
-                <div class="bg-gray-50 p-6 rounded-xl">
-                    <h3 class="text-2xl font-semibold mb-6">Configuration des Transports</h3>
-                    <form method="POST" class="space-y-6">
-                        {{ widget_form.hidden_tag() }}
-                        <div class="flex items-center mb-6">
-                            {{ widget_form.show_transports(class="w-6 h-6 mr-3") }}
-                            {{ widget_form.show_transports.label(class="text-lg text-gray-700") }}
+                <!-- Recherche Arrêt CTS -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Recherche Arrêt CTS</h3>
+                    <form method="POST" class="space-y-3">
+                        {{ cts_form.hidden_tag() }}
+                        <div>
+                            <label for="{{ cts_form.stop_code.id }}" class="sr-only">Code Arrêt</label>
+                            {{ cts_form.stop_code(class="w-full rounded-lg border-gray-300", placeholder="Code arrêt (ex: 247a)", value=searched_cts_stop or '') }}
                         </div>
-                        <div class="space-y-4">
-                            {{ widget_form.cts_stop_code(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Code d'arrêt") }}
-                            {{ widget_form.cts_stop_display(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Texte d'affichage personnalisé") }}
-                            {{ widget_form.cts_vehicle_mode(class="w-full rounded-xl border-gray-300 text-lg py-3") }}
-                            {{ widget_form.cts_api_token(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Clé API CTS") }}
-                            {{ widget_form.submit_widget(class="w-full px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700") }}
+                         <div>
+                            <label for="{{ cts_form.vehicle_mode.id }}" class="sr-only">Mode</label>
+                            {{ cts_form.vehicle_mode(class="w-full rounded-lg border-gray-300", value=searched_vehicle_mode or 'undefined') }}
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" name="submit_cts" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">Rechercher</button>
+                            <button type="submit" name="submit_cts_save" class="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm {% if not cts_results %}opacity-50 cursor-not-allowed{% endif %}" {% if not cts_results %}disabled title="Recherchez d'abord un arrêt"{% endif %}>Utiliser cet arrêt</button>
                         </div>
                     </form>
-
-                    <!-- Test CTS -->
-                    <div class="mt-8 pt-6 border-t border-gray-200">
-                        <h4 class="text-xl font-medium text-gray-700 mb-4">Tester un arrêt</h4>
-                        <form method="POST" class="space-y-4">
-                            {{ cts_form.hidden_tag() }}
-                            {{ cts_form.stop_code(class="w-full rounded-xl border-gray-300 text-lg py-3", placeholder="Code d'arrêt à tester") }}
-                            {{ cts_form.vehicle_mode(class="w-full rounded-xl border-gray-300 text-lg py-3") }}
-                            <div class="grid grid-cols-2 gap-4">
-                                {{ cts_form.submit_cts(class="px-6 py-3 bg-gray-600 text-white rounded-xl text-lg hover:bg-gray-700") }}
-                                {{ cts_form.submit_cts_save(class="px-6 py-3 bg-indigo-600 text-white rounded-xl text-lg hover:bg-indigo-700") }}
-                            </div>
-                        </form>
-
-                        {% if cts_results is defined and cts_results %}
-                            <div class="mt-6 space-y-3">
-                                <h5 class="font-medium text-gray-700 text-lg mb-4">Résultats :</h5>
+                    
+                    <!-- Résultats CTS -->
+                    {% if cts_results is not none %}
+                        <div class="mt-4 border-t pt-4">
+                            <h4 class="text-md font-medium mb-2">Résultats pour {{ searched_cts_stop }}:</h4>
+                            {% if cts_results %}
+                                <ul class="text-sm space-y-1 list-disc list-inside">
                                 {% for visit in cts_results %}
-                                    <div class="bg-white p-3 rounded border">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xl">
-                                                {% if journey.VehicleMode == 'bus' %}🚌{% else %}🚊{% endif %}
-                                            </span>
-                                            <span class="font-bold">{{ journey.PublishedLineName }}</span>
-                                            <span class="text-gray-600">→ {{ journey.DestinationName }}</span>
-                                        </div>
-                                    </div>
+                                    {% set journey = visit.MonitoredVehicleJourney %}
+                                    <li>{{ journey.PublishedLineName }} → {{ journey.DestinationName if journey.DestinationName is string else journey.DestinationName|join(', ') }} 
+                                        ({{ visit.MonitoredCall.ExpectedArrivalTime|format_datetime if visit.MonitoredCall.ExpectedArrivalTime else 'N/A' }})
+                                    </li>
                                 {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+                                </ul>
+                            {% else %}
+                                <p class="text-sm text-gray-500">Aucun passage trouvé.</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <script>
     function showTab(tabId) {
-        // Cache tous les panneaux
+        // Cacher tous les panneaux
         document.querySelectorAll('.tab-panel').forEach(panel => {
             panel.classList.add('hidden');
         });
+        // Afficher le panneau sélectionné
+        document.getElementById(tabId + '-panel').classList.remove('hidden');
         
-        // Désélectionne tous les onglets
-        document.querySelectorAll('.tab-button').forEach(tab => {
-            tab.classList.remove('bg-white', 'shadow-lg');
-            tab.classList.add('bg-gray-100', 'hover:bg-white');
-            tab.setAttribute('aria-selected', 'false');
+        // Gérer l'état actif des boutons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+            button.setAttribute('aria-selected', 'false');
         });
-        
-        // Affiche le panneau sélectionné
-        const panel = document.getElementById(`${tabId}-panel`);
-        panel.classList.remove('hidden');
-        
-        // Active l'onglet sélectionné
-        const button = event.currentTarget;
-        button.classList.remove('bg-gray-100', 'hover:bg-white');
-        button.classList.add('bg-white', 'shadow-lg');
-        button.setAttribute('aria-selected', 'true');
-        
-        // Sauvegarde l'onglet actif
-        localStorage.setItem('activeTab', tabId);
+        const activeButton = document.getElementById('tab-' + tabId);
+        if (activeButton) {
+            activeButton.classList.add('active');
+            activeButton.setAttribute('aria-selected', 'true');
+        }
+        // Mémoriser l'onglet actif dans l'URL
+        // window.location.hash = tabId;
     }
 
-    // Restaure l'onglet actif au chargement
-    document.addEventListener('DOMContentLoaded', () => {
-        const activeTab = localStorage.getItem('activeTab') || 'absences';
-        const tabButton = document.querySelector(`[aria-controls="${activeTab}-panel"]`);
-        if (tabButton) tabButton.click();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Activer le premier onglet par défaut ou celui dans l'URL
+        // const hash = window.location.hash.substring(1);
+        // const defaultTab = hash || 'absences'; 
+        const defaultTab = 'absences'; // Toujours commencer par absences pour l'instant
+        showTab(defaultTab);
+        
+        // Ajouter la logique pour les checkboxes des jours d'absence
+        const absenceForm = document.querySelector('#absences-panel form');
+        if (absenceForm) {
+            const checkboxes = absenceForm.querySelectorAll('input[type="checkbox"][name="jours"]');
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                   // Optionnel: Logique si nécessaire quand une checkbox change
+                });
+            });
+        }
+
+        // Ajouter la logique pour les checkboxes des icônes de menu
+        const menuForm = document.querySelector('#cantine-panel form');
+        if (menuForm) {
+             const iconCheckboxes = menuForm.querySelectorAll('input[type="checkbox"][name="icons"]');
+             iconCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                   // Optionnel: Logique si nécessaire quand une checkbox change
+                });
+            });
+        }
+        
+        // Initialiser le formatage des dates/heures pour les résultats CTS (si présents)
+        function formatDateTime(isoString) {
+            if (!isoString) return 'N/A';
+            try {
+                const date = new Date(isoString);
+                return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) {
+                return 'Date invalide';
+            }
+        }
+        window.format_datetime = formatDateTime; // Rendre accessible globalement si besoin
     });
 </script>
 {% endblock %}

@@ -10,6 +10,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <style>
+        /* Styles pour les animations des messages flash */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+        .flash-message-enter {
+            animation: fadeInRight 0.3s ease-out forwards;
+        }
+        .flash-message-leave {
+            animation: fadeOutRight 0.3s ease-in forwards;
+        }
         .status-bar {
             position: fixed;
             bottom: 0;
@@ -76,14 +91,29 @@
     </main>
 
     <!-- Flash messages -->
+    {% set messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div id="flash-messages" class="fixed top-4 right-4 z-50 space-y-2 w-80">
         {% for category, message in messages %}
-            <div class="flash-message rounded-lg p-4 text-white flex items-start transform transition-all duration-300 ease-in-out hover:scale-[1.02] 
-                      {% if category == 'success' %}bg-emerald-500{% elif category == 'error' %}bg-red-500{% else %}bg-blue-500{% endif %}"
-                 role="alert">s
+            {% set bg_color = 'bg-blue-500' %}
+            {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>' %}
+            {% if category == 'success' %}
+                {% set bg_color = 'bg-emerald-500' %}
+                {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' %}
+            {% elif category == 'danger' or category == 'error' %}
+                {% set bg_color = 'bg-red-500' %}
+                {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>' %}
+             {% elif category == 'warning' %}
+                {% set bg_color = 'bg-yellow-500' %}
+                {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.625-1.09 2.077-1.09 2.702 0l6.468 11.337A1.75 1.75 0 0116.06 17H3.94a1.75 1.75 0 01-1.367-2.564l6.468-11.337zM9 13a1 1 0 112 0v1a1 1 0 11-2 0v-1zm1-4a1 1 0 00-1 1v1a1 1 0 102 0V10a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>' %}
+           {% endif %}
+            <div class="flash-message rounded-lg p-4 text-white flex items-start shadow-lg {{ bg_color }}"
+                 role="alert">
+                {{ icon_svg|safe }}
                 <div class="flex-1">{{ message }}</div>
-                <button type="button" onclick="this.closest('.flash-message').remove()" class="ml-4 opacity-75 hover:opacity-100" aria-label="Fermer">×</button>
+                <button type="button" onclick="removeFlashMessage(this.closest('.flash-message'))" class="ml-4 -mr-1 -mt-1 p-1 rounded-md opacity-75 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50" aria-label="Fermer">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
             </div>
         {% endfor %}
     </div>
@@ -107,7 +137,10 @@
                     <div class="flex items-center gap-4">
                         <span id="weather-icon" class="text-4xl"></span>
                         <div class="flex flex-col">
-                            <div id="weather" class="text-2xl font-medium"></div>
+                            <div id="weather" class="text-2xl font-medium">
+                                <!-- État de chargement initial -->
+                                <span class="weather-loading opacity-75 text-lg">Chargement...</span>
+                            </div>
                             <div class="text-sm opacity-75">{{ weather_city }}</div>
                         </div>
                     </div>
@@ -115,7 +148,7 @@
                 {% if current_user.is_authenticated %}
                     <div class="admin-controls flex gap-3">
                         <a href="{{ url_for('admin_dashboard') }}" 
-                           class="p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                           class="p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600"
                            title="Dashboard">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -123,7 +156,7 @@
                             </svg>
                         </a>
                         <a href="{{ url_for('logout') }}" 
-                           class="p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                           class="p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600"
                            title="Déconnexion">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -155,10 +188,7 @@
                 this.updateClock();
                 this.updateWeather();
                 setInterval(() => this.updateClock(), 1000);
-                setInterval(() => this.updateWeather(), 60000);
-                if (!window.location.pathname.includes('admin')) {
-                    this.initializeAutoRefresh();
-                }
+                setInterval(() => this.updateWeather(), 15 * 60 * 1000);
             }
 
             updateClock() {
@@ -181,7 +211,18 @@
             async updateWeather() {
                 try {
                     const response = await fetch('{{ url_for("get_weather") }}');
-                    if (!response.ok) throw new Error('Erreur réseau');
+                    // Afficher l'état de chargement seulement si ce n'est pas le premier chargement silencieux
+                    // this.setWeatherLoading(); // Optionnel: pourrait clignoter
+                    
+                    if (!response.ok) {
+                        let errorMsg = `Erreur réseau (${response.status})`;
+                        try {
+                             const errData = await response.json();
+                             errorMsg = errData.error || errorMsg; // Utiliser le message d'erreur de l'API si disponible
+                        } catch (e) { /* Ignorer l'erreur de parsing JSON */ }
+                        throw new Error(errorMsg);
+                    }
+                    
                     const data = await response.json();
                     
                     if (data.error) {
@@ -192,16 +233,28 @@
                     const temp = data.temp;
                     const description = data.description;
                     const icon = this.getWeatherEmoji(description);
-
+                    
+                    // Masquer le chargement et afficher les données
+                    this.clearWeatherLoading();
                     this.weatherElement.textContent = `${temp}°C - ${description}`;
                     this.weatherIconElement.textContent = icon;
+
                 } catch (error) {
                     console.error('Erreur météo:', error);
-                    this.setWeatherError('Service indisponible');
+                    this.setWeatherError(error.message || 'Service indisponible');
                 }
             }
 
+            // Fonction pour effacer l'état de chargement
+            clearWeatherLoading() {
+                 const loadingElement = this.weatherElement.querySelector('.weather-loading');
+                 if (loadingElement) {
+                     loadingElement.remove();
+                 }
+            }
+
             setWeatherError(message) {
+                this.clearWeatherLoading(); // Assurer que le chargement est masqué
                 this.weatherElement.textContent = message;
                 this.weatherIconElement.textContent = '⚠️';
             }
@@ -227,22 +280,39 @@
                 return match ? weatherMap[match] : '🌡️';
             }
 
-            initializeAutoRefresh() {
-                setInterval(() => {
-                    if (document.visibilityState === 'visible') {
-                        window.location.reload();
-                    }
-                }, 15000);
-            }
-
             initFlashMessages() {
                 const messages = document.querySelectorAll('.flash-message');
                 messages.forEach(msg => {
-                    setTimeout(() => {
-                        msg.style.opacity = '0';
-                        setTimeout(() => msg.remove(), 300);
-                    }, 5000);
+                    // Appliquer l'animation d'entrée
+                    msg.classList.add('flash-message-enter');
+                    
+                    const timer = setTimeout(() => {
+                         this.removeFlashMessage(msg);
+                    }, 5000); // Délai avant disparition auto
+                    
+                    // Empêcher la disparition auto si survolé
+                    msg.addEventListener('mouseenter', () => clearTimeout(timer));
+                    // Relancer le timer si on quitte le survol (optionnel)
+                    // msg.addEventListener('mouseleave', () => setTimeout(() => this.removeFlashMessage(msg), 2000));
                 });
+            }
+            
+            // Nouvelle fonction pour gérer la suppression avec animation
+            removeFlashMessage(element) {
+                if (!element) return;
+                element.classList.remove('flash-message-enter');
+                element.classList.add('flash-message-leave');
+                // Supprimer l'élément du DOM après la fin de l'animation
+                element.addEventListener('animationend', () => {
+                    element.remove();
+                });
+            }
+        }
+
+        // Fonction globale pour le bouton de fermeture
+        function removeFlashMessage(element) {
+            if (window.dashboard) {
+                window.dashboard.removeFlashMessage(element);
             }
         }
 

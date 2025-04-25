@@ -15,6 +15,9 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     role = db.Column(db.String(20), default='user')
 
+    def __repr__(self):
+        return f'<User {self.identifiant} ({self.role})>'
+
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
@@ -39,6 +42,10 @@ class Absence(db.Model):
     vendredi = db.Column(db.Boolean, default=False)
     samedi = db.Column(db.Boolean, default=False)
 
+    def __repr__(self):
+        days = [d for d in ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'] if getattr(self, d)]
+        return f'<Absence Prof={self.professeur} Jours={",".join(days) or "Aucun"}>'
+
 class WidgetConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     show_menu_cantine = db.Column(db.Boolean, default=False)
@@ -47,6 +54,9 @@ class WidgetConfig(db.Model):
     cts_vehicle_mode = db.Column(db.String(20), default="undefined")
     cts_api_token = db.Column(db.String(64), default="")
     cts_stop_display = db.Column(db.String(50), default="")
+
+    def __repr__(self):
+        return f'<WidgetConfig Menu={self.show_menu_cantine} Transport={self.show_transports}>'
 
     @staticmethod
     def get_config():
@@ -81,6 +91,9 @@ class ThemeConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     primary_color = db.Column(db.String(20), default='indigo')
     
+    def __repr__(self):
+        return f'<ThemeConfig Color={self.primary_color}>'
+
     @staticmethod
     def get_color_choices():
         return [
@@ -99,6 +112,9 @@ class SiteConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     site_name = db.Column(db.String(100), default='EducInfo')
     
+    def __repr__(self):
+        return f'<SiteConfig Name={self.site_name}>'
+
     @classmethod
     def get_config(cls):
         config = cls.query.first()
@@ -115,6 +131,9 @@ class WeatherConfig(db.Model):
     city = db.Column(db.String(100), nullable=False, default='Paris')
     show_weather = db.Column(db.Boolean, default=True)
     
+    def __repr__(self):
+        return f'<WeatherConfig City={self.city} Show={self.show_weather}>'
+
     @classmethod
     def get_config(cls):
         return cls.query.first() or cls()
@@ -124,6 +143,9 @@ class Event(db.Model):
     title = db.Column(db.String(200), nullable=False)
     date = db.Column(db.Date, nullable=False)
     description = db.Column(db.Text, default="")
+
+    def __repr__(self):
+        return f'<Event {self.title} Date={self.date.strftime("%Y-%m-%d")}>'
 
     def is_future(self):
         return self.date >= date.today()
@@ -144,6 +166,9 @@ class MenuItem(db.Model):
     icons = db.Column(db.String(50))
     date = db.Column(db.Date, nullable=False, default=date.today)
     order = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return f'<MenuItem {self.category}: {self.name} Date={self.date.strftime("%Y-%m-%d")}>'
 
     @staticmethod
     def get_menu_categories():

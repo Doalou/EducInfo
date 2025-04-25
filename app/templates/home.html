@@ -4,8 +4,8 @@
     <div class="max-w-[2000px] mx-auto grid grid-cols-12 gap-6">
         <!-- Section principale (8 colonnes) -->
         <div class="col-span-12 xl:col-span-8 space-y-6">
-            <!-- Panneau des absences (taille ajustée) -->
-            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20">
+            <!-- Panneau des absences -->
+            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 hover:shadow-2xl transition-shadow duration-300">
                 <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-5">
                     <div class="flex items-center justify-between">
                         <h2 class="text-2xl font-bold text-white flex items-center">
@@ -18,7 +18,7 @@
                 </div>
 
                 <div class="p-5">
-                    <div class="flex gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {% for jour, label in [
                             ('lundi', 'Lundi'),
                             ('mardi', 'Mardi'),
@@ -27,15 +27,17 @@
                             ('vendredi', 'Vendredi'),
                             ('samedi', 'Samedi')
                         ] %}
-                        <div class="w-52">
-                            <div class="bg-rose-50/50 backdrop-blur rounded-xl p-4">
+                        <div class="w-full"> {# Utiliser w-full pour la grille #}
+                            <div class="bg-rose-50/50 backdrop-blur rounded-xl p-4 h-full flex flex-col">
                                 <h3 class="text-lg font-bold text-rose-900 mb-3 text-center">{{ label }}</h3>
-                                <div class="space-y-2.5">
+                                <div class="space-y-2.5 flex-grow"> {# flex-grow pour pousser le contenu vide vers le bas #}
+                                    {% set found_absence = False %}
                                     {% for absence in absences %}
                                         {% if get_absence_status(absence, jour) %}
+                                            {% set found_absence = True %}
                                             <div class="transform hover:scale-[1.02] transition-all duration-200">
-                                                <div class="bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow">
-                                                    <p class="font-medium text-rose-800 text-base text-center">
+                                                <div class="bg-white rounded-lg p-2.5 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                                    <p class="font-medium text-rose-800 text-sm text-center">
                                                         {{ absence.professeur }}
                                                     </p>
                                                 </div>
@@ -43,10 +45,10 @@
                                         {% endif %}
                                     {% endfor %}
 
-                                    {% if not absences|selectattr(jour)|list %}
-                                        <div class="text-center text-rose-400/70 py-2">
+                                    {% if not found_absence %}
+                                        <div class="text-center text-rose-400/70 py-2 flex flex-col items-center justify-center h-full">
                                             <span class="block text-xl">✓</span>
-                                            <span class="text-sm">Aucune absence</span>
+                                            <span class="text-xs">Aucune absence</span>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -59,9 +61,9 @@
 
             {% if config.show_menu_cantine %}
             <!-- Menu de la cantine et Événements -->
-            <div class="grid grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <!-- Menu de la cantine -->
-                <div class="col-span-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20">
+                <div class="md:col-span-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 hover:shadow-2xl transition-shadow duration-300">
                     <div class="bg-gradient-to-r from-amber-500 to-orange-600 p-6">
                         <h2 class="text-3xl font-bold text-white flex items-center">
                             <span class="text-4xl mr-3">🍽️</span> Menu du jour
@@ -70,23 +72,24 @@
 
                     <div class="p-6">
                         {% if menu_items %}
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {% for cat_id, cat_name, cat_icon in [('entree', 'Entrées', '🥗'), ('plat', 'Plats', '🍱'), ('dessert', 'Desserts', '🍰')] %}
-                                    {% set items = menu_items|selectattr('category', 'equalto', cat_id)|list %}
-                                    {% if items %}
-                                        <div class="bg-amber-50/50 backdrop-blur rounded-2xl p-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {# Boucle dynamique sur les catégories disponibles #}
+                                {% for cat_id, cat_name, cat_icon in MenuItem.get_menu_categories() %}
+                                    {% set items_in_cat = menu_items|selectattr('category', 'equalto', cat_id)|list %}
+                                    {% if items_in_cat %}
+                                        <div class="bg-amber-50/50 backdrop-blur rounded-2xl p-6 flex flex-col">
                                             <h3 class="text-2xl font-bold text-amber-900 flex items-center mb-4">
                                                 <span class="text-3xl mr-2">{{ cat_icon }}</span>
                                                 {{ cat_name }}
                                             </h3>
-                                            <div class="space-y-3">
-                                                {% for item in items %}
+                                            <div class="space-y-3 flex-grow"> {# Ajout flex-grow #}
+                                                {% for item in items_in_cat %}
                                                     <div class="transform hover:scale-[1.02] transition-all duration-200">
-                                                        <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md">
-                                                            <div class="flex justify-between items-start">
+                                                        <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                                            <div class="flex justify-between items-start gap-2">
                                                                 <span class="font-medium text-amber-900">{{ item.name }}</span>
                                                                 {% if item.icons %}
-                                                                    <span class="text-lg ml-2">{{ item.icons }}</span>
+                                                                    <span class="text-lg flex-shrink-0" title="{{ MenuItem.get_icons()|selectattr(0, 'equalto', item.icons)|map(attribute=1)|first }}">{{ item.icons }}</span> {# Tooltip pour icône #}
                                                                 {% endif %}
                                                             </div>
                                                         </div>
@@ -106,8 +109,8 @@
                     </div>
                 </div>
 
-                <!-- Événements (déplacé à côté du menu) -->
-                <div class="col-span-4 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20">
+                <!-- Événements -->
+                <div class="md:col-span-4 bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 hover:shadow-2xl transition-shadow duration-300">
                     <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6">
                         <h2 class="text-3xl font-bold text-white flex items-center">
                             <span class="text-4xl mr-3">📅</span> Événements
@@ -119,7 +122,7 @@
                             <div class="space-y-4">
                                 {% for event in events %}
                                     <div class="transform hover:scale-[1.02] transition-all duration-200">
-                                        <div class="bg-emerald-50/50 backdrop-blur rounded-xl p-4 shadow-sm hover:shadow-md">
+                                        <div class="bg-emerald-50/50 backdrop-blur rounded-xl p-4 shadow-sm hover:shadow-lg transition-shadow duration-300">
                                             <h3 class="text-xl font-bold text-emerald-900">{{ event.title }}</h3>
                                             <time class="text-emerald-600 text-sm block mt-1">
                                                 {{ event.date.strftime('%d/%m/%Y') }}
@@ -143,11 +146,11 @@
             {% endif %}
         </div>
 
-        <!-- Sidebar (4 colonnes) - Ne contient maintenant que les transports -->
+        <!-- Sidebar (4 colonnes) - Transports -->
         <div class="col-span-12 xl:col-span-4 space-y-6">
             {% if config.has_valid_transport_config() %}
             <!-- Transports -->
-            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20">
+            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 hover:shadow-2xl transition-shadow duration-300">
                 <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
                     <div class="flex items-center justify-between">
                         <h2 class="text-3xl font-bold text-white flex items-center">
@@ -171,19 +174,20 @@
                             {% for visit in cts_arrivals[:6] %}
                                 {% set journey = visit.MonitoredVehicleJourney %}
                                 <div class="transform hover:scale-[1.02] transition-all duration-200">
-                                    <div class="bg-blue-50/50 backdrop-blur rounded-xl p-4 shadow-sm hover:shadow-md">
+                                    <div class="bg-blue-50/50 backdrop-blur rounded-xl p-4 shadow-sm hover:shadow-lg transition-shadow duration-300">
                                         <div class="flex items-center justify-between">
                                             <div class="space-y-1">
-                                                <div class="text-2xl font-bold text-blue-800">
-                                                    {% if journey.VehicleMode == 'bus' %}🚌{% else %}🚊{% endif %}
-                                                    {{ journey.PublishedLineName }}
+                                                <div class="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                                                    {% if journey.VehicleMode == 'bus' %}<span>🚌</span>{% else %}<span>🚊</span>{% endif %}
+                                                    <span>{{ journey.PublishedLineName }}</span>
                                                 </div>
                                                 <div class="text-blue-600">
                                                     → {{ journey.DestinationName if journey.DestinationName is string else journey.DestinationName|join(', ') }}
                                                 </div>
                                             </div>
-                                            <div class="arrival-time text-3xl font-bold text-blue-600"
+                                            <div class="arrival-time text-3xl font-bold text-blue-600 flex-shrink-0 ml-4"
                                                 data-time="{{ journey.MonitoredCall.ExpectedArrivalTime }}">
+                                                <span class="text-sm opacity-75">...</span> {# Indicateur chargement JS #}
                                             </div>
                                         </div>
                                     </div>
@@ -205,41 +209,59 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fonction pour formater les horaires d'arrivée
+        // Fonction pour formater les horaires d'arrivée CTS
         function updateArrivalTimes() {
             document.querySelectorAll('.arrival-time').forEach(element => {
-                const arrivalTime = new Date(element.dataset.time);
+                const arrivalTimeISO = element.dataset.time;
+                if (!arrivalTimeISO) return; // Ne rien faire si data-time est vide
+
+                const arrivalTime = new Date(arrivalTimeISO);
                 const now = new Date();
                 const diffMinutes = Math.round((arrivalTime - now) / 60000);
                 
-                if (diffMinutes < 0) {
-                    element.textContent = 'Passé';
-                    element.classList.add('text-gray-400');
+                let timeText = '';
+                let timeColorClass = '';
+
+                if (isNaN(arrivalTime.getTime())) {
+                    timeText = 'Heure invalide';
+                    timeColorClass = 'text-red-500';
+                } else if (diffMinutes < 0) {
+                    timeText = 'Passé';
+                    timeColorClass = 'text-gray-400 text-xl'; // Plus petit pour "Passé"
+                } else if (diffMinutes < 2) {
+                    timeText = 'À l\'arrêt';
+                    timeColorClass = 'text-orange-500 animate-pulse'; // À l'arrêt
                 } else if (diffMinutes < 60) {
-                    element.textContent = `${diffMinutes} min`;
-                    element.classList.add('text-green-600');
+                    timeText = `${diffMinutes} min`;
+                    timeColorClass = 'text-emerald-600'; // Changé en émeraude
                 } else {
-                    element.textContent = arrivalTime.toLocaleTimeString('fr-FR', {
+                    timeText = arrivalTime.toLocaleTimeString('fr-FR', {
                         hour: '2-digit',
                         minute: '2-digit'
                     });
+                    timeColorClass = 'text-blue-600'; // Garder bleu pour les heures lointaines
                 }
+                
+                // Appliquer le texte et la couleur
+                element.textContent = timeText;
+                element.className = 'arrival-time text-3xl font-bold flex-shrink-0 ml-4 ' + timeColorClass;
             });
         }
 
-        // Mise à jour initiale et toutes les minutes
+        // Mise à jour initiale et toutes les 30 secondes pour les arrivées
         updateArrivalTimes();
-        setInterval(updateArrivalTimes, 60000);
+        setInterval(updateArrivalTimes, 30000); // Plus fréquent que 1 min
 
-        // Rafraîchissement de la page toutes les 5 minutes si visible
+        // Rafraîchissement de la page toutes les 2 minutes si visible
         let refreshTimeout;
         function scheduleRefresh() {
             if (refreshTimeout) clearTimeout(refreshTimeout);
             refreshTimeout = setTimeout(() => {
                 if (document.visibilityState === 'visible') {
+                    console.log("Rechargement auto (2min) de home.html");
                     window.location.reload();
                 }
-            }, 5 * 60 * 1000);
+            }, 2 * 60 * 1000);
         }
 
         document.addEventListener('visibilitychange', scheduleRefresh);
