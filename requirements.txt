@@ -8,5 +8,5 @@ Flask-Login==0.6.2
 Flask-WTF==1.1.1
 WTForms==3.0.1
 pytz==2023.3
-gunicorn==21.2.0
+gunicorn==23.0.0
 Flask-Migrate==4.0.5
