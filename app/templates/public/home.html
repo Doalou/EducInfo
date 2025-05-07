@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<meta http-equiv="refresh" content="300">
+<style>
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+    html.dark .card-hover:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .gradient-mask {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .gradient-mask::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: linear-gradient(to top, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+    }
+    
+    html.dark .gradient-mask::after {
+        background: linear-gradient(to top, rgba(24, 24, 27, 0.9), rgba(24, 24, 27, 0));
+    }
+    
+    .pulse-slow {
+        animation: pulse 3s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-dark dark:via-dark-lighter dark:to-dark p-4 md:p-6 overflow-auto">
+    <!-- Suppression de l'en-tête avec logo -->
+    <!-- <div class="flex justify-center mb-6">
+        <img src="{{ url_for('static', filename='img/favicon.svg') }}" alt="EducInfo Logo" class="h-24 w-24 my-4">
+    </div> -->
+    
+    <div class="max-w-[2000px] mx-auto grid grid-cols-12 gap-4 md:gap-6">
+        <!-- Section principale (8 colonnes) -->
+        <div class="col-span-12 xl:col-span-8 space-y-4 md:space-y-6">
+            <!-- Panneau des absences -->
+            <div class="card-hover bg-white/80 dark:bg-dark-lighter/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-gray-700/30">
+                <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-4 md:p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="text-xl md:text-2xl font-bold text-white flex items-center">
+                            <span class="text-3xl md:text-4xl mr-3">👩‍🏫</span> Absences des enseignants
+                        </h2>
+                        <div class="px-3 py-1 md:px-4 md:py-1.5 bg-white/20 backdrop-blur rounded-full text-center">
+                            <span class="text-white/90 text-xs md:text-sm font-medium">Cette semaine</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 md:p-5">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+                        {% for jour, label in [
+                            ('lundi', 'Lundi'),
+                            ('mardi', 'Mardi'),
+                            ('mercredi', 'Mercredi'),
+                            ('jeudi', 'Jeudi'),
+                            ('vendredi', 'Vendredi'),
+                            ('samedi', 'Samedi')
+                        ] %}
+                        <div class="w-full">
+                            <div class="bg-rose-50/50 dark:bg-rose-900/10 backdrop-blur rounded-xl p-3 md:p-4 h-full flex flex-col">
+                                <h3 class="text-base md:text-lg font-bold text-rose-900 dark:text-rose-200 mb-2 md:mb-3 text-center">{{ label }}</h3>
+                                <div class="space-y-2 flex-grow">
+                                    {% set found_absence = False %}
+                                    {% for absence in absences %}
+                                        {% if get_absence_status(absence, jour) %}
+                                            {% set found_absence = True %}
+                                            <div class="transform hover:scale-[1.03] transition-all duration-200">
+                                                <div class="bg-white dark:bg-dark-lighter rounded-lg p-2 shadow-sm hover:shadow-md transition-shadow duration-300">
+                                                    <p class="font-medium text-rose-800 dark:text-rose-300 text-xs md:text-sm text-center">
+                                                        {{ absence.professeur }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if not found_absence %}
+                                        <div class="text-center text-rose-400/70 dark:text-rose-400/50 py-2 flex flex-col items-center justify-center h-full">
+                                            <span class="block text-xl">✓</span>
+                                            <span class="text-xs">Aucune absence</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if menu_items is defined %}
+            <!-- Menu de la cantine et Événements -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+                <!-- Menu de la cantine -->
+                <div class="md:col-span-8 card-hover bg-white/80 dark:bg-dark-lighter/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-gray-700/30">
+                    <div class="bg-gradient-to-r from-amber-500 to-orange-600 p-4 md:p-6">
+                        <h2 class="text-xl md:text-3xl font-bold text-white flex items-center">
+                            <span class="text-3xl md:text-4xl mr-3">🍽️</span> Menu du jour
+                        </h2>
+                    </div>
+
+                    <div class="p-4 md:p-6">
+                        {% if menu_items %}
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                                {% for cat_id, cat_name, cat_icon in [
+                                    (1, 'Entrées', '🥗'),
+                                    (2, 'Plats', '🍲'),
+                                    (3, 'Accompagnements', '🥔'),
+                                    (4, 'Desserts', '🍰')
+                                ] %}
+                                    {% set items_in_cat = menu_items|selectattr('category', 'equalto', cat_id)|list %}
+                                    {% if items_in_cat %}
+                                        <div class="bg-amber-50/50 dark:bg-amber-900/10 backdrop-blur rounded-2xl p-4 md:p-6 flex flex-col">
+                                            <h3 class="text-xl md:text-2xl font-bold text-amber-900 dark:text-amber-200 flex items-center mb-3 md:mb-4">
+                                                <span class="text-2xl md:text-3xl mr-2">{{ cat_icon }}</span>
+                                                {{ cat_name }}
+                                            </h3>
+                                            <div class="space-y-2 md:space-y-3 flex-grow">
+                                                {% for item in items_in_cat %}
+                                                    <div class="transform hover:scale-[1.02] transition-all duration-200">
+                                                        <div class="bg-white dark:bg-dark-lighter rounded-xl p-3 md:p-4 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                                            <div class="flex justify-between items-start gap-2">
+                                                                <span class="font-medium text-amber-900 dark:text-amber-300">{{ item.name }}</span>
+                                                                {% if item.icons %}
+                                                                    <span class="text-lg flex-shrink-0">{{ item.icons }}</span>
+                                                                {% endif %}
+                                                            </div>
+                                                            {% if item.description %}
+                                                                <p class="text-xs text-amber-700/80 dark:text-amber-300/80 mt-1">
+                                                                    {{ item.description }}
+                                                                </p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8">
+                                <span class="text-5xl md:text-6xl block mb-4">📋</span>
+                                <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Menu non disponible pour aujourd'hui</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Événements -->
+                <div class="md:col-span-4 card-hover bg-white/80 dark:bg-dark-lighter/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-gray-700/30">
+                    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 md:p-6">
+                        <h2 class="text-xl md:text-3xl font-bold text-white flex items-center">
+                            <span class="text-3xl md:text-4xl mr-3">📅</span> Événements
+                        </h2>
+                    </div>
+
+                    <div class="p-4 md:p-6">
+                        {% if events is defined and events %}
+                            <div class="space-y-3 md:space-y-4">
+                                {% for event in events %}
+                                    <div class="transform hover:scale-[1.02] transition-all duration-200">
+                                        <div class="bg-emerald-50/50 dark:bg-emerald-900/10 backdrop-blur rounded-xl p-3 md:p-4 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                            <h3 class="text-lg md:text-xl font-bold text-emerald-900 dark:text-emerald-200">{{ event.title }}</h3>
+                                            <time class="text-emerald-600 dark:text-emerald-400 text-xs md:text-sm block mt-1">
+                                                {{ event.date.strftime('%d/%m/%Y') }}
+                                            </time>
+                                            {% if event.description %}
+                                                <p class="mt-2 text-emerald-700 dark:text-emerald-300 text-xs md:text-sm">{{ event.description }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-6 md:py-8">
+                                <span class="text-5xl md:text-6xl block mb-4">📆</span>
+                                <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Aucun événement prévu</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar (4 colonnes) - Transports -->
+        <div class="col-span-12 xl:col-span-4 space-y-4 md:space-y-6">
+            <!-- Transports -->
+            <div class="card-hover bg-white/80 dark:bg-dark-lighter/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-gray-700/30">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 md:p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="text-xl md:text-3xl font-bold text-white flex items-center">
+                            <span class="text-3xl md:text-4xl mr-3">🚌</span> Prochains passages
+                        </h2>
+                        <div class="px-3 py-1.5 md:px-4 md:py-2 bg-white/20 backdrop-blur rounded-full">
+                            <span class="text-white/90 text-xs md:text-sm font-medium">
+                                {% if site_config.cts_stop_display is defined and site_config.cts_stop_display %}
+                                    {{ site_config.cts_stop_display }}
+                                {% elif site_config.cts_stop_code is defined %}
+                                    {{ site_config.cts_stop_code }}
+                                {% else %}
+                                    Arrêt CTS
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 md:p-6">
+                    {% if cts_arrivals is defined and cts_arrivals %}
+                        <div class="grid gap-3 md:gap-4">
+                            {% for visit in cts_arrivals[:6] %}
+                                <div class="transform hover:scale-[1.02] transition-all duration-200">
+                                    <div class="bg-blue-50/50 dark:bg-blue-900/10 backdrop-blur rounded-xl p-3 md:p-4 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                                        <div class="flex items-center justify-between">
+                                            <div class="space-y-1">
+                                                <div class="text-xl md:text-2xl font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                                                    {% if visit.is_tram %}
+                                                        <span class="text-2xl md:text-3xl" title="Tram">🚊</span>
+                                                    {% else %}
+                                                        <span class="text-2xl md:text-3xl" title="Bus">🚌</span>
+                                                    {% endif %}
+                                                    <span>{{ visit.line }}</span>
+                                                </div>
+                                                <div class="text-blue-600 dark:text-blue-400 text-sm md:text-base">
+                                                    → {{ visit.destination }}
+                                                </div>
+                                            </div>
+                                            <div class="arrival-time text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 flex-shrink-0 ml-4"
+                                                data-time="{{ visit.expected_arrival }}">
+                                                <span class="text-sm opacity-75 pulse-slow">...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-6 md:py-8">
+                            <span class="text-5xl md:text-6xl block mb-4">🚏</span>
+                            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Pas de passage prévu</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">Les données de transport ne sont pas disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fonction pour formater les horaires d'arrivée CTS
+        function updateArrivalTimes() {
+            document.querySelectorAll('.arrival-time').forEach(element => {
+                const arrivalTimeISO = element.dataset.time;
+                if (!arrivalTimeISO) return; // Ne rien faire si data-time est vide
+
+                const arrivalTime = new Date(arrivalTimeISO);
+                const now = new Date();
+                const diffMinutes = Math.round((arrivalTime - now) / 60000);
+                
+                let timeText = '';
+                let timeColorClass = '';
+
+                if (isNaN(arrivalTime.getTime())) {
+                    timeText = 'Heure invalide';
+                    timeColorClass = 'text-red-500';
+                } else if (diffMinutes < 0) {
+                    timeText = 'Passé';
+                    timeColorClass = 'text-gray-400 text-xl'; // Plus petit pour "Passé"
+                } else if (diffMinutes < 2) {
+                    timeText = 'À l\'arrêt';
+                    timeColorClass = 'text-orange-500 dark:text-orange-400 animate-pulse'; // À l'arrêt
+                } else if (diffMinutes < 60) {
+                    timeText = `${diffMinutes} min`;
+                    timeColorClass = 'text-emerald-600 dark:text-emerald-400'; // Changé en émeraude
+                } else {
+                    timeText = arrivalTime.toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    timeColorClass = 'text-blue-600 dark:text-blue-400'; // Garder bleu pour les heures lointaines
+                }
+                
+                // Appliquer le texte et la couleur
+                element.textContent = timeText;
+                element.className = 'arrival-time text-2xl md:text-3xl font-bold flex-shrink-0 ml-4 ' + timeColorClass;
+            });
+        }
+
+        // Mettre à jour immédiatement puis toutes les minutes
+        updateArrivalTimes();
+        setInterval(updateArrivalTimes, 60000);
+    });
+</script>
+{% endblock %} 

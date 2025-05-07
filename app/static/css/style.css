@@ -1,0 +1,186 @@
+/**
+ * Styles communs pour l'application EducInfo
+ * Ce fichier contient les styles personnalisés en complément de Tailwind CSS
+ */
+
+/* Styles des onglets pour le tableau de bord admin */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-button.active {
+    background-color: rgba(79, 70, 229, 0.15);
+    color: #4f46e5;
+    font-weight: 500;
+}
+
+html.dark .tab-button.active {
+    background-color: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-in {
+    animation: slideInRight 0.5s ease-out forwards;
+}
+
+/* Transitions générales */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.transition-colors {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.transition-transform {
+    transition: transform 0.2s ease;
+}
+
+/* Dark mode transition */
+.dark-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Barre de statut (en bas) */
+.status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%);
+    padding: 0.75rem 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+}
+
+html.dark .status-bar {
+    background: linear-gradient(90deg, #3730a3 0%, #4338ca 100%);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.status-bar-grid {
+    min-height: 3.5rem;
+}
+
+.status-school-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+@media (max-width: 640px) {
+    .status-bar-grid {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: repeat(3, auto);
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .status-bar-grid > div {
+        justify-content: center !important;
+    }
+    
+    .status-school-name {
+        max-width: 100%;
+    }
+}
+
+/* Animations pour l'horloge */
+@keyframes pulse-time {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse-animation {
+    animation: pulse-time 1s ease-in-out;
+}
+
+/* Composants personnalisés */
+.card {
+    @apply bg-white dark:bg-dark-lighter/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-gray-700/30 hover:shadow-2xl transition-shadow duration-300;
+}
+
+.card-header {
+    @apply p-6;
+}
+
+.card-body {
+    @apply p-6;
+}
+
+.btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50;
+}
+
+.btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500;
+}
+
+html.dark .btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700;
+}
+
+.btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-500;
+}
+
+html.dark .btn-secondary {
+    @apply bg-gray-700 hover:bg-gray-600 text-gray-200;
+}
+
+.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white focus:ring-red-500;
+}
+
+/* Formulaires */
+.form-input {
+    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-dark-lighter dark:text-gray-100;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+}
+
+.form-checkbox {
+    @apply rounded text-indigo-600 h-5 w-5 focus:ring-indigo-500 dark:border-gray-600;
+}
+
+/* Utilitaires */
+.backdrop-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Responsive pour la barre d'état et les mobiles */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card-header, .card-body {
+        padding: 1rem;
+    }
+} 

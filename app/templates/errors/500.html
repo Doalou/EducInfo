@@ -1,25 +1,22 @@
 {% extends 'base.html' %}
 
+{% block title %}Erreur Serveur{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <div class="text-center p-8">
-        <div class="mb-8">
-            <span class="text-9xl font-bold text-red-600">500</span>
-            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900">Erreur serveur</h1>
-            <p class="mt-4 text-gray-500">Désolé, une erreur inattendue s'est produite.</p>
-        </div>
-        <div class="space-x-4">
-            <a href="{{ url_for('home') }}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                <span class="mr-2">🏠</span>
-                Retour à l'accueil
-            </a>
-            <button onclick="history.back()" 
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                <span class="mr-2">⬅️</span>
-                Page précédente
-            </button>
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-red-400 to-pink-600 flex flex-col justify-center items-center px-4 text-white">
+    <div class="text-center bg-white/20 backdrop-blur-md p-10 rounded-xl shadow-2xl">
+        <h1 class="text-8xl font-bold mb-4 animate-pulse">500</h1>
+        <h2 class="text-3xl font-semibold mb-6">Oops! Quelque chose s'est mal passé...</h2>
+        <p class="text-lg mb-8 max-w-md">
+            Nous rencontrons des difficultés techniques. Notre équipe a été notifiée et travaille à résoudre le problème.
+        </p>
+        <a href="{{ url_for('public.home') }}" 
+           class="bg-white text-pink-600 font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
+            Retour à l'accueil
+        </a>
+        <p class="text-sm mt-10 text-white/70">
+            Si le problème persiste, n'hésitez pas à nous contacter.
+        </p>
     </div>
 </div>
 {% endblock %}

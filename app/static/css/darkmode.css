@@ -1,0 +1,308 @@
+/* Dark mode global styles */
+html.dark body {
+    background-color: #18181b;
+    color: #e5e7eb;
+}
+
+/* Global font settings */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+#time, .clock-digit, .clock-separator {
+    font-family: 'Roboto Mono', monospace !important;
+}
+
+.clock-digit {
+    font-weight: 700;
+}
+
+.clock-separator {
+    font-weight: 500;
+}
+
+/* Backgrounds */
+html.dark .bg-white,
+html.dark .bg-gray-50,
+html.dark .bg-gray-100,
+html.dark .bg-gray-200 {
+    background-color: #23232a !important;
+}
+
+/* Foreground colors - keep text readable */
+html.dark .text-gray-500,
+html.dark .text-gray-600,
+html.dark .text-gray-700,
+html.dark .text-gray-800,
+html.dark .text-gray-900 {
+    color: #e5e7eb !important;
+}
+
+/* Preserve color highlights - don't make all text white */
+html.dark .text-indigo-600 {
+    color: #818cf8 !important;
+}
+
+html.dark .text-indigo-700 {
+    color: #a5b4fc !important;
+}
+
+html.dark .text-blue-600 {
+    color: #60a5fa !important;
+}
+
+html.dark .text-emerald-600 {
+    color: #34d399 !important;
+}
+
+html.dark .text-red-500 {
+    color: #f87171 !important;
+}
+
+html.dark .text-red-700 {
+    color: #fca5a5 !important;
+}
+
+html.dark .text-amber-500 {
+    color: #f59e0b !important;
+}
+
+html.dark .text-amber-700 {
+    color: #fbbf24 !important;
+}
+
+/* Background colors - keep their identity but darker */
+html.dark .bg-indigo-600 {
+    background-color: #4f46e5 !important;
+}
+
+html.dark .bg-indigo-700 {
+    background-color: #4338ca !important;
+}
+
+html.dark .bg-indigo-50 {
+    background-color: #3730a3 !important;
+    color: #e5e7eb !important;
+}
+
+html.dark .bg-red-500 {
+    background-color: #ef4444 !important;
+}
+
+html.dark .bg-amber-50 {
+    background-color: #92400e !important;
+    color: #e5e7eb !important;
+}
+
+html.dark .bg-blue-50 {
+    background-color: #1e40af !important;
+    color: #e5e7eb !important;
+}
+
+html.dark .bg-emerald-50 {
+    background-color: #065f46 !important;
+    color: #e5e7eb !important;
+}
+
+/* Form elements */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+    background-color: #2a2a33 !important;
+    color: #e5e7eb !important;
+    border-color: #4b5563 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #6b7280 !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Checkboxes */
+html.dark input[type="checkbox"] {
+    background-color: #2a2a33 !important;
+    border-color: #4b5563 !important;
+}
+
+html.dark input[type="checkbox"]:checked {
+    background-color: #6366f1 !important;
+    border-color: #4f46e5 !important;
+}
+
+html.dark input[type="checkbox"]:hover:not(:disabled) {
+    border-color: #818cf8 !important;
+}
+
+html.dark input[type="checkbox"]:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+}
+
+html.dark label[for] {
+    cursor: pointer;
+}
+
+/* Cards and containers */
+html.dark .shadow-sm,
+html.dark .shadow,
+html.dark .shadow-md,
+html.dark .shadow-lg,
+html.dark .shadow-xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Borders */
+html.dark .border,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+    border-color: #4b5563 !important;
+}
+
+/* Links */
+html.dark a:not(.btn) {
+    color: #93c5fd;
+}
+
+html.dark a:hover:not(.btn) {
+    color: #bfdbfe;
+    text-decoration: underline;
+}
+
+/* Buttons */
+html.dark .btn-primary,
+html.dark button[type="submit"] {
+    background-color: #4f46e5 !important;
+    color: white !important;
+}
+
+html.dark .btn-primary:hover,
+html.dark button[type="submit"]:hover {
+    background-color: #4338ca !important;
+}
+
+html.dark .btn-secondary {
+    background-color: #4b5563 !important;
+    color: white !important;
+}
+
+html.dark .btn-secondary:hover {
+    background-color: #374151 !important;
+}
+
+/* Tables */
+html.dark table th {
+    background-color: #2a2a33 !important;
+    color: #e5e7eb !important;
+}
+
+html.dark table td {
+    border-color: #4b5563 !important;
+}
+
+html.dark table tr:nth-child(even) {
+    background-color: #27272f !important;
+}
+
+/* Alerts and notifications */
+html.dark .alert-info,
+html.dark .bg-blue-100 {
+    background-color: rgba(37, 99, 235, 0.2) !important;
+    color: #bfdbfe !important;
+    border-color: #3b82f6 !important;
+}
+
+html.dark .alert-success,
+html.dark .bg-green-100 {
+    background-color: rgba(5, 150, 105, 0.2) !important;
+    color: #a7f3d0 !important;
+    border-color: #10b981 !important;
+}
+
+html.dark .alert-warning,
+html.dark .bg-yellow-100 {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fde68a !important;
+    border-color: #f59e0b !important;
+}
+
+html.dark .alert-danger,
+html.dark .bg-red-100 {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #fca5a5 !important;
+    border-color: #ef4444 !important;
+}
+
+/* Hover states */
+html.dark .hover\:bg-gray-50:hover {
+    background-color: #2d2d35 !important;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+    background-color: #2a2a33 !important;
+}
+
+html.dark .hover\:bg-indigo-700:hover {
+    background-color: #4338ca !important;
+}
+
+html.dark .hover\:bg-red-100:hover {
+    background-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Active Tab */
+html.dark .tab-button.active {
+    background-color: #4f46e5 !important;
+    color: white !important;
+}
+
+html.dark .tab-button:not(.active):hover {
+    background-color: #2d2d35 !important;
+    color: #e5e7eb !important;
+}
+
+/* Custom dark backgrounds */
+html.dark .dark\:bg-dark {
+    background-color: #18181b !important;
+}
+
+html.dark .dark\:bg-dark-lighter {
+    background-color: #27272f !important;
+}
+
+html.dark .dark\:bg-dark-hover {
+    background-color: #2d2d35 !important;
+}
+
+/* Ombres subtiles pour la profondeur */
+html.dark .dark\:shadow-subtle {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Checkbox containers */
+html.dark .dark\:bg-indigo-900\/20 {
+    background-color: rgba(79, 70, 229, 0.2) !important;
+}
+
+html.dark .dark\:border-indigo-700 {
+    border-color: #4f46e5 !important;
+}
+
+html.dark .dark\:border-gray-700 {
+    border-color: #374151 !important;
+}
+
+/* Support pour les gradients */
+html.dark .dark\:from-indigo-800 {
+    --tw-gradient-from: #3730a3 !important;
+}
+
+html.dark .dark\:to-indigo-900 {
+    --tw-gradient-to: #312e81 !important;
+} 

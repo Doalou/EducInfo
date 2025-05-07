@@ -1,25 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <div class="text-center p-8">
-        <div class="mb-8">
-            <span class="text-9xl font-bold text-indigo-600">404</span>
-            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900">Page non trouvée</h1>
-            <p class="mt-4 text-gray-500">Désolé, la page que vous recherchez n'existe pas ou a été déplacée.</p>
-        </div>
-        <div class="space-x-4">
-            <a href="{{ url_for('home') }}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <span class="mr-2">🏠</span>
-                Retour à l'accueil
-            </a>
-            <button onclick="history.back()" 
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <span class="mr-2">⬅️</span>
-                Page précédente
-            </button>
-        </div>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-dark dark:via-dark-lighter dark:to-dark p-6">
+    <div class="max-w-md w-full bg-white/80 dark:bg-dark-lighter/80 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 dark:border-gray-700/30 p-8 text-center">
+        <h1 class="text-8xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">404</h1>
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Page non trouvée</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-8">La page que vous recherchez n'existe pas ou a été déplacée.</p>
+        <a href="{{ url_for('public.home') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+            <span class="mr-2">🏠</span> Retour à l'accueil
+        </a>
     </div>
 </div>
 {% endblock %}
