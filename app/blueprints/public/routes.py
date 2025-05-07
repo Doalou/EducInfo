@@ -72,7 +72,7 @@ def get_weather():
         # Vérifier si une erreur est survenue
         if 'error' in weather_data:
             logger.error(f"Erreur météo: {weather_data['error']}")
-            return jsonify({'error': weather_data['error']}), 500
+            return jsonify({'error': 'An internal error occurred while fetching weather data.'}), 500
             
         return jsonify(weather_data)
     except Exception as e:

@@ -77,7 +77,7 @@ class WeatherService:
             if cache_key in self._cache:
                 logger.warning(f"Service météo: Utilisation du cache périmé pour {effective_city}")
                 return self._cache[cache_key]
-            return {"error": f"Erreur météo: {str(e)}"}
+            return {"error": "An internal error occurred while fetching weather data."}
     
     def _fetch_weather_data(self, city, api_key):
         """
