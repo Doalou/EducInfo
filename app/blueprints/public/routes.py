@@ -60,7 +60,7 @@ def get_updates():
         })
     except Exception as e:
         logger.error(f'Erreur dans get_updates: {str(e)}')
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'An internal error occurred.'}), 500
 
 @bp.route('/get_weather')
 def get_weather():
