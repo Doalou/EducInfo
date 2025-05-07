@@ -116,9 +116,10 @@ def weather():
         
         # Vérifier si une erreur est survenue
         if 'error' in weather_data:
+            logger.error(f"Erreur API weather: {weather_data['error']}")
             return jsonify({
                 'success': False,
-                'error': weather_data['error']
+                'error': 'An internal error has occurred.'
             }), 500
         
         return jsonify({
