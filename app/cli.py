@@ -13,27 +13,22 @@ from app.models.menu import MenuItem
 from app.models.config import SiteConfig, WeatherConfig, WidgetConfig
 
 
-@click.command('init-db')
-@click.option('--cts-token', help="Token API pour le service de transport CTS.")
-@click.option('--admin-username', help="Nom d'utilisateur pour le premier administrateur.")
-@click.option('--admin-password', help="Mot de passe pour le premier administrateur (sera demandé si non fourni).")
-@with_appcontext
-def init_db_command(cts_token, admin_username, admin_password):
-    """Initialise la base de données, crée les tables et les configurations initiales."""
+def init_db(cts_token=None, admin_username=None, admin_password=None):
+    """Fonction d'initialisation de la base de données sans le décorateur Click."""
     db.create_all()
-    click.echo('Tables de la base de données créées.')
+    print('Tables de la base de données créées.')
 
     # Configuration du site
     if not SiteConfig.query.first():
         site_config = SiteConfig(site_name="EducInfo")
         db.session.add(site_config)
-        click.echo('Configuration du site par défaut créée.')
+        print('Configuration du site par défaut créée.')
 
     # Configuration météo
     if not WeatherConfig.query.first():
         weather_config = WeatherConfig(city="Strasbourg", api_key="demo_key", show_weather=True)
         db.session.add(weather_config)
-        click.echo('Configuration météo par défaut créée.')
+        print('Configuration météo par défaut créée.')
 
     # Configuration des widgets (avec le token CTS)
     widget_config = WidgetConfig.query.first()
@@ -45,53 +40,72 @@ def init_db_command(cts_token, admin_username, admin_password):
             cts_stop_display="Arrêt Homme de Fer"
         )
         db.session.add(widget_config)
-        click.echo('Configuration des widgets par défaut créée.')
+        print('Configuration des widgets par défaut créée.')
     
     # Essayer de récupérer le token depuis current_app.config si pas écrasé par l'option
-    env_cts_token = current_app.config.get('CTS_API_TOKEN')
+    try:
+        env_cts_token = current_app.config.get('CTS_API_TOKEN')
+    except RuntimeError:
+        env_cts_token = None
+    
     # Ordre de priorité: option CLI > variable d'env > valeur existante en BDD (si widget_config existait)
     final_cts_token = cts_token or env_cts_token or (widget_config.cts_api_token if widget_config else None)
 
     if final_cts_token:
         widget_config.cts_api_token = final_cts_token
-        click.echo(f'Token API CTS configuré pour WidgetConfig.')
+        print(f'Token API CTS configuré pour WidgetConfig.')
     else:
-        click.echo('Attention: Aucun token API CTS n\'a été configuré. Le widget transport pourrait ne pas fonctionner.', err=True)
-        click.echo('Vous pouvez le définir via l\'option --cts-token, la variable d\'environnement CTS_API_TOKEN, ou le modifier plus tard via l\'interface d\'administration.', err=True)
+        print('Attention: Aucun token API CTS n\'a été configuré. Le widget transport pourrait ne pas fonctionner.')
+        print('Vous pouvez le définir via l\'option --cts-token, la variable d\'environnement CTS_API_TOKEN, ou le modifier plus tard via l\'interface d\'administration.')
 
     db.session.commit()
-    click.echo('Configurations initiales sauvegardées.')
+    print('Configurations initiales sauvegardées.')
 
     # Création de l'utilisateur administrateur initial s'il n'en existe aucun
     if not User.query.filter_by(is_admin=True).first():
-        click.echo("Aucun administrateur trouvé. Création du premier administrateur.")
+        print("Aucun administrateur trouvé. Création du premier administrateur.")
         if not admin_username:
-            admin_username = click.prompt("Nom d'utilisateur de l'administrateur")
+            admin_username = input("Nom d'utilisateur de l'administrateur: ")
         
         existing_user = User.query.filter_by(username=admin_username).first()
         if existing_user:
             # Si l'utilisateur existe mais n'est pas admin, on pourrait proposer de le promouvoir
             # Pour l'instant, on affiche une erreur et on arrête.
             if not existing_user.is_admin:
-                click.echo(f"L'utilisateur '{admin_username}' existe déjà mais n'est pas administrateur.", err=True)
-                click.echo("Veuillez choisir un autre nom d'utilisateur ou promouvoir cet utilisateur manuellement.", err=True)
+                print(f"L'utilisateur '{admin_username}' existe déjà mais n'est pas administrateur.")
+                print("Veuillez choisir un autre nom d'utilisateur ou promouvoir cet utilisateur manuellement.")
             else:
-                 click.echo(f"L'administrateur '{admin_username}' existe déjà.") # Cas où il existe et est déjà admin
+                print(f"L'administrateur '{admin_username}' existe déjà.") # Cas où il existe et est déjà admin
             return # Arrêter si l'utilisateur existe déjà pour éviter confusion/erreur de mot de passe
 
         # Si l'utilisateur n'existe pas, on le crée
         if not admin_password:
-            admin_password = click.prompt("Mot de passe de l'administrateur", hide_input=True, confirmation_prompt=True)
+            from getpass import getpass
+            admin_password = getpass("Mot de passe de l'administrateur: ")
+            password_confirm = getpass("Confirmez le mot de passe: ")
+            if admin_password != password_confirm:
+                print("Les mots de passe ne correspondent pas.")
+                return
         
         admin_user = User(username=admin_username, is_admin=True)
         admin_user.set_password(admin_password)
         db.session.add(admin_user)
         db.session.commit()
-        click.echo(f"Administrateur '{admin_username}' créé avec succès.")
+        print(f"Administrateur '{admin_username}' créé avec succès.")
     else:
-        click.echo("Un compte administrateur existe déjà.")
+        print("Un compte administrateur existe déjà.")
 
-    click.echo('Base de données initialisée avec succès!')
+    print('Base de données initialisée avec succès!')
+
+
+@click.command('init-db')
+@click.option('--cts-token', help="Token API pour le service de transport CTS.")
+@click.option('--admin-username', help="Nom d'utilisateur pour le premier administrateur.")
+@click.option('--admin-password', help="Mot de passe pour le premier administrateur (sera demandé si non fourni).")
+@with_appcontext
+def init_db_command(cts_token, admin_username, admin_password):
+    """Initialise la base de données, crée les tables et les configurations initiales."""
+    init_db(cts_token, admin_username, admin_password)
 
 
 @click.command('add-user')
