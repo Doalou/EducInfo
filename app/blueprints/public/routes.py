@@ -26,7 +26,7 @@ def home():
         return render_template('public/home.html', **context)
     except Exception as e:
         logger.error(f'Erreur page d\'accueil: {str(e)}')
-        return f"Erreur : {str(e)}", 500
+        return "An internal error occurred.", 500
 
 @bp.route('/get_updates')
 def get_updates():
