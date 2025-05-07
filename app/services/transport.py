@@ -107,7 +107,7 @@ class TransportService:
             if cache_key in self._cache:
                 logger.warning(f"Service transport: Utilisation du cache périmé pour l'arrêt {effective_stop_code}")
                 return self._cache[cache_key]
-            return {"error": f"Erreur transport: {str(e)}"}
+            return {"error": "Une erreur interne est survenue lors de la récupération des données de transport."}
     
     def _fetch_arrivals_data(self, base_url, stop_code, vehicle_mode, api_token, 
                             preview_interval, max_visits):

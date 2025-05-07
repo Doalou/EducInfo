@@ -89,7 +89,7 @@ def get_transports():
         # Vérifier si une erreur est survenue
         if 'error' in transport_data:
             logger.error(f"Erreur transport: {transport_data['error']}")
-            return jsonify({'error': transport_data['error']}), 500
+            return jsonify({'error': 'Une erreur interne est survenue lors de la récupération des données de transport.'}), 500
             
         return jsonify(transport_data)
     except Exception as e:
