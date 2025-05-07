@@ -130,7 +130,7 @@ def weather():
         logger.error(f'Erreur API weather: {str(e)}')
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'An internal error has occurred.'
         }), 500
 
 @bp.route('/transports')
@@ -157,5 +157,5 @@ def transports():
         logger.error(f'Erreur API transports: {str(e)}')
         return jsonify({
             'success': False,
-            'error': str(e)
-        }), 500 
+            'error': 'An internal error has occurred.'
+        }), 500
