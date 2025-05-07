@@ -39,7 +39,7 @@ def absences():
         logger.error(f'Erreur API absences: {str(e)}')
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'An internal error has occurred.'
         }), 500
 
 @bp.route('/events')
@@ -62,7 +62,7 @@ def events():
         logger.error(f'Erreur API events: {str(e)}')
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'An internal error has occurred.'
         }), 500
 
 @bp.route('/menu')
@@ -104,7 +104,7 @@ def menu():
         logger.error(f'Erreur API menu: {str(e)}')
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'An internal error has occurred.'
         }), 500
 
 @bp.route('/weather')
