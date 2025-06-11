@@ -960,7 +960,6 @@ Cette architecture **double** permet une **évolutivité** maximale selon les be
 
 ## Support et Documentation
 
-- **Documentation :** [Wiki GitHub](https://github.com/doalou/educinfo/wiki)
 - **Issues :** [GitHub Issues](https://github.com/doalou/educinfo/issues)
 - **Discussions :** [GitHub Discussions](https://github.com/doalou/educinfo/discussions)
 - **Email :** contact@doalo.fr
