@@ -42,9 +42,11 @@ CAP_ADD ?= # --cap-add SYS_PTRACE
 
 # Docker config
 DOCKERFILE ?= Dockerfile
+DOCKERFILE_PATH ?= $(DOCKERFILE)
+BUILD_CONTEXT_ROOT ?= .
 DOCKER_EXEC ?= docker
 PROGRESS_OUTPUT ?= plain
-BUILD_CONTEXT ?= $(shell pwd)
+BUILD_CONTEXT ?= $(shell dirname $(shell pwd))
 WORKDIR ?= /work
 PROJECT_WORKDIR ?= $(shell pwd)
 
@@ -96,7 +98,7 @@ pull: $(addsuffix .pull,$(BASE_IMAGE_TAGS))
 
 .PHONY: $(BASE_IMAGE_TAGS)
 $(BASE_IMAGE_TAGS): $(Dockerfile)
-	$(DOCKER_EXEC) buildx build . --build-context root-protect=$(BUILD_CONTEXT) --file $(DOCKERFILE) \
+	$(DOCKER_EXEC) buildx build $(BUILD_CONTEXT_ROOT) --build-context root-protect=$(BUILD_CONTEXT) --file $(DOCKERFILE_PATH) \
 		--platform $(PLATFORMS) --progress $(PROGRESS_OUTPUT) \
 		--tag $(OUTPUT_IMAGE_FINAL) \
 		--tag $(OUTPUT_IMAGE_FINAL):$(BASE_IMAGE_NAME) \

@@ -15,6 +15,10 @@ OUTPUT_IMAGE_VERSION ?= 1.2
 
 WORKDIR ?= /work
 
+# Contexte de construction depuis la racine du projet
+DOCKERFILE_PATH ?= docker/Dockerfile
+BUILD_CONTEXT_ROOT ?= ..
+
 # Max CPU and memory
 CPUS ?= 8.0
 CPU_SHARES ?= 1024

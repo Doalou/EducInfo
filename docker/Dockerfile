@@ -86,8 +86,8 @@ WORKDIR /app
 COPY --chown=educinfo:educinfo . .
 
 # Configuration et permissions des scripts
-COPY --chown=educinfo:educinfo ./scripts/ /app/scripts/
-COPY --chown=educinfo:educinfo ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chown=educinfo:educinfo scripts/ /app/scripts/
+COPY --chown=educinfo:educinfo docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN dos2unix /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh && \
     chmod +x /app/scripts/*.sh

@@ -54,6 +54,9 @@ make dev
 # Instance unique
 docker-compose up -d
 
+# Construction manuelle depuis la racine du projet
+docker build -f docker/Dockerfile -t educinfo:latest .
+
 # Cluster load balancé
 make cluster
 # ou
