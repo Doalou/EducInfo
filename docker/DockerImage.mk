@@ -43,6 +43,7 @@ CAP_ADD ?= # --cap-add SYS_PTRACE
 # Docker config
 DOCKERFILE ?= Dockerfile
 DOCKERFILE_PATH ?= $(DOCKERFILE)
+# Fix: Use direct path since we're in docker/ directory
 BUILD_CONTEXT_ROOT ?= ..
 DOCKER_EXEC ?= docker
 PROGRESS_OUTPUT ?= plain
