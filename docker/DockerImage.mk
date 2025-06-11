@@ -120,8 +120,8 @@ $(addsuffix .build,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 .SECONDEXPANSION:
 $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm \
-		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
-		--mount type=bind,source=$(PROJECT_WORKDIR),target=$(WORKDIR) --workdir $(WORKDIR) \
+		--security-opt no-new-privileges $(CAP_DROP) $(CAP_ADD) --user educinfo \
+		--mount type=bind,source=$(PROJECT_WORKDIR),target=/app --workdir /app \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) -p 5000:5000 \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \
@@ -131,8 +131,8 @@ $(addsuffix .test,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 .SECONDEXPANSION:
 $(addsuffix .run,$(BASE_IMAGE_TAGS)): $$(basename $$@)
 	$(DOCKER_EXEC) run --rm -it \
-		--security-opt no-new-privileges --read-only $(CAP_DROP) $(CAP_ADD) --user $(UID):$(GID) \
-		--mount type=bind,source=$(PROJECT_WORKDIR),target=$(WORKDIR) --workdir $(WORKDIR) \
+		--security-opt no-new-privileges $(CAP_DROP) $(CAP_ADD) --user educinfo \
+		--mount type=bind,source=$(PROJECT_WORKDIR),target=/app --workdir /app \
 		--mount type=tmpfs,target=/tmp,tmpfs-mode=1777,tmpfs-size=$(TMPFS_SIZE) \
 		--platform $(PLATFORMS) -p 5000:5000 \
 		--cpus $(CPUS) --cpu-shares $(CPU_SHARES) --memory $(MEMORY) --memory-reservation $(MEMORY_RESERVATION) \

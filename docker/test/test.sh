@@ -40,7 +40,7 @@ fi
 
 # Test 5: Vérifier que l'application peut démarrer avec run.py
 echo "Test 5: Test de démarrage de l'application avec run.py..."
-timeout 10s python run.py --host=0.0.0.0 --port=5000 &
+timeout 10s python run.py run --host=0.0.0.0 --port=5000 &
 APP_PID=$!
 
 # Attendre que l'application démarre
