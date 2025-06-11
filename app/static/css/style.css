@@ -3,6 +3,90 @@
  * Ce fichier contient les styles personnalisés en complément de Tailwind CSS
  */
 
+/* EducInfo CSS optimisé pour de meilleures performances */
+
+/* Optimisations de performance globales */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Optimisation GPU pour les animations critiques */
+.tab-content,
+.animate-fade-in,
+.animate-slide-in,
+.transition-transform {
+    will-change: transform, opacity;
+    transform: translateZ(0); /* Force l'accélération matérielle */
+}
+
+/* Transitions optimisées */
+.transition-all {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-colors {
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.transition-transform {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Optimisation des performances pour les états de visibilité */
+.tab-content {
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Boutons d'onglets optimisés */
+.tab-button.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+html.dark .tab-button.active {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    border-color: #60a5fa;
+}
+
+/* Animations performantes avec @keyframes optimisées */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-in {
+    animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Optimisation des transitions sombres */
+.dark-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 /* Styles des onglets pour le tableau de bord admin */
 .tab-content {
     display: none;
@@ -25,88 +109,6 @@ html.dark .tab-button.active {
 }
 
 /* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-}
-
-.animate-slide-in {
-    animation: slideInRight 0.5s ease-out forwards;
-}
-
-/* Transitions générales */
-.transition-all {
-    transition: all 0.3s ease;
-}
-
-.transition-colors {
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
-
-.transition-transform {
-    transition: transform 0.2s ease;
-}
-
-/* Dark mode transition */
-.dark-transition {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-/* Barre de statut (en bas) */
-.status-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%);
-    padding: 0.75rem 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 50;
-}
-
-html.dark .status-bar {
-    background: linear-gradient(90deg, #3730a3 0%, #4338ca 100%);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.status-bar-grid {
-    min-height: 3.5rem;
-}
-
-.status-school-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-}
-
-@media (max-width: 640px) {
-    .status-bar-grid {
-        grid-template-columns: 1fr !important;
-        grid-template-rows: repeat(3, auto);
-        gap: 0.5rem;
-        text-align: center;
-    }
-    
-    .status-bar-grid > div {
-        justify-content: center !important;
-    }
-    
-    .status-school-name {
-        max-width: 100%;
-    }
-}
-
-/* Animations pour l'horloge */
 @keyframes pulse-time {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
@@ -183,4 +185,433 @@ html.dark .btn-secondary {
     .card-header, .card-body {
         padding: 1rem;
     }
+} 
+
+/* Styles pour le tableau de bord administrateur */
+.sidebar-nav.active {
+    background-color: rgba(79, 70, 229, 0.1);
+    color: rgb(79, 70, 229);
+    font-weight: 500;
+}
+
+html.dark .sidebar-nav.active {
+    background-color: rgba(99, 102, 241, 0.2);
+    color: rgb(139, 92, 246);
+}
+
+/* Animation de pulsation au survol */
+@keyframes hover-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+.hover-pulse {
+    animation: hover-pulse 0.5s ease-in-out;
+}
+
+/* Styles des panneaux */
+.tab-panel {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.tab-panel:not(.hidden) {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Animation pour la barre latérale */
+#sidebar {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    height: calc(100vh - 120px) !important;
+    max-height: calc(100vh - 120px);
+}
+
+#sidebar.hidden {
+    transform: translateX(-100%);
+}
+
+#sidebar.-translate-x-full {
+    transform: translateX(-100%);
+}
+
+/* Amélioration des transitions pour le contenu principal - MISE À JOUR pour largeur 72 */
+.main-content-area {
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Ajustement pour la nouvelle largeur de sidebar (w-72 = 18rem = 288px) */
+@media (min-width: 768px) {
+    .main-content-area {
+        margin-left: 18rem; /* 288px pour w-72 */
+    }
+    
+    #sidebar:not(.-translate-x-full):not(.hidden) + .main-content-area {
+        margin-left: 18rem;
+    }
+    
+    #sidebar.-translate-x-full + .main-content-area,
+    #sidebar.hidden + .main-content-area {
+        margin-left: 0;
+    }
+}
+
+/* Overlay pour mobile quand la sidebar est ouverte */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 15;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Amélioration du bouton toggle */
+.sidebar-toggle {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+html.dark .sidebar-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ✨ NOUVEAUX STYLES POUR LA SIDEBAR MODERNISÉE ✨ */
+
+/* Animation pour les boutons de la sidebar */
+.sidebar-nav {
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.sidebar-nav:hover::before {
+    left: 100%;
+}
+
+/* States actifs pour les nouveaux boutons */
+.sidebar-nav.active {
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+}
+
+html.dark .sidebar-nav.active {
+    background: rgb(30, 41, 59); /* slate-800 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation pour les icônes de status */
+@keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+    animation: status-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Styles pour les badges de compteur */
+.sidebar-nav .badge-counter {
+    transition: all 0.3s ease;
+    transform: scale(0.9);
+}
+
+.sidebar-nav:hover .badge-counter {
+    transform: scale(1);
+}
+
+/* Amélioration des ombres au hover */
+.group:hover .shadow-md {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.group:hover .shadow-lg {
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Animation pour les indicateurs de section */
+@keyframes section-indicator {
+    0% { height: 0; }
+    100% { height: 1.5rem; }
+}
+
+.section-indicator {
+    animation: section-indicator 0.5s ease-out forwards;
+}
+
+/* Responsive adjustments pour la nouvelle sidebar */
+@media (max-width: 767px) {
+    .main-content-area {
+        margin-left: 0 !important;
+    }
+    
+    #sidebar {
+        height: calc(100vh - 140px) !important;
+        max-height: calc(100vh - 140px);
+    }
+}
+
+/* S'assurer que le contenu de la sidebar est bien contraint */
+#sidebar .flex {
+    height: 100%;
+    max-height: 100%;
+}
+
+/* ✨ STYLES MODERNISÉS POUR LA NOUVELLE SIDEBAR ✨ */
+
+/* Scrollbar personnalisée pour la sidebar */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148, 163, 184, 0.5);
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(71, 85, 105, 0.4);
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(71, 85, 105, 0.6);
+}
+
+/* Amélioration des transitions pour la sidebar */
+.sidebar-container {
+    will-change: transform;
+}
+
+.sidebar-nav {
+    position: relative;
+    will-change: transform, box-shadow;
+}
+
+/* Effet de survol avancé pour les boutons de navigation */
+.sidebar-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.sidebar-nav:hover::before {
+    opacity: 1;
+}
+
+/* États actifs améliorés */
+.sidebar-nav.active {
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 
+        0 10px 25px -5px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+html.dark .sidebar-nav.active {
+    background: rgba(30, 41, 59, 0.9) !important;
+    box-shadow: 
+        0 10px 25px -5px rgba(0, 0, 0, 0.3),
+        0 4px 6px -2px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+/* Animation de chargement pour les icônes */
+@keyframes icon-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-2px) rotate(1deg); }
+}
+
+.sidebar-nav:hover .w-12,
+.sidebar-nav:hover .w-14 {
+    animation: icon-float 2s ease-in-out infinite;
+}
+
+/* Effet de brillance sur les badges */
+@keyframes badge-shine {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+
+.sidebar-nav .bg-red-100,
+.sidebar-nav .bg-emerald-100,
+.sidebar-nav .bg-orange-100,
+.sidebar-nav .bg-blue-100,
+.sidebar-nav .bg-purple-100,
+.sidebar-nav .bg-pink-100 {
+    background-size: 200% 100%;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 100%
+    );
+    animation: badge-shine 3s ease-in-out infinite;
+}
+
+/* Amélioration des responsives */
+@media (max-width: 1023px) {
+    .sidebar-container {
+        width: 20rem; /* w-80 */
+    }
+    
+    .main-content-area {
+        margin-left: 0 !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .main-content-area {
+        margin-left: 20rem; /* Pour w-80 (320px) */
+        transition: margin-left 0.3s ease-in-out;
+    }
+    
+    .sidebar-container:not(.-translate-x-full):not(.hidden) + .main-content-area {
+        margin-left: 20rem;
+    }
+    
+    .sidebar-container.-translate-x-full + .main-content-area,
+    .sidebar-container.hidden + .main-content-area {
+        margin-left: 0;
+    }
+}
+
+/* Amélioration de l'overlay mobile */
+.sidebar-overlay {
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* Effet de glow pour les indicateurs de status */
+@keyframes status-glow {
+    0%, 100% { 
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+    }
+    50% { 
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.8);
+    }
+}
+
+.animate-pulse {
+    animation: status-glow 2s ease-in-out infinite;
+}
+
+/* Amélioration des transitions pour les sections */
+.sidebar-nav[data-target] {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-nav[data-target]:active {
+    transform: scale(0.98);
+}
+
+/* Style pour le mode focus/accessibility */
+.sidebar-nav:focus-visible {
+    outline: 2px solid rgb(99, 102, 241);
+    outline-offset: 2px;
+}
+
+/* Amélioration des gradients pour les indicateurs de section */
+.w-1\.5 {
+    background: linear-gradient(180deg, 
+        var(--gradient-from, #3b82f6) 0%, 
+        var(--gradient-to, #1d4ed8) 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation d'apparition pour les éléments de la sidebar */
+@keyframes sidebar-item-appear {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.sidebar-nav {
+    animation: sidebar-item-appear 0.3s ease-out forwards;
+}
+
+.sidebar-nav:nth-child(1) { animation-delay: 0.1s; }
+.sidebar-nav:nth-child(2) { animation-delay: 0.2s; }
+.sidebar-nav:nth-child(3) { animation-delay: 0.3s; }
+.sidebar-nav:nth-child(4) { animation-delay: 0.4s; }
+
+/* Effet de particules pour le fond (subtil) */
+.sidebar-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 60%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 90%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Amélioration des boutons principaux */
+.sidebar-nav .rounded-2xl {
+    border: 1px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.sidebar-nav:hover .rounded-2xl {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.dark .sidebar-nav:hover .rounded-2xl {
+    border-color: rgba(71, 85, 105, 0.3);
 } 

@@ -1,6 +1,6 @@
 SUBDIRS ?= debian ubuntu fedora archlinux
 
-AUTHOR ?= doalou
+AUTHOR ?= doalo
 WEB_SITE ?= doalo.fr
 
 # Base image
@@ -8,9 +8,9 @@ BASE_IMAGE_REGISTRY ?= docker.io
 
 # Output docker image
 OUTPUT_IMAGE_REGISTRY ?= docker.io
-OUTPUT_IMAGE_PATH ?= doalou
+OUTPUT_IMAGE_PATH ?= doalo
 OUTPUT_IMAGE_NAME ?= educinfo
-OUTPUT_IMAGE_VERSION ?= 1.1.0
+OUTPUT_IMAGE_VERSION ?= 1.2
 
 TEST_CMD ?= "./test.sh"
 RUN_CMD ?= "ls"

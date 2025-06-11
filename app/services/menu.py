@@ -2,8 +2,8 @@
 Service de menu pour l'application.
 Ce module encapsule la logique de gestion des menus de cantine.
 """
-from datetime import datetime, timedelta
-from app.extensions import db, logger
+from datetime import datetime, timedelta, date
+from app.extensions import db, logger, cache
 from app.models import MenuItem
 
 class MenuService:
@@ -15,14 +15,37 @@ class MenuService:
     @staticmethod
     def get_todays_menu():
         """
-        Récupère le menu du jour.
+        Récupère le menu du jour avec mise en cache optimisée.
         
         Returns:
-            list: Liste des éléments du menu du jour
+            list: Liste des éléments du menu du jour triés par catégorie et ordre
         """
+        from flask import current_app
+        
         try:
             today = datetime.now().strftime("%Y-%m-%d")
-            return MenuItem.query.filter_by(date=today).order_by(MenuItem.order, MenuItem.category).all()
+            
+            # Système de cache pour le menu du jour
+            cache_key = f"{current_app.config.get('CACHE_KEY_PREFIX', 'educinfo')}:menu:today:{today}"
+            
+            # Vérifier le cache
+            cached_menu = cache.get(cache_key)
+            if cached_menu is not None:
+                logger.debug(f"Service menu: Cache hit pour le menu du {today}")
+                return cached_menu
+            
+            # Requête optimisée avec tri dans la base de données
+            menu_items = MenuItem.query.filter_by(date=today)\
+                                     .order_by(MenuItem.category, MenuItem.order, MenuItem.name)\
+                                     .all()
+            
+            # Mise en cache avec timeout configuré
+            cache_timeout = current_app.config.get('CACHE_TIMEOUTS', {}).get('menu', 3600)
+            cache.set(cache_key, menu_items, timeout=cache_timeout)
+            
+            logger.info(f"Service menu: Menu du {today} chargé et mis en cache ({len(menu_items)} éléments)")
+            return menu_items
+            
         except Exception as e:
             logger.error(f"Service menu: Erreur lors de la récupération du menu du jour - {str(e)}")
             return []
@@ -142,6 +165,25 @@ class MenuService:
             return {}
     
     @staticmethod
+    def get_category_info(category_id):
+        """
+        Récupère les informations d'une catégorie de menu.
+        
+        Args:
+            category_id (int): ID de la catégorie
+            
+        Returns:
+            dict: Dictionnaire contenant les informations de la catégorie (label et icon)
+        """
+        categories_map = {
+            1: {'label': 'Entrée', 'icon': '🥗'},
+            2: {'label': 'Plat principal', 'icon': '🍖'},
+            3: {'label': 'Fromage', 'icon': '🧀'},
+            4: {'label': 'Dessert', 'icon': '🍦'}
+        }
+        return categories_map.get(category_id, {'label': 'Catégorie', 'icon': '🍴'})
+    
+    @staticmethod
     def add_menu_item(category, name, description=None, icons=None, menu_date=None, order=0):
         """
         Ajoute un élément au menu.
@@ -151,29 +193,39 @@ class MenuService:
             name (str): Nom du plat
             description (str): Description du plat
             icons (str): Icônes associées au plat
-            menu_date (str): Date du menu au format YYYY-MM-DD (aujourd'hui par défaut)
+            menu_date (str|date): Date du menu au format YYYY-MM-DD ou objet date (aujourd'hui par défaut)
             order (int): Ordre d'affichage
             
         Returns:
             MenuItem: L'élément de menu créé, ou None en cas d'erreur
         """
         try:
+            # Gestion de la date - accepter les objets date et les chaînes
             if menu_date is None:
-                menu_date = datetime.now().strftime("%Y-%m-%d")
+                date_value = datetime.now().date()
+            elif isinstance(menu_date, str):
+                # Si c'est une chaîne, la convertir en objet date
+                date_value = datetime.strptime(menu_date, "%Y-%m-%d").date()
+            elif hasattr(menu_date, 'date'):
+                # Si c'est un datetime, prendre la partie date
+                date_value = menu_date.date()
+            else:
+                # Si c'est déjà un objet date
+                date_value = menu_date
                 
             menu_item = MenuItem(
                 category=category,
                 name=name,
                 description=description or "",
                 icons=icons or "",
-                date=menu_date,
+                date=date_value,
                 order=order
             )
             
             db.session.add(menu_item)
             db.session.commit()
             
-            logger.info(f"Service menu: Nouvel élément ajouté - {category}: {name} pour le {menu_date}")
+            logger.info(f"Service menu: Nouvel élément ajouté - {category}: {name} pour le {date_value}")
             return menu_item
         except Exception as e:
             db.session.rollback()
@@ -237,5 +289,4 @@ class MenuService:
             logger.error(f"Service menu: Erreur lors de la suppression de l'élément {item_id} - {str(e)}")
             return False
 
-# Instance unique du service à utiliser dans l'application
-menu_service = MenuService() 
+# Instance du service créée via lazy loading dans __init__.py 

@@ -5,13 +5,13 @@ BASE_IMAGE_NAME ?= python
 BASE_IMAGE_TAGS ?= 3.12-slim-bookworm
 
 # Output docker image
-AUTHOR ?= doalou
+AUTHOR ?= doalo
 WEB_SITE ?= doalo.fr
 
 OUTPUT_IMAGE_REGISTRY ?= docker.io
-OUTPUT_IMAGE_PATH ?= doalou
+OUTPUT_IMAGE_PATH ?= doalo
 OUTPUT_IMAGE_NAME ?= educinfo
-OUTPUT_IMAGE_VERSION ?= 1.1.0
+OUTPUT_IMAGE_VERSION ?= 1.2
 
 WORKDIR ?= /work
 

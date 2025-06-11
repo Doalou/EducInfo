@@ -1,4 +1,4 @@
-# Makefile pour le projet EducInfo
+# Makefile optimisé pour EducInfo
 .PHONY: help install run test docker.build docker.run docker.test clean
 
 # Variables Python
@@ -12,11 +12,11 @@ VENV_PIP = $(VENV_BIN)/pip
 # Variables Docker
 SUBDIRS ?= docker
 PROJECT_NAME ?= educinfo
-AUTHOR ?= doalou
+AUTHOR ?= doalo
 REGISTRY ?= docker.io
 BASE_IMAGE_REGISTRY ?= docker.io
 WEB_SITE ?= doalo.fr
-IMAGE_VERSION ?= 1.1.0
+IMAGE_VERSION ?= 1.2
 IMAGE_NAME ?= $(PROJECT_NAME)
 
 # Ressources Docker
@@ -37,13 +37,20 @@ help:
 	@echo "Commandes disponibles :"
 	@echo "  help        : Affiche cette aide"
 	@echo "  install     : Installe les dépendances"
-	@echo "  run         : Lance l'application en mode développement"
+	@echo "  run         : Lance l'application"
 	@echo "  test        : Lance les tests"
 	@echo "  init-db     : Initialise la base de données"
-	@echo "  docker      : Construit et lance l'image Docker"
+	@echo "  docker      : Construit et lance Docker"
 	@echo "  docker.build: Construit l'image Docker"
 	@echo "  docker.run  : Lance l'image Docker"
-	@echo "  docker.test : Lance les tests dans Docker"
+	@echo "  docker.test : Lance les tests Docker"
+	@echo "  cluster     : Lance le cluster load balancé"
+	@echo "  cluster-full: Lance le cluster complet (3 instances + monitoring)"
+	@echo "  cluster-stop: Arrête le cluster"
+	@echo "  cluster-status: Affiche le statut du cluster"
+	@echo "  setup       : Initialisation complète (via scripts/setup.sh)"
+	@echo "  dev-setup   : Configuration développement (via scripts/dev.sh)"
+	@echo "  scripts     : Liste les scripts disponibles"
 	@echo "  clean       : Nettoie les fichiers temporaires"
 
 # Installation des dépendances
@@ -65,6 +72,52 @@ init-db:
 
 # Construction et lancement de l'image Docker
 docker: docker.build docker.run
+
+# Gestion du cluster load balancé
+cluster:
+	@echo "🚀 Démarrage du cluster EducInfo (2 instances)..."
+	./scripts/cluster.sh
+
+cluster-full:
+	@echo "🚀 Démarrage du cluster EducInfo complet (3 instances + monitoring)..."
+	./scripts/cluster.sh --full --monitoring
+
+cluster-stop:
+	@echo "🛑 Arrêt du cluster EducInfo..."
+	./scripts/cluster.sh --stop
+
+cluster-status:
+	@echo "📊 Statut du cluster EducInfo..."
+	./scripts/cluster.sh --status
+
+cluster-logs:
+	@echo "📋 Logs du cluster EducInfo..."
+	./scripts/cluster.sh --logs
+
+cluster-restart:
+	@echo "🔄 Redémarrage du cluster EducInfo..."
+	./scripts/cluster.sh --restart
+
+# Initialisation complète via scripts
+setup:
+	@echo "🔧 Initialisation complète d'EducInfo..."
+	./scripts/setup.sh
+
+# Configuration développement via scripts
+dev-setup:
+	@echo "🔧 Configuration de l'environnement de développement..."
+	./scripts/dev.sh --install --init
+
+# Liste des scripts disponibles
+scripts:
+	@echo "📜 Scripts disponibles dans ./scripts/ :"
+	@echo ""
+	@echo "  🔧 setup.sh        : Initialisation complète"
+	@echo "  🖥️  dev.sh          : Développement local"
+	@echo "  🔄 cluster.sh      : Gestion du cluster"
+	@echo "  🧪 test-docker.sh  : Tests Docker"
+	@echo ""
+	@echo "Consultez ./scripts/README.md pour plus d'informations"
 
 # Nettoyage
 clean:

@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  # Instance 1 EducInfo
+  educinfo-1:
+    build: .
+    environment:
+      - HOSTNAME=educinfo-instance-1
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_URL=postgresql://educinfo:educinfo_password@db:5432/educinfo
+      - METRICS_INSTANCE_TTL=300
+      - METRICS_UPDATE_INTERVAL=60
+      - FLASK_ENV=production
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    volumes:
+      - educinfo-logs-1:/app/logs
+      - educinfo-instance-1:/app/instance
+
+  # Instance 2 EducInfo
+  educinfo-2:
+    build: .
+    environment:
+      - HOSTNAME=educinfo-instance-2
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_URL=postgresql://educinfo:educinfo_password@db:5432/educinfo
+      - METRICS_INSTANCE_TTL=300
+      - METRICS_UPDATE_INTERVAL=60
+      - FLASK_ENV=production
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    volumes:
+      - educinfo-logs-2:/app/logs
+      - educinfo-instance-2:/app/instance
+
+  # Instance 3 EducInfo (optionnelle)
+  educinfo-3:
+    build: .
+    environment:
+      - HOSTNAME=educinfo-instance-3
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_URL=postgresql://educinfo:educinfo_password@db:5432/educinfo
+      - METRICS_INSTANCE_TTL=300
+      - METRICS_UPDATE_INTERVAL=60
+      - FLASK_ENV=production
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    volumes:
+      - educinfo-logs-3:/app/logs
+      - educinfo-instance-3:/app/instance
+    profiles:
+      - full-cluster
+
+  # Load Balancer Nginx
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - educinfo-1
+      - educinfo-2
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Cache Redis partagé
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Base de données PostgreSQL partagée
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: educinfo
+      POSTGRES_USER: educinfo
+      POSTGRES_PASSWORD: educinfo_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U educinfo -d educinfo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring avec Prometheus (optionnel)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (optionnel)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    restart: unless-stopped
+    networks:
+      - educinfo-network
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
+    driver: local
+  db_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  educinfo-logs-1:
+    driver: local
+  educinfo-logs-2:
+    driver: local
+  educinfo-logs-3:
+    driver: local
+  educinfo-instance-1:
+    driver: local
+  educinfo-instance-2:
+    driver: local
+  educinfo-instance-3:
+    driver: local
+
+networks:
+  educinfo-network:
+    driver: bridge 

@@ -23,7 +23,7 @@ def internal_error(error):
 @bp.app_errorhandler(403)
 def forbidden_error(error):
     """Gestionnaire pour l'erreur 403 (Accès interdit)."""
-    user_info = current_user.email if not current_user.is_anonymous else "anonyme"
+    user_info = current_user.username if not current_user.is_anonymous else "anonyme"
     logger.warning(f'Accès interdit: {request.url} par {user_info}')
     return render_template('errors/403.html'), 403
 

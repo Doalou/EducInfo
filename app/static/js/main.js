@@ -3,18 +3,74 @@
  * Ce fichier contient les fonctionnalités JavaScript communes à toute l'application
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialisation du mode sombre
-    initDarkMode();
+// Utilitaires de performance
+const Utils = {
+    // Debounce function pour limiter la fréquence d'exécution
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func.apply(this, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
     
-    // Initialisation de la gestion des messages flash
-    initFlashMessages();
+    // Throttle function pour limiter l'exécution
+    throttle(func, limit) {
+        let inThrottle;
+        return function() {
+            const args = arguments;
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        }
+    },
     
-    // Initialisation du formatage de la date et heure
-    initDateTime();
+    // Cache local simple avec expiration
+    cache: new Map(),
+    setCache(key, value, ttl = 300000) { // TTL par défaut: 5 minutes
+        const expiryTime = Date.now() + ttl;
+        this.cache.set(key, { value, expiryTime });
+    },
+    getCache(key) {
+        const cached = this.cache.get(key);
+        if (cached && Date.now() < cached.expiryTime) {
+            return cached.value;
+        }
+        this.cache.delete(key);
+        return null;
+    },
+    clearExpiredCache() {
+        const now = Date.now();
+        for (const [key, value] of this.cache.entries()) {
+            if (now >= value.expiryTime) {
+                this.cache.delete(key);
+            }
+        }
+    }
+};
 
-    // Initialisation de la barre d'état
-    initStatusBar();
+// Gestionnaire principal optimisé
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation avec gestion d'erreurs
+    try {
+        initDarkMode();
+        initDateTime();
+        initStatusBar();
+        initFlashMessages();
+        
+        // Nettoyage du cache expiré toutes les 5 minutes
+        setInterval(() => Utils.clearExpiredCache(), 300000);
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error);
+    }
 });
 
 /**
@@ -136,61 +192,41 @@ function initFlashMessages() {
  * Initialise le formatage de la date et de l'heure
  */
 function initDateTime() {
-    let lastMinute = -1; // Pour suivre si la minute a changé
-    
-    // Mettre à jour l'heure avec animation
-    const updateClock = () => {
+    // Horloge temps réel optimisée avec throttling
+    const updateClock = Utils.throttle(() => {
+        const now = new Date();
         const timeElement = document.getElementById('time');
+        const dateElement = document.getElementById('date');
+        
         if (timeElement) {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
+            timeElement.textContent = now.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+        }
+        
+        if (dateElement) {
+            // Optimisation : ne mettre à jour la date qu'une fois par minute
+            const cached = Utils.getCache('current_date');
+            let formattedDate = cached;
             
-            // Mettre à jour l'heure avec les secondes
-            timeElement.textContent = `${hours}:${minutes}:${seconds}`;
-            
-            // Ajouter une animation lorsque la minute change
-            if (lastMinute !== -1 && lastMinute !== now.getMinutes()) {
-                timeElement.classList.add('pulse-animation');
-                setTimeout(() => {
-                    timeElement.classList.remove('pulse-animation');
-                }, 1000);
+            if (!formattedDate) {
+                formattedDate = now.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                Utils.setCache('current_date', formattedDate, 60000); // Cache 1 minute
             }
             
-            // Mettre à jour la dernière minute
-            lastMinute = now.getMinutes();
+            dateElement.textContent = formattedDate;
         }
-    };
+    }, 1000); // Throttle à 1 seconde
     
-    // Mettre à jour la date
-    const updateDate = () => {
-        const dateElement = document.getElementById('date');
-        if (dateElement) {
-            const now = new Date();
-            const options = { weekday: 'long', day: 'numeric', month: 'long' };
-            const dateStr = now.toLocaleDateString('fr-FR', options);
-            dateElement.textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-        }
-    };
-    
-    // Mettre à jour immédiatement
+    // Exécution immédiate puis intervalle
     updateClock();
-    updateDate();
-    
-    // Mettre à jour toutes les secondes pour être plus précis
     setInterval(updateClock, 1000);
-    
-    // Mettre à jour la date une fois par jour à minuit
-    const midnight = new Date();
-    midnight.setHours(24, 0, 0, 0);
-    const timeUntilMidnight = midnight - new Date();
-    
-    setTimeout(() => {
-        updateDate();
-        // Ensuite, mettre à jour quotidiennement
-        setInterval(updateDate, 86400000);
-    }, timeUntilMidnight);
 }
 
 /**

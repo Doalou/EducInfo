@@ -1,0 +1,50 @@
+{
+  "name": "EducInfo",
+  "short_name": "EducInfo",
+  "description": "Système d'Affichage Scolaire",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr-FR",
+  "icons": [
+    {
+      "src": "/static/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard Admin",
+      "short_name": "Admin",
+      "description": "Accès au tableau de bord administrateur",
+      "url": "/admin/dashboard",
+      "icons": [
+        {
+          "src": "/static/img/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Mode TV",
+      "short_name": "TV",
+      "description": "Basculer en mode affichage TV",
+      "url": "/?tv=true",
+      "icons": [
+        {
+          "src": "/static/img/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "categories": ["education", "productivity", "utilities"],
+  "prefer_related_applications": false
+} 

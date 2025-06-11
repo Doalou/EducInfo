@@ -9,10 +9,14 @@ from flask import current_app
 class WidgetConfig(db.Model):
     """
     Configuration des widgets affichés sur la page d'accueil.
+    Singleton - une seule configuration par instance.
     """
     __tablename__ = 'widget_config'
+    __table_args__ = (
+        db.CheckConstraint('id = 1', name='unique_singleton'),
+    )
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, default=1)
     show_menu_cantine = db.Column(db.Boolean, default=False)
     show_transports = db.Column(db.Boolean, default=False)
     cts_stop_code = db.Column(db.String(20), default="")
@@ -24,41 +28,81 @@ class WidgetConfig(db.Model):
         """Représentation de l'objet WidgetConfig"""
         return f'<WidgetConfig Menu={self.show_menu_cantine} Transport={self.show_transports}>'
 
-    @staticmethod
-    def get_config():
+    @classmethod
+    def get_config(cls):
         """
-        Récupère la configuration des widgets ou en crée une par défaut.
+        Récupère la configuration des widgets (singleton).
+        Garantit une seule instance avec ID=1.
+        
+        Returns:
+            WidgetConfig: Instance unique de configuration des widgets
+        """
+        # Utilise get() au lieu de first() pour cibler spécifiquement ID=1
+        config = cls.query.get(1)
+        if not config:
+            # Assure l'unicité en supprimant d'éventuels doublons
+            cls.query.filter(cls.id != 1).delete()
+            config = cls(id=1)
+            db.session.add(config)
+            db.session.commit()
+        return config
+
+    @staticmethod  
+    def get_config_legacy():
+        """
+        Méthode statique obsolète - utiliser la méthode de classe get_config().
+        Maintenue pour compatibilité ascendante.
         
         Returns:
             WidgetConfig: Instance de configuration des widgets
         """
-        return WidgetConfig.query.first() or WidgetConfig()
+        return WidgetConfig.get_config()
 
-    def has_valid_transport_config(self):
+    def has_valid_transport_config(self, cts_api_token_from_config=None):
         """
         Vérifie si la configuration des transports est valide.
         
+        Args:
+            cts_api_token_from_config (str, optional): Jeton API CTS provenant de la configuration de l'application.
+                                                    Passer None pour utiliser la valeur stockée dans l'instance.
+
         Returns:
             bool: True si la configuration est valide
         """
+        # Utilise le token de config si fourni, sinon celui de l'instance, sinon celui de l'app (legacy, à retirer à terme)
+        # L'idéal est que le token de l'app soit chargé dans l'instance au démarrage ou lors de la sauvegarde.
+        # Pour l'instant, on garde la compatibilité mais on privilégie le token passé en argument.
+        effective_api_token = cts_api_token_from_config if cts_api_token_from_config is not None else self.cts_api_token
+        if not effective_api_token:
+            try:
+                from flask import has_app_context
+                if has_app_context():
+                    effective_api_token = current_app.config.get('CTS_API_TOKEN')
+            except (RuntimeError, ImportError):
+                # Contexte d'application non disponible ou erreur d'import
+                pass
+
         return bool(
             self.show_transports and
             self.cts_stop_code and
             self.cts_stop_code.strip() and
-            (self.cts_api_token or current_app.config.get('CTS_API_TOKEN'))
+            effective_api_token
         )
         
-    def get_all_active_widgets(self):
+    def get_all_active_widgets(self, cts_api_token_from_config=None):
         """
         Retourne tous les widgets actifs.
-        
+
+        Args:
+            cts_api_token_from_config (str, optional): Jeton API CTS provenant de la configuration de l'application.
+
         Returns:
             list: Liste des widgets actifs
         """
         active_widgets = []
         if self.show_menu_cantine:
             active_widgets.append('menu')
-        if self.has_valid_transport_config():
+        if self.has_valid_transport_config(cts_api_token_from_config=cts_api_token_from_config):
             active_widgets.append('transport')
         return active_widgets
 
@@ -72,7 +116,7 @@ class WidgetConfig(db.Model):
         for key, value in settings.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-        db.session.commit()
+        # db.session.commit() # Commit doit être géré par la vue/service
 
 
 class ThemeConfig(db.Model):
@@ -144,7 +188,7 @@ class WeatherConfig(db.Model):
     __tablename__ = 'weather_config'
     
     id = db.Column(db.Integer, primary_key=True)
-    api_key = db.Column(db.String(32), nullable=False, default='0b0b32c21c0e7a28f8dc6711e0c2e86b')
+    api_key = db.Column(db.String(32), nullable=True, default='')
     city = db.Column(db.String(100), nullable=False, default='Paris')
     show_weather = db.Column(db.Boolean, default=True)
     
@@ -155,9 +199,14 @@ class WeatherConfig(db.Model):
     @classmethod
     def get_config(cls):
         """
-        Récupère la configuration météo ou en crée une par défaut.
+        Récupère la configuration météo ou en crée une par défaut si elle n'existe pas.
         
         Returns:
             WeatherConfig: Instance de configuration météo
         """
-        return cls.query.first() or cls() 
+        config = cls.query.first()
+        if not config:
+            config = cls()
+            db.session.add(config)
+            db.session.commit()
+        return config 

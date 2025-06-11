@@ -1,0 +1,624 @@
+{% extends 'base.html' %}
+
+{% block title %}Métriques Système - Administration{% endblock %}
+{% block description %}Surveillance et métriques du système EducInfo{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="max-w-7xl mx-auto p-6">
+        
+        <!-- Header avec navigation -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('admin.dashboard') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Retour au Dashboard
+                    </a>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Métriques Système</h1>
+                        <p class="text-gray-600 dark:text-gray-400">Surveillance et performances en temps réel</p>
+                        </div>
+                    </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Dernière mise à jour : <span id="last-update" class="font-semibold">--:--:--</span>
+                </div>
+            </div>
+                            </div>
+                            
+        <!-- Bannière de statut global -->
+        <div class="mb-6">
+            {% if (metrics.cpu_usage or 0) < 80 and (metrics.memory_usage or 0) < 80 and api_status.overall == 'healthy' %}
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                    <span class="text-green-800 dark:text-green-300 font-medium">Tous les systèmes fonctionnent correctement</span>
+                            </div>
+            </div>
+            {% else %}
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                    <span class="text-yellow-800 dark:text-yellow-300 font-medium">Certains systèmes nécessitent une attention</span>
+                            </div>
+                        </div>
+            {% endif %}
+                </div>
+                
+        <!-- Contrôles et options -->
+        <div class="mb-6 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <button id="toggle-auto-refresh" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    <span id="refresh-status">Auto-refresh: OFF</span>
+                    </button>
+                <button onclick="refreshMetrics()" class="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    Actualiser
+                    </button>
+            </div>
+            <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                <div class="flex items-center">
+                                                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span>Données en temps réel</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grille principale des métriques -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            
+            <!-- Uptime -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">Temps de fonctionnement</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ metrics.uptime }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        {% if metrics.uptime_days %}
+                            {{ metrics.uptime_days }} jour(s) continu(s)
+                        {% else %}
+                            Système démarré récemment
+                        {% endif %}
+                    </p>
+                    </div>
+                </div>
+
+            <!-- Services actifs -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">Services</h3>
+                            </div>
+                        </div>
+                    </div>
+                <div class="mt-2">
+                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ metrics.active_services }}/8</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Services actifs</p>
+                        </div>
+                </div>
+
+            <!-- Cache -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">Cache</h3>
+                    </div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full {% if metrics.cache_efficiency > 0 %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400{% endif %}">
+                        {% if metrics.cache_efficiency > 0 %}Actif{% else %}Inactif{% endif %}
+                    </span>
+                </div>
+                <div class="mt-2">
+                    {% if metrics.cache_efficiency > 0 %}
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ "%.0f"|format(metrics.cache_efficiency) }}%</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Efficacité</p>
+                    {% else %}
+                        <p class="text-2xl font-semibold text-gray-500 dark:text-gray-400">N/A</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Désactivé</p>
+                    {% endif %}
+                    </div>
+                </div>
+
+            <!-- Base de données -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                            </svg>
+                    </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-900 dark:text-white">Base de données</h3>
+                    </div>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        Connectée
+                    </span>
+                </div>
+                <div class="mt-2">
+                    <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ db_metrics.total_records }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Enregistrements</p>
+                </div>
+            </div>
+
+                </div>
+
+        <!-- Informations Cluster/Load Balancing -->
+        {% if metrics.cluster.is_clustered %}
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">🔗 Cluster Load Balancing</h3>
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h4 class="text-lg font-medium text-gray-900 dark:text-white">État du Cluster</h4>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                        {{ metrics.cluster.total_instances }} instance(s)
+                    </span>
+                        </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ metrics.cluster.total_instances }}</div>
+                        <div class="text-sm text-blue-600 dark:text-blue-400">Total Instances</div>
+                        </div>
+                    <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ metrics.cluster.healthy_instances }}</div>
+                        <div class="text-sm text-green-600 dark:text-green-400">Instances Saines</div>
+                    </div>
+                    <div class="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ "%.1f"|format((metrics.cluster.healthy_instances / metrics.cluster.total_instances * 100) if metrics.cluster.total_instances > 0 else 0) }}%</div>
+                        <div class="text-sm text-orange-600 dark:text-orange-400">Disponibilité</div>
+                    </div>
+                </div>
+
+                {% if metrics.cluster.instances %}
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Détails des Instances</h5>
+                    <div class="space-y-2">
+                        {% for instance in metrics.cluster.instances %}
+                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-700 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 {% if instance.status == 'healthy' %}bg-green-500{% else %}bg-red-500{% endif %} rounded-full mr-3"></div>
+                                <span class="font-mono text-sm text-gray-900 dark:text-white">{{ instance.id }}</span>
+                    </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                CPU: {{ instance.cpu }}% | RAM: {{ instance.memory }}%
+                </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                        </div>
+                {% endif %}
+                
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        <strong>ℹ️ Load Balancing:</strong> Les métriques système (CPU, RAM, Disque) sont moyennées sur toutes les instances actives. 
+                        Les métriques applicatives (base de données, users, etc.) sont identiques sur toutes les instances car elles partagent la même base de données.
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Métriques métier EducInfo -->
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Métriques Métier EducInfo</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Absences du jour -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                                <span class="text-lg">👨‍🏫</span>
+                        </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Absences Aujourd'hui</h4>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="absences-today">{{ metrics.business.absences_today or 0 }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Professeurs absents</p>
+                    </div>
+                </div>
+
+                <!-- Menus du jour -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                                <span class="text-lg">🍽️</span>
+                    </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Plats du Jour</h4>
+                </div>
+                    </div>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="menu-items-today">{{ metrics.business.menu_items_today or 0 }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Plats disponibles</p>
+                        </div>
+                    </div>
+                    
+                <!-- Événements à venir -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                                <span class="text-lg">📅</span>
+                        </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Événements à Venir</h4>
+                        </div>
+                    </div>
+                        </div>
+                    <div class="mt-2">
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="upcoming-events">{{ metrics.business.upcoming_events or 0 }}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Prochains 30 jours</p>
+                </div>
+            </div>
+
+                <!-- Temps de réponse moyen -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                                <span class="text-lg">⚡</span>
+                        </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Réactivité</h4>
+                        </div>
+                    </div>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full {% if (metrics.response_time or 0) < 500 %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400{% endif %}">
+                            {% if (metrics.response_time or 0) < 500 %}Rapide{% else %}Normale{% endif %}
+                        </span>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="response-time">{{ metrics.response_time or 0 }}ms</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Temps de réponse</p>
+                </div>
+                    </div>
+                </div>
+                    </div>
+                    
+        <!-- Cartes détaillées -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Ressources système -->
+            {% if metrics.cpu_usage is not none %}
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Ressources Système</h3>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full {% if (metrics.cpu_usage or 0) > 80 or (metrics.memory_usage or 0) > 80 %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% else %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% endif %}">
+                        {% if (metrics.cpu_usage or 0) > 80 or (metrics.memory_usage or 0) > 80 %}Attention{% else %}Normal{% endif %}
+                    </span>
+                    </div>
+                    
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700 dark:text-gray-300">CPU</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ "%.1f"|format(metrics.cpu_usage) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="h-2 rounded-full {% if metrics.cpu_usage > 80 %}bg-red-500{% elif metrics.cpu_usage > 60 %}bg-yellow-500{% else %}bg-green-500{% endif %}" style="width: {{ metrics.cpu_usage }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700 dark:text-gray-300">Mémoire</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ "%.1f"|format(metrics.memory_usage) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="h-2 rounded-full {% if metrics.memory_usage > 80 %}bg-red-500{% elif metrics.memory_usage > 60 %}bg-yellow-500{% else %}bg-green-500{% endif %}" style="width: {{ metrics.memory_usage }}%"></div>
+                </div>
+            </div>
+
+                        <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-700 dark:text-gray-300">Stockage</span>
+                            <span class="font-medium text-gray-900 dark:text-white">{{ "%.1f"|format(metrics.disk_usage) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="h-2 rounded-full {% if metrics.disk_usage > 80 %}bg-red-500{% elif metrics.disk_usage > 60 %}bg-yellow-500{% else %}bg-green-500{% endif %}" style="width: {{ metrics.disk_usage }}%"></div>
+                    </div>
+                    </div>
+                </div>
+                        </div>
+            {% else %}
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Ressources Système</h3>
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.516-.904-6.13-2.543"></path>
+                    </svg>
+                    <p class="text-gray-500 dark:text-gray-400">Le module <code>psutil</code> n'est pas installé.</p>
+                    <p class="text-sm text-gray-400 dark:text-gray-500">Les métriques de ressources ne sont pas disponibles.</p>
+                    </div>
+                        </div>
+            {% endif %}
+
+            <!-- Services externes et détails BDD -->
+            <div class="space-y-6">
+                <!-- APIs externes -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Services Externes</h3>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full {% if api_status.overall == 'healthy' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                            {% if api_status.overall == 'healthy' %}Opérationnels{% else %}Problèmes{% endif %}
+                            </span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="text-lg mr-3">🌤️</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">API Météo</span>
+                        </div>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full {% if api_status.weather == 'ok' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                                {% if api_status.weather == 'ok' %}OK{% else %}Erreur{% endif %}
+                            </span>
+                </div>
+
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="text-lg mr-3">🚌</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">API Transports</span>
+                    </div>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full {% if api_status.cts == 'ok' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% endif %}">
+                                {% if api_status.cts == 'ok' %}OK{% else %}Erreur{% endif %}
+                            </span>
+                        </div>
+                </div>
+            </div>
+
+                <!-- Détails base de données -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Détails Base de Données</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ db_metrics.users }}</div>
+                            <div class="text-sm text-blue-600 dark:text-blue-400">Utilisateurs</div>
+                        </div>
+                        <div class="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ db_metrics.absences }}</div>
+                            <div class="text-sm text-red-600 dark:text-red-400">Absences</div>
+                        </div>
+                        <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ db_metrics.menus }}</div>
+                            <div class="text-sm text-green-600 dark:text-green-400">Menus</div>
+                    </div>
+                        <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ db_metrics.events }}</div>
+                            <div class="text-sm text-purple-600 dark:text-purple-400">Événements</div>
+                    </div>
+                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+        <!-- Alertes et Recommandations -->
+        {% if metrics.cpu_usage and metrics.cpu_usage > 80 or metrics.memory_usage and metrics.memory_usage > 80 or metrics.disk_usage and metrics.disk_usage > 80 %}
+        <div class="mb-8">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">🚨 Alertes Système</h3>
+            <div class="space-y-4">
+                {% if metrics.cpu_usage and metrics.cpu_usage > 80 %}
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    <div>
+                            <span class="text-red-800 dark:text-red-300 font-medium">Usage CPU élevé ({{ "%.1f"|format(metrics.cpu_usage) }}%)</span>
+                            <p class="text-sm text-red-600 dark:text-red-400">Recommandation : Vérifiez les processus actifs et considérez l'optimisation des performances.</p>
+                    </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if metrics.memory_usage and metrics.memory_usage > 80 %}
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <div>
+                            <span class="text-yellow-800 dark:text-yellow-300 font-medium">Usage mémoire élevé ({{ "%.1f"|format(metrics.memory_usage) }}%)</span>
+                            <p class="text-sm text-yellow-600 dark:text-yellow-400">Recommandation : Videz le cache ou redémarrez l'application si nécessaire.</p>
+                </div>
+                    </div>
+                    </div>
+                {% endif %}
+                
+                {% if metrics.disk_usage and metrics.disk_usage > 80 %}
+                <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <div>
+                            <span class="text-orange-800 dark:text-orange-300 font-medium">Espace disque faible ({{ "%.1f"|format(metrics.disk_usage) }}%)</span>
+                            <p class="text-sm text-orange-600 dark:text-orange-400">Recommandation : Nettoyez les fichiers temporaires et les logs anciens.</p>
+                    </div>
+                </div>
+            </div>
+                {% endif %}
+        </div>
+    </div>
+        {% endif %}
+
+        <!-- Actions de maintenance -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Actions de Maintenance</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <form method="POST" action="{{ url_for('admin.admin_clear_cache') }}" class="inline">
+                    {{ clear_cache_form.hidden_tag() }}
+                    <button type="submit" class="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+    </svg>
+                        Vider le Cache
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="inline">
+                    {{ test_notification_form.hidden_tag() }}
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h9a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Test Notifications
+                    </button>
+                </form>
+
+                <button onclick="exportData()" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Exporter Données
+                </button>
+
+                <a href="{{ url_for('admin.debug_users') }}" class="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Debug Utilisateurs
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function updateLastRefreshTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    const elem = document.getElementById('last-update');
+    if (elem) {
+        elem.textContent = timeString;
+    }
+}
+
+// Variables globales pour l'auto-refresh
+let autoRefreshEnabled = false;
+let refreshInterval;
+
+function exportData() {
+    alert('Fonction d\'export des données en cours de développement.');
+}
+
+function toggleAutoRefresh() {
+    const button = document.getElementById('toggle-auto-refresh');
+    const status = document.getElementById('refresh-status');
+    
+    autoRefreshEnabled = !autoRefreshEnabled;
+    
+    if (autoRefreshEnabled) {
+        status.textContent = 'Auto-refresh: ON (30s)';
+        button.classList.remove('border-gray-300', 'dark:border-gray-600');
+        button.classList.add('border-green-500', 'text-green-700', 'dark:text-green-400');
+        refreshInterval = setInterval(refreshMetrics, 30000);
+    } else {
+        status.textContent = 'Auto-refresh: OFF';
+        button.classList.remove('border-green-500', 'text-green-700', 'dark:text-green-400');
+        button.classList.add('border-gray-300', 'dark:border-gray-600');
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        }
+    }
+}
+
+function refreshMetrics() {
+    fetch(window.location.href, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateMetricsDisplay(data.metrics);
+            updateLastRefreshTime();
+        }
+    })
+    .catch(error => {
+        console.warn('Erreur lors du rafraîchissement des métriques:', error);
+    });
+}
+
+function updateMetricsDisplay(metrics) {
+    // Mettre à jour les métriques business
+    if (metrics.business) {
+        const absencesEl = document.getElementById('absences-today');
+        const menuEl = document.getElementById('menu-items-today');
+        const eventsEl = document.getElementById('upcoming-events');
+        const responseEl = document.getElementById('response-time');
+        
+        if (absencesEl) absencesEl.textContent = metrics.business.absences_today || 0;
+        if (menuEl) menuEl.textContent = metrics.business.menu_items_today || 0;
+        if (eventsEl) eventsEl.textContent = metrics.business.upcoming_events || 0;
+        if (responseEl) responseEl.textContent = (metrics.response_time || 0) + 'ms';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateLastRefreshTime();
+    setInterval(updateLastRefreshTime, 5000);
+    
+    // Initialiser les contrôles
+    const toggleButton = document.getElementById('toggle-auto-refresh');
+    if (toggleButton) {
+        toggleButton.addEventListener('click', toggleAutoRefresh);
+    }
+});
+</script>
+{% endblock %} 

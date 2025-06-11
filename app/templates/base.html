@@ -1,152 +1,925 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Système d'information pour établissement scolaire">
+    <meta name="description" content="{% block description %}Système d'information moderne pour établissement scolaire - Gestion des absences, menu cantine, météo et transports{% endblock %}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ site_config.site_name }}</title>
     
-    <!-- Favicon -->
+    <!-- SEO et métadonnées améliorées -->
+    <meta name="keywords" content="éducation, école, lycée, gestion scolaire, absences professeurs, menu cantine, transport scolaire, météo">
+    <meta name="author" content="EducInfo Team">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="fr">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="{% block og_title %}{{ site_config.site_name }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Plateforme d'information scolaire moderne et intuitive{% endblock %}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/og-image.png', _external=True) }}">
+    <meta property="og:locale" content="fr_FR">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.url }}">
+    <meta property="twitter:title" content="{% block twitter_title %}{{ site_config.site_name }}{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Plateforme d'information scolaire moderne{% endblock %}">
+    <meta property="twitter:image" content="{{ url_for('static', filename='img/og-image.png', _external=True) }}">
+    
+    <title>{% block title %}{{ site_config.site_name }}{% endblock %}</title>
+    
+    <!-- Favicon amélioré avec support multi-format -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="mask-icon" href="{{ url_for('static', filename='img/safari-pinned-tab.svg') }}" color="#4f46e5">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     
-    <!-- Charger le CSS avant TailwindCSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/darkmode.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ site_config.site_name }}">
+    <meta name="msapplication-TileColor" content="#4f46e5">
+    <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
     
-    <!-- Google Fonts - Inter (interface générale) et Roboto Mono (horloge) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Preload et optimisations de performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ url_for('static', filename='css/style.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='css/darkmode.css') }}" as="style">
+    
+    <!-- DNS Prefetch pour les domaines externes -->
+    <link rel="dns-prefetch" href="//api.openweathermap.org">
+    <link rel="dns-prefetch" href="//api.cts-strasbourg.eu">
+    
+    <!-- Tailwind CSS avec configuration personnalisée optimisée -->
     <script>
-        // Configuration Tailwind pour le dark mode
-        tailwind.config = {
+        // Configuration Tailwind plus propre
+        window.tailwindConfig = {
             darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'Monaco', 'Cascadia Code', 'monospace']
+                    },
                     colors: {
-                        dark: {
-                            DEFAULT: '#18181b',
-                            lighter: '#27272f',
-                            hover: '#2d2d35'
+                        primary: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81', 950: '#1e1b4b'
                         },
-                        indigo: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            200: '#c7d2fe',
-                            300: '#a5b4fc',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81'
+                        dark: {
+                            DEFAULT: '#0f172a', 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0',
+                            300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569',
+                            700: '#334155', 800: '#1e293b', 900: '#0f172a', 950: '#020617'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'bounce-gentle': 'bounceGentle 2s ease-in-out infinite',
+                        'pulse-slow': 'pulseSlow 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.8)' }
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        bounceGentle: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' }
+                        },
+                        pulseSlow: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.5' }
                         }
                     }
                 }
             }
-        }
+        };
     </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = window.tailwindConfig;
+    </script>
+    
+    <!-- Styles personnalisés -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/darkmode.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     <!-- CSS spécifique à la page -->
     {% block extra_css %}{% endblock %}
+    
+    <!-- Styles critiques inline pour éviter FOUC -->
+    <style>
+        /* Amélioration de la lisibilité et de l'accessibilité */
+        *, *::before, *::after {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            box-sizing: border-box;
+        }
+        
+        /* Gestion du focus pour l'accessibilité */
+        *:focus {
+            outline: 2px solid #4f46e5;
+            outline-offset: 2px;
+        }
+        
+        *:focus:not(:focus-visible) {
+            outline: none;
+        }
+        
+        /* Variables CSS pour une meilleure cohérence */
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            --border-radius-sm: 0.375rem;
+            --border-radius: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            
+            --transition-fast: 150ms ease-in-out;
+            --transition-normal: 300ms ease-in-out;
+            --transition-slow: 500ms ease-in-out;
+        }
+        
+        html {
+            height: 100%;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #6b7280 0%, #374151 50%, #111827 100%);
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        
+        /* Mode sombre avec dégradé plus sombre */
+        .dark body {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 50%, #0f172a 100%);
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        /* Barre de statut principale - AJUSTÉE pour cohérence avec dashboard admin */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px; /* Ajusté pour correspondre au dashboard admin */
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 50;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            height: 100%;
+            padding: 0 2rem;
+            gap: 2rem;
+        }
+
+        /* Section école */
+        .school-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .school-logo:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .logo-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3rem;
+            height: 3rem;
+            background: rgba(99, 102, 241, 0.8);
+            border-radius: 12px;
+        }
+        
+        .logo-text {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.2;
+        }
+
+        /* Section centrale avec horloge et météo */
+        .center-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        /* Widget horloge */
+        .time-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .time-widget:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .time-display {
+            font-size: 2.5rem;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        
+        .date-display {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        /* Widget météo AGRANDI - Cohérence avec dashboard */
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .weather-widget:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .weather-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+        
+        .weather-icon {
+            font-size: 2.5rem; /* Doublé */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            line-height: 1;
+        }
+        
+        .weather-info {
+            flex: 1;
+        }
+        
+        .weather-temp {
+            font-size: 1.75rem; /* Doublé */
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        
+        .weather-desc {
+            font-size: 0.9rem; /* Augmenté */
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: capitalize;
+            font-weight: 500;
+        }
+        
+        .weather-details {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .weather-detail {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .weather-detail-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        
+        .weather-detail-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1;
+        }
+        
+        .actions-section {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        
+        .action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            min-width: 3rem;
+            height: 3rem;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        
+        .admin-btn {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
+        }
+        
+        .admin-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 1), rgba(139, 92, 246, 1));
+        }
+        
+        /* Flash messages améliorés */
+        .flash-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .flash-message {
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: slide-in 0.3s ease-out;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive design pour la barre de statut */
+        @media (max-width: 1024px) {
+            .status-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .center-section {
+                order: -1;
+            }
+            
+            .actions-section {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .status-content {
+                padding: 0 1rem;
+            }
+            
+            .center-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .time-widget, .weather-widget {
+                padding: 0.75rem 1rem;
+            }
+            
+            .time-display {
+                font-size: 2rem;
+            }
+            
+            .weather-temp {
+                font-size: 1.5rem;
+            }
+            
+            .weather-display {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+            
+            .weather-details {
+                justify-content: center;
+            }
+        }
+        
+        /* Animations améliorées */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
+            100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4); }
+        }
+        
+        @keyframes slideIn {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Mode sombre spécifique */
+        .dark .status-bar {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .action-btn, .dark .time-widget, .dark .weather-widget, .dark .school-logo {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .action-btn:hover, .dark .time-widget:hover, .dark .weather-widget:hover {
+            background: rgba(15, 23, 42, 0.8);
+        }
+    </style>
 </head>
-<body class="bg-white dark:bg-dark text-gray-900 dark:text-gray-100 dark-transition">
-    <!-- Contenu principal -->
-    <main class="pb-16">
-        {% block content %}{% endblock %}
+
+<body class="bg-transparent text-white font-sans antialiased" itemscope itemtype="https://schema.org/WebPage">
+    {% block body %}
+    <!-- Zone de contenu principal -->
+    <main id="main-content" class="relative z-10" role="main">
+        <!-- Messages flash améliorés -->
+        {% include 'includes/flash_messages.html' %}
+        
+        <!-- Contenu de la page -->
+        <div class="min-h-screen" style="padding-bottom: 140px;">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
-    <!-- Flash messages -->
-    {% if get_flashed_messages(with_categories=true) %}
-    <div id="flash-messages" class="fixed top-4 right-4 z-50 space-y-2 w-80">
-        {% for category, message in get_flashed_messages(with_categories=true) %}
-            {% set bg_color = 'bg-blue-500 dark:bg-blue-600' %}
-            {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>' %}
-            {% if category == 'success' %}
-                {% set bg_color = 'bg-emerald-500 dark:bg-emerald-600' %}
-                {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>' %}
-            {% elif category == 'danger' or category == 'error' %}
-                {% set bg_color = 'bg-red-500 dark:bg-red-600' %}
-                {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>' %}
-            {% elif category == 'warning' %}
-                {% set bg_color = 'bg-yellow-500 dark:bg-yellow-600' %}
-                {% set icon_svg = '<svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.625-1.09 2.077-1.09 2.702 0l6.468 11.337A1.75 1.75 0 0116.06 17H3.94a1.75 1.75 0 01-1.367-2.564l6.468-11.337zM9 13a1 1 0 112 0v1a1 1 0 11-2 0v-1zm1-4a1 1 0 00-1 1v1a1 1 0 102 0V10a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>' %}
-            {% endif %}
-            <div class="flash-message rounded-lg p-4 text-white flex items-start shadow-lg {{ bg_color }}"
-                 role="alert">
-                {{ icon_svg|safe }}
-                <div class="flex-1">{{ message }}</div>
-                <button type="button" onclick="removeFlashMessage(this.closest('.flash-message'))" class="ml-4 -mr-1 -mt-1 p-1 rounded-md opacity-75 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50" aria-label="Fermer">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                </button>
+    <!-- Barre de statut améliorée avec navigation principale -->
+    <footer class="status-bar" role="contentinfo" aria-label="Barre d'état et navigation">
+        <div class="status-content">
+            <!-- Section école avec schema.org -->
+            <div class="school-logo" itemscope itemtype="https://schema.org/EducationalOrganization">
+                <div class="logo-icon" role="img" aria-label="Logo de l'établissement">
+                    <svg class="w-8 h-8 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                    </svg>
+                </div>
+                <div class="logo-text" itemprop="name">{{ site_config.site_name }}</div>
             </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    <!-- Barre de statut fixe -->
-    <div class="status-bar">
-        <div class="container mx-auto px-4">
-            <div class="status-bar-grid grid grid-cols-3 md:grid-cols-3 sm:grid-cols-1 items-center">
-                <!-- Première colonne: Infos École -->
-                <div class="flex items-center">
-                    <div class="flex items-center text-white">
-                        <div class="mr-3 text-2xl bg-white/10 rounded-full p-2 backdrop-blur-sm">
-                            <img src="{{ url_for('static', filename='img/favicon.svg') }}" alt="EducInfo Logo" class="w-8 h-8">
+            <!-- Section centrale avec horloge et météo -->
+            <div class="center-section">
+                <!-- Widget horloge -->
+                <div class="time-widget" role="timer" aria-label="Horloge en temps réel">
+                    <div id="current-time" class="time-display" aria-live="polite">
+                        --:--:--
+                    </div>
+                    <div id="current-date" class="date-display">
+                        -- --- ----
+                    </div>
+                </div>
+
+                <!-- Widget météo AGRANDI -->
+                {% if weather_config and weather_config.show_weather %}
+                <div class="weather-widget" role="region" aria-label="Informations météorologiques">
+                    <div id="weather-display" class="weather-display">
+                        <div id="weather-icon" class="weather-icon" aria-hidden="true">🌤️</div>
+                        <div class="weather-info">
+                            <div id="weather-temp" class="weather-temp" aria-label="Température actuelle">--°C</div>
+                            <div id="weather-desc" class="weather-desc">Chargement...</div>
+                            <div class="weather-details">
+                                <div class="weather-detail">
+                                    <div class="weather-detail-label">Ressenti</div>
+                                    <div id="weather-feels" class="weather-detail-value">--°C</div>
+                                </div>
+                                <div class="weather-detail">
+                                    <div class="weather-detail-label">Humidité</div>
+                                    <div id="weather-humidity" class="weather-detail-value">--%</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="status-school-name text-xl font-bold tracking-tight">{{ site_config.site_name }}</div>
-                            <div class="text-xs text-white/75">Système d'information</div>
-                        </div>
                     </div>
                 </div>
-                
-                <!-- Deuxième colonne: Horloge et Météo -->
-                <div class="flex justify-center items-center space-x-4">
-                    <!-- Horloge -->
-                    <div class="text-center text-white bg-white/10 px-4 py-1 rounded-xl backdrop-blur-sm">
-                        <div id="time" class="text-2xl font-bold clock-digit">--:--</div>
-                        <div id="date" class="text-xs font-medium uppercase tracking-wider mt-0.5 text-white/75">--/--/----</div>
-                    </div>
-                    <!-- Météo (si disponible) -->
-                    {% if weather and weather.temp is defined %}
-                    <div class="text-center text-white bg-white/10 px-3 py-1 rounded-xl backdrop-blur-sm hidden sm:flex items-center space-x-2" title="Météo: {{ weather.description }}">
-                        <span class="text-2xl">{{ weather.icon_emoji | default('🌡️') }}</span>
-                        <span class="text-xl font-bold">{{ weather.temp }}°C</span>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <!-- Troisième colonne: Actions -->
-                <div class="flex justify-end space-x-3">
-                    <button id="darkmode-toggle" class="bg-white/15 hover:bg-white/25 text-white rounded-xl p-3 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-                        <svg id="moon-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                        <svg id="sun-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    </button>
-                    
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('admin.dashboard') }}" class="bg-white/15 hover:bg-white/25 text-white rounded-xl p-3 backdrop-blur-sm transition-all duration-300 hover:scale-105 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <span class="hidden sm:inline text-sm font-medium">Administration</span>
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('auth.login') }}" class="bg-white/15 hover:bg-white/25 text-white rounded-xl p-3 backdrop-blur-sm transition-all duration-300 hover:scale-105 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                            <span class="hidden sm:inline text-sm font-medium">Connexion</span>
-                        </a>
-                    {% endif %}
-                </div>
+                {% endif %}
+            </div>
+
+            <!-- Section actions avec navigation -->
+            <div class="actions-section">
+                <!-- Bouton Actualiser -->
+                <button id="refresh-page" 
+                        class="action-btn" 
+                        title="Actualiser la page pour obtenir les dernières données"
+                        aria-label="Actualiser la page"
+                        aria-pressed="false">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </button>
+
+                <!-- Bouton Plein écran -->
+                <button id="fullscreen-toggle" 
+                        class="action-btn" 
+                        title="Basculer en mode plein écran"
+                        aria-label="Basculer le mode plein écran"
+                        aria-pressed="false">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                    </svg>
+                </button>
+
+                <!-- Bouton thème avec indication de l'état -->
+                <button id="theme-toggle" 
+                        class="action-btn" 
+                        title="Basculer entre thème clair et sombre"
+                        aria-label="Changer de thème"
+                        aria-pressed="false">
+                    <svg id="moon-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                    <svg id="sun-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </button>
+
+                <!-- Bouton admin (si utilisateur connecté) -->
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('admin.dashboard') }}" 
+                   class="action-btn admin-btn" 
+                   title="Accéder au tableau de bord administrateur"
+                   aria-label="Administration">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </a>
+                {% else %}
+                <!-- Bouton connexion (si utilisateur non connecté) -->
+                <a href="{{ url_for('auth.login') }}" 
+                   class="action-btn admin-btn" 
+                   title="Se connecter à l'administration"
+                   aria-label="Connexion administration">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                </a>
+                {% endif %}
             </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- JavaScript principal -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
+    <!-- JavaScript amélioré avec gestion d'erreurs -->
+    <script>
+        // Configuration globale et gestion des erreurs
+        window.EducInfo = {
+            config: {
+                updateIntervals: {
+                    clock: 1000,
+                    weather: 600000, // 10 minutes
+                    data: 30000 // 30 secondes
+                },
+                api: {
+                    weather: "{{ url_for('public.get_weather') }}",
+                    updates: "{{ url_for('public.get_updates') }}",
+                    transports: "{{ url_for('public.get_transports') }}"
+                },
+                theme: localStorage.getItem('theme') || 'auto'
+            },
+            utils: {
+                debounce: (func, wait) => {
+                    let timeout;
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                    };
+                },
+                formatTime: (date) => {
+                    return date.toLocaleTimeString('fr-FR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit' 
+                    });
+                },
+                formatDate: (date) => {
+                    return date.toLocaleDateString('fr-FR', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                }
+            }
+        };
+
+        // Gestion des erreurs globales
+        window.addEventListener('error', function(e) {
+            console.warn('Erreur JavaScript:', e.error);
+            // Optionnel: envoyer l'erreur au serveur pour monitoring
+        });
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            initializeClock();
+            initializeWeather();
+            initializeFullscreen();
+            initializeRefreshButton();
+            initializeFlashMessages();
+        });
+
+        // Gestion du thème améliorée
+        function initializeTheme() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+            
+            // Appliquer le thème sauvegardé
+            if (window.EducInfo.config.theme === 'dark' || 
+                (window.EducInfo.config.theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+                themeToggle.setAttribute('aria-pressed', 'true');
+            }
+            
+            // Gestionnaire de clic
+            themeToggle.addEventListener('click', function() {
+                const isDark = html.classList.contains('dark');
+                
+                if (isDark) {
+                    html.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                    this.setAttribute('aria-pressed', 'false');
+                } else {
+                    html.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                    this.setAttribute('aria-pressed', 'true');
+                }
+                
+                // Annoncer le changement aux lecteurs d'écran
+                this.setAttribute('aria-label', 
+                    isDark ? 'Thème clair activé' : 'Thème sombre activé'
+                );
+            });
+            
+            // Écouter les changements de préférence système
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                if (localStorage.getItem('theme') === 'auto') {
+                    if (e.matches) {
+                        html.classList.add('dark');
+                    } else {
+                        html.classList.remove('dark');
+                    }
+                }
+            });
+        }
+
+        // Gestion du bouton actualiser
+        function initializeRefreshButton() {
+            const refreshButton = document.getElementById('refresh-page');
+            
+            refreshButton.addEventListener('click', function() {
+                // Animation de rotation pendant le chargement
+                this.style.transform = 'rotate(360deg)';
+                this.style.transition = 'transform 0.5s ease-in-out';
+                
+                // Actualiser la page après l'animation
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            });
+        }
+
+        // Horloge en temps réel améliorée
+        function initializeClock() {
+            function updateClock() {
+                try {
+                    const now = new Date();
+                    const timeElement = document.getElementById('current-time');
+                    const dateElement = document.getElementById('current-date');
+                    
+                    if (timeElement) {
+                        timeElement.textContent = window.EducInfo.utils.formatTime(now);
+                    }
+                    if (dateElement) {
+                        dateElement.textContent = window.EducInfo.utils.formatDate(now);
+                    }
+                } catch (error) {
+                    console.warn('Erreur mise à jour horloge:', error);
+                }
+            }
+            
+            updateClock();
+            setInterval(updateClock, window.EducInfo.config.updateIntervals.clock);
+        }
+
+        // Gestion météo améliorée - CORRIGÉE
+        function initializeWeather() {
+            const weatherEnabled = {% if weather_config and weather_config.show_weather %}true{% else %}false{% endif %};
+            
+            if (weatherEnabled) {
+                function updateWeather() {
+                    fetch(window.EducInfo.config.api.weather)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                console.warn('Erreur météo:', data.error);
+                                return;
+                            }
+                            
+                            // Vérifier l'existence des éléments avant de les utiliser
+                            const elements = {
+                                icon: document.getElementById('weather-icon'),
+                                temp: document.getElementById('weather-temp'),
+                                desc: document.getElementById('weather-desc'),
+                                feels: document.getElementById('weather-feels'),
+                                humidity: document.getElementById('weather-humidity')
+                            };
+                            
+                            // Mettre à jour seulement les éléments qui existent
+                            if (elements.icon && data.emoji) {
+                                elements.icon.textContent = data.emoji;
+                            }
+                            if (elements.temp && data.temperature) {
+                                elements.temp.textContent = `${data.temperature}°C`;
+                            }
+                            if (elements.desc && data.description) {
+                                elements.desc.textContent = data.description;
+                            }
+                            if (elements.feels && data.feels_like) {
+                                elements.feels.textContent = `${data.feels_like}°C`;
+                            }
+                            if (elements.humidity && data.humidity) {
+                                elements.humidity.textContent = `${data.humidity}%`;
+                            }
+                        })
+                        .catch(error => {
+                            console.warn('Erreur récupération météo:', error);
+                            // Afficher des valeurs par défaut en cas d'erreur
+                            const tempElement = document.getElementById('weather-temp');
+                            const descElement = document.getElementById('weather-desc');
+                            if (tempElement) tempElement.textContent = '--°C';
+                            if (descElement) descElement.textContent = 'Non disponible';
+                        });
+                }
+                
+                // Première mise à jour immédiate
+                updateWeather();
+                // Mise à jour périodique
+                setInterval(updateWeather, window.EducInfo.config.updateIntervals.weather);
+            }
+        }
+
+        // Gestion plein écran
+        function initializeFullscreen() {
+            const fullscreenToggle = document.getElementById('fullscreen-toggle');
+            
+            fullscreenToggle.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().then(() => {
+                        this.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-label', 'Quitter le mode plein écran');
+                    }).catch(err => {
+                        console.warn('Erreur plein écran:', err);
+                    });
+                } else {
+                    document.exitFullscreen().then(() => {
+                        this.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-label', 'Basculer en mode plein écran');
+                    });
+                }
+            });
+            
+            // Écouter les changements de plein écran
+            document.addEventListener('fullscreenchange', function() {
+                const isFullscreen = !!document.fullscreenElement;
+                fullscreenToggle.setAttribute('aria-pressed', isFullscreen.toString());
+            });
+        }
+
+        // Auto-fermeture des messages flash
+        function initializeFlashMessages() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                // Auto-fermeture après 5 secondes (sauf erreurs)
+                const severity = message.dataset.severity;
+                if (severity !== 'error') {
+                    setTimeout(() => {
+                        message.style.animation = 'slideOut 0.3s ease-in forwards';
+                        setTimeout(() => message.remove(), 300);
+                    }, 5000);
+                }
+            });
+        }
+
+        // Support du raccourci F11 pour plein écran
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                document.getElementById('fullscreen-toggle').click();
+            }
+        });
+    </script>
+
     <!-- JavaScript spécifique à la page -->
     {% block extra_js %}{% endblock %}
+    
+    <!-- CSS pour les animations supplémentaires -->
+    <style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) skewX(-12deg); }
+            100% { transform: translateX(200%) skewX(-12deg); }
+        }
+        
+        @keyframes slideOut {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .animate-shimmer {
+            animation: shimmer 2s infinite;
+        }
+    </style>
+    {% endblock %}
 </body>
 </html>

@@ -1,25 +1,400 @@
 {% extends 'base.html' %}
 
+{% block title %}405 - Méthode non autorisée{% endblock %}
+{% block description %}Méthode non autorisée - La méthode HTTP utilisée n'est pas supportée pour cette ressource{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --error-primary: #8b5cf6;
+        --error-primary-hover: #7c3aed;
+        --error-bg-light: #ede9fe;
+        --error-bg-dark: rgba(139, 92, 246, 0.1);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --dark-glass-bg: rgba(15, 23, 42, 0.95);
+        --dark-glass-border: rgba(148, 163, 184, 0.2);
+    }
+    
+    .error-container {
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(196, 181, 253, 0.15) 0%, transparent 50%),
+            linear-gradient(135deg, var(--error-bg-light) 0%, #faf5ff 50%, var(--error-bg-light) 100%);
+        animation: gradient-flow 12s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dark .error-container {
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(196, 181, 253, 0.08) 0%, transparent 50%),
+            linear-gradient(135deg, var(--error-bg-dark) 0%, rgba(15, 23, 42, 0.95) 50%, var(--error-bg-dark) 100%);
+    }
+    
+    @keyframes gradient-flow {
+        0%, 100% { background-position: 0% 50%, 100% 50%, 0% 50%; }
+        50% { background-position: 100% 50%, 0% 50%, 100% 50%; }
+    }
+    
+    .error-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(25px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        box-shadow: 
+            0 32px 64px -12px rgba(139, 92, 246, 0.15),
+            0 20px 25px -5px rgba(139, 92, 246, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dark .error-card {
+        background: var(--dark-glass-bg);
+        border: 1px solid var(--dark-glass-border);
+        box-shadow: 
+            0 32px 64px -12px rgba(0, 0, 0, 0.6),
+            0 20px 25px -5px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(148, 163, 184, 0.15);
+    }
+    
+    .error-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+        animation: shimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+    
+    .error-number {
+        background: linear-gradient(135deg, var(--error-primary), #7c3aed, #5b21b6);
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: gradient-text 3s ease-in-out infinite, number-glow 2s ease-in-out infinite;
+        position: relative;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+    }
+    
+    @keyframes gradient-text {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    @keyframes number-glow {
+        0%, 100% { 
+            filter: brightness(1) drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
+            transform: scale(1);
+        }
+        50% { 
+            filter: brightness(1.3) drop-shadow(0 0 40px rgba(139, 92, 246, 0.7));
+            transform: scale(1.02);
+        }
+    }
+    
+    .error-icon {
+        animation: method-shake 1.5s ease-in-out infinite;
+        position: relative;
+    }
+    
+    .error-icon::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        animation: icon-ripple 1.5s ease-in-out infinite;
+        z-index: -1;
+    }
+    
+    @keyframes method-shake {
+        0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
+        25% { transform: translateX(-3px) rotate(-2deg) scale(1.02); }
+        75% { transform: translateX(3px) rotate(2deg) scale(1.02); }
+    }
+    
+    @keyframes icon-ripple {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.1; }
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--error-primary), #7c3aed);
+        box-shadow: 
+            0 8px 32px rgba(139, 92, 246, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s ease;
+    }
+    
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--error-primary-hover), #5b21b6);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 
+            0 12px 40px rgba(139, 92, 246, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(156, 163, 175, 0.4);
+        color: #374151;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dark .btn-secondary {
+        background: rgba(30, 41, 59, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        color: #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(249, 250, 251, 0.98);
+        transform: translateY(-2px) scale(1.02);
+        border-color: rgba(156, 163, 175, 0.6);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dark .btn-secondary:hover {
+        background: rgba(51, 65, 85, 0.95);
+        border-color: rgba(148, 163, 184, 0.4);
+    }
+    
+    .floating-decoration {
+        position: absolute;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(196, 181, 253, 0.15));
+        animation: float-enhanced 8s ease-in-out infinite;
+        filter: blur(1px);
+    }
+    
+    .floating-decoration:nth-child(1) {
+        width: 80px;
+        height: 80px;
+        top: 10%;
+        left: 10%;
+        animation-delay: -2s;
+    }
+    
+    .floating-decoration:nth-child(2) {
+        width: 60px;
+        height: 60px;
+        top: 20%;
+        right: 15%;
+        animation-delay: -4s;
+    }
+    
+    .floating-decoration:nth-child(3) {
+        width: 100px;
+        height: 100px;
+        bottom: 15%;
+        left: 15%;
+        animation-delay: -1s;
+    }
+    
+    .floating-decoration:nth-child(4) {
+        width: 40px;
+        height: 40px;
+        bottom: 25%;
+        right: 20%;
+        animation-delay: -3s;
+    }
+    
+    @keyframes float-enhanced {
+        0%, 100% { 
+            transform: translateY(0px) rotate(0deg) scale(1);
+            opacity: 0.6;
+        }
+        33% { 
+            transform: translateY(-30px) rotate(120deg) scale(1.1);
+            opacity: 0.8;
+        }
+        66% { 
+            transform: translateY(15px) rotate(240deg) scale(0.9);
+            opacity: 0.4;
+        }
+    }
+    
+    .method-info {
+        background: rgba(237, 233, 254, 0.9);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(196, 181, 253, 0.6);
+        transition: all 0.3s ease;
+    }
+    
+    .dark .method-info {
+        background: rgba(91, 33, 182, 0.3);
+        border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+    
+    .method-info:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.1);
+    }
+    
+    .error-title {
+        animation: title-fade-in 1s ease-out 0.3s both;
+    }
+    
+    .error-description {
+        animation: description-fade-in 1s ease-out 0.6s both;
+    }
+    
+    .error-actions {
+        animation: actions-fade-in 1s ease-out 0.9s both;
+    }
+    
+    @keyframes title-fade-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes description-fade-in {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes actions-fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 640px) {
+        .error-number { font-size: 5rem; }
+        .error-card { margin: 1rem; padding: 1.5rem; }
+        .floating-decoration { display: none; }
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+        .error-number, .error-icon, .floating-decoration, 
+        .error-card::before, .btn-primary::before { animation: none; }
+        .btn-primary:hover, .btn-secondary:hover { transform: none; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <div class="text-center p-8">
-        <div class="mb-8">
-            <span class="text-9xl font-bold text-purple-600">405</span>
-            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900">Méthode non autorisée</h1>
-            <p class="mt-4 text-gray-500">La méthode utilisée pour accéder à cette ressource n'est pas autorisée.</p>
+<main class="error-container min-h-screen flex items-center justify-center relative overflow-hidden" 
+      role="main" 
+      aria-labelledby="error-title" 
+      aria-describedby="error-description">
+    
+    <!-- Décorations flottantes améliorées -->
+    <div class="floating-decoration" aria-hidden="true"></div>
+    <div class="floating-decoration" aria-hidden="true"></div>
+    <div class="floating-decoration" aria-hidden="true"></div>
+    <div class="floating-decoration" aria-hidden="true"></div>
+    
+    <div class="error-card max-w-xl w-full mx-4 p-10 rounded-3xl text-center relative z-10">
+        <!-- Icône de méthode améliorée -->
+        <div class="error-icon mb-8 inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/40 dark:to-purple-800/40" aria-hidden="true">
+            <svg class="w-12 h-12 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
         </div>
-        <div class="space-x-4">
-            <a href="{{ url_for('home') }}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                <span class="mr-2">🏠</span>
+        
+        <!-- Code d'erreur -->
+        <h1 class="error-number text-9xl sm:text-[10rem] font-black mb-8 leading-none" id="error-title">405</h1>
+        
+        <!-- Message principal -->
+        <h2 class="error-title text-3xl sm:text-4xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+            Méthode non supportée
+        </h2>
+        
+        <!-- Description -->
+        <p class="error-description text-gray-600 dark:text-gray-300 text-lg mb-10 leading-relaxed max-w-md mx-auto" id="error-description">
+            La méthode HTTP utilisée pour accéder à cette ressource n'est pas supportée. 
+            Vérifiez le type de requête ou consultez la documentation.
+        </p>
+        
+        <!-- Informations techniques -->
+        <div class="method-info p-6 rounded-2xl mb-10 text-sm">
+            <h3 class="font-semibold text-purple-700 dark:text-purple-300 mb-3 flex items-center justify-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                Informations techniques
+            </h3>
+            <ul class="text-purple-600 dark:text-purple-400 space-y-2 text-left">
+                <li class="flex items-center">
+                    <span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+                    La méthode HTTP n'est pas supportée
+                </li>
+                <li class="flex items-center">
+                    <span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+                    Vérifiez les paramètres de la requête
+                </li>
+                <li class="flex items-center">
+                    <span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
+                    Consultez la documentation de l'API
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Actions -->
+        <div class="error-actions flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="{{ url_for('public.home') }}" 
+               class="btn-primary inline-flex items-center px-8 py-4 rounded-xl font-semibold text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all"
+               aria-label="Retourner à la page d'accueil">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
                 Retour à l'accueil
             </a>
+            
             <button onclick="history.back()" 
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                <span class="mr-2">⬅️</span>
+                    class="btn-secondary inline-flex items-center px-8 py-4 rounded-xl font-medium shadow-md focus:outline-none focus:ring-4 focus:ring-gray-500/30 transition-all"
+                    aria-label="Retourner à la page précédente">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
                 Page précédente
             </button>
         </div>
+        
+        <!-- Informations supplémentaires -->
+        <div class="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Code d'erreur : 405 • Méthode HTTP non supportée
+            </p>
+        </div>
     </div>
-</div>
+</main>
 {% endblock %}

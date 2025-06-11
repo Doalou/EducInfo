@@ -1,791 +1,1263 @@
 {% extends 'base.html' %}
 
+{% block extra_js %}
+<script>
+// 🔧 Gestion spécifique du thème pour le dashboard admin
+document.addEventListener('DOMContentLoaded', function() {
+    // Remplacer le gestionnaire de thème par défaut
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        // Cloner pour supprimer les écouteurs existants
+        const newThemeToggle = themeToggle.cloneNode(true);
+        themeToggle.parentNode.replaceChild(newThemeToggle, themeToggle);
+        
+        // Nouveau gestionnaire pour le dashboard
+        newThemeToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            
+            // Mettre à jour les icônes
+            const moonIcon = document.getElementById('moon-icon');
+            const sunIcon = document.getElementById('sun-icon');
+            if (moonIcon && sunIcon) {
+                if (isDark) {
+                    moonIcon.classList.remove('hidden');
+                    sunIcon.classList.add('hidden');
+                } else {
+                    moonIcon.classList.add('hidden');
+                    sunIcon.classList.remove('hidden');
+                }
+            }
+        });
+    }
+});
+
+// Fonction pour l'édition des absences
+function editAbsence(id, professeur, lundi, mardi, mercredi, jeudi, vendredi, samedi) {
+    const professeurInput = document.getElementById('professeur');
+    if (professeurInput) professeurInput.value = professeur;
+    
+    const days = { lundi, mardi, mercredi, jeudi, vendredi, samedi };
+    Object.entries(days).forEach(([day, checked]) => {
+        const checkbox = document.getElementById(day);
+        if (checkbox) checkbox.checked = checked;
+    });
+    
+    const submitButton = document.querySelector('button[name="submit_absence"]');
+    if (submitButton) {
+        submitButton.textContent = 'Modifier l\'absence';
+        submitButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+        submitButton.classList.add('bg-orange-600', 'hover:bg-orange-700');
+    }
+    
+    const form = document.querySelector('form[action*="dashboard"]');
+    if (form && !form.querySelector('.edit-info')) {
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'edit-info p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-sm text-orange-700 dark:text-orange-300 mb-4';
+        infoDiv.innerHTML = '<strong>Mode modification :</strong> Vous modifiez l\'absence de ' + professeur + 
+                           '. <button type="button" onclick="resetForm()" class="underline hover:no-underline ml-2">Annuler</button>';
+        form.insertBefore(infoDiv, form.firstChild.nextSibling);
+    }
+}
+
+function resetForm() {
+    const professeurInput = document.getElementById('professeur');
+    if (professeurInput) professeurInput.value = '';
+    
+    ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'].forEach(day => {
+        const checkbox = document.getElementById(day);
+        if (checkbox) checkbox.checked = false;
+    });
+    
+    const submitButton = document.querySelector('button[name="submit_absence"]');
+    if (submitButton) {
+        submitButton.textContent = 'Ajouter l\'absence';
+        submitButton.classList.remove('bg-orange-600', 'hover:bg-orange-700');
+        submitButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+    }
+    
+    const infoDiv = document.querySelector('.edit-info');
+    if (infoDiv) infoDiv.remove();
+}
+
+function updateLiveTime() {
+    try {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('fr-FR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        const timeElement = document.getElementById('live-time');
+        if (timeElement) timeElement.textContent = timeString;
+    } catch (error) {
+        console.warn('Erreur mise à jour horloge:', error);
+    }
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    setInterval(updateLiveTime, 1000);
+    updateLiveTime();
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex">
-    <!-- Sidebar -->
-    <div class="fixed inset-y-0 left-0 w-64 bg-indigo-800 dark:bg-indigo-900 text-white shadow-lg z-10 transition-all duration-300 transform pb-20">
-        <div class="flex flex-col h-full">
-            <!-- Entête de la sidebar -->
-            <div class="p-5 bg-indigo-900 dark:bg-indigo-950">
-                <h1 class="text-xl font-bold flex items-center">
-                    <span class="text-2xl mr-2">🏫</span>
-                    EducInfo Admin
-                </h1>
-                <p class="text-sm text-indigo-200 mt-1">Panneau d'administration</p>
+<div class="dashboard-layout bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <!-- ✨ NOUVELLE SIDEBAR ULTRA-MODERNISÉE ✨ -->
+    <div class="sidebar-container fixed left-0 h-[calc(100vh-120px)] z-40 w-80 transform translate-x-0 transition-all duration-300 ease-in-out" id="sidebar">
+        <!-- Fond avec effet glassmorphism -->
+        <div class="absolute inset-0 bg-gradient-to-br from-white/95 via-white/90 to-white/95 dark:from-slate-900/95 dark:via-slate-800/90 dark:to-slate-900/95 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 shadow-2xl"></div>
+        <div class="relative flex flex-col h-full w-full">
+            
+            <!-- 🎯 Header Elite avec design néomorphisme -->
+            <div class="relative px-6 py-6 border-b border-white/30 dark:border-slate-700/50">
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-600/10 via-purple-600/5 to-pink-600/10 dark:from-indigo-400/20 dark:via-purple-400/10 dark:to-pink-400/20"></div>
+                <div class="relative flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <!-- Logo avec animation -->
+                        <div class="relative group">
+                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-10 h-10 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            </div>
+                            <!-- Indicateur de status -->
+                            <div class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-400 rounded-full border-2 border-white dark:border-slate-800 shadow-sm">
+                                <div class="w-full h-full rounded-full bg-emerald-400"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-black text-slate-800 dark:text-white bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">EducInfo</h1>
+                            <p class="text-slate-600 dark:text-slate-400 text-base font-semibold">Dashboard Admin v1.2.0</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <!-- Menu de navigation -->
-            <nav class="flex-grow py-5 overflow-y-auto">
-                <div class="px-5 mb-6">
-                    <span class="text-xs text-indigo-200 uppercase tracking-wider">Général</span>
-                    <ul class="mt-3 space-y-2">
-                        <li>
-                            <a href="#absences" class="tab-button active flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">👩‍🏫</span>
-                                <span>Absences</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#events" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">📅</span>
-                                <span>Événements</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#menu" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">🍽️</span>
-                                <span>Menu cantine</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+
+            <!-- 🧭 Navigation principale avec scrolling -->
+            <nav class="flex-1 px-4 py-6 pb-6 space-y-3 overflow-y-auto custom-scrollbar">
                 
-                <div class="px-5 mb-6">
-                    <span class="text-xs text-indigo-200 uppercase tracking-wider">Configuration</span>
-                    <ul class="mt-3 space-y-2">
-                        <li>
-                            <a href="#site-config" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">⚙️</span>
-                                <span>Site</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#widget-config" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">🧩</span>
-                                <span>Widgets</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#weather-config" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">🌤️</span>
-                                <span>Météo</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#cts-config" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">🚌</span>
-                                <span>Transports CTS</span>
-                            </a>
-                        </li>
-                    </ul>
+                <!-- 📊 Section Tableau de bord -->
+                <div class="mb-8">
+                    <div class="flex items-center px-3 mb-4">
+                        <div class="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-3 shadow-sm"></div>
+                        <h3 class="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Tableau de bord</h3>
+                    </div>
+                    
+                    <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active backdrop-blur-sm border border-white/20 dark:border-slate-700/50"
+                            onclick="showTab('overview')" data-target="overview">
+                        <div class="relative">
+                            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            </div>
+                            <!-- Badge de statut -->
+                            <div class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-400 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center">
+                                <div class="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <div class="flex items-center justify-between">
+                                <div class="text-left">
+                                    <div class="text-base font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Vue d'ensemble</div>
+                                    <div class="text-sm text-slate-500 dark:text-slate-400 font-medium">Statistiques & Analytics</div>
+                                </div>
+                                <div class="opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">
+                                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
                 </div>
-                
-                <div class="px-5">
-                    <span class="text-xs text-indigo-200 uppercase tracking-wider">Utilisateur</span>
-                    <ul class="mt-3 space-y-2">
-                        <li>
-                            <a href="#password" class="tab-button flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">🔒</span>
-                                <span>Mot de passe</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ url_for('auth.logout') }}" class="flex items-center px-4 py-2.5 text-indigo-100 hover:bg-indigo-700 dark:hover:bg-indigo-800 rounded-lg transition-colors">
-                                <span class="mr-3">🚪</span>
-                                <span>Déconnexion</span>
-                            </a>
-                        </li>
-                    </ul>
+
+                <!-- 🎯 Section Gestion du contenu -->
+                <div class="mb-8">
+                    <div class="flex items-center px-3 mb-4">
+                        <div class="w-1.5 h-8 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-3 shadow-sm"></div>
+                        <h3 class="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Gestion du contenu</h3>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <!-- Absences -->
+                        <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-xl bg-white/30 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-[1.01] backdrop-blur-sm border border-white/20 dark:border-slate-700/30"
+                                onclick="showTab('absences')" data-target="absences">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md group-hover:shadow-red-500/30 transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-left">
+                                        <div class="text-sm font-bold group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Absences</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">Professeurs absents</div>
+                                    </div>
+                                    <div class="px-3 py-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg shadow-sm">
+                                        <span class="text-sm font-bold text-red-600 dark:text-red-400">{{ stats.absences_today if stats else 0 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <!-- Événements -->
+                        <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-xl bg-white/30 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-[1.01] backdrop-blur-sm border border-white/20 dark:border-slate-700/30" 
+                                onclick="showTab('events')" data-target="events">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-md group-hover:shadow-emerald-500/30 transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-left">
+                                        <div class="text-sm font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Événements</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">Calendrier scolaire</div>
+                                    </div>
+                                    <div class="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg shadow-sm">
+                                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ stats.events_this_week if stats else 0 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <!-- Menu Cantine -->
+                        <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-xl bg-white/30 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-[1.01] backdrop-blur-sm border border-white/20 dark:border-slate-700/30" 
+                                onclick="showTab('cantine')" data-target="cantine">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md group-hover:shadow-orange-500/30 transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-left">
+                                        <div class="text-sm font-bold group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Menu Cantine</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">Gestion des menus</div>
+                                    </div>
+                                    <div class="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg shadow-sm">
+                                        <span class="text-sm font-bold text-orange-600 dark:text-orange-400">{{ stats.menu_items_today if stats else 0 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
+
+                <!-- ⚙️ Section Configuration -->
+                <div class="mb-8">
+                    <div class="flex items-center px-3 mb-4">
+                        <div class="w-1.5 h-8 bg-gradient-to-b from-purple-500 to-violet-600 rounded-full mr-3 shadow-sm"></div>
+                        <h3 class="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Configuration</h3>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Transports -->
+                        <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-xl bg-white/30 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-[1.01] backdrop-blur-sm border border-white/20 dark:border-slate-700/30" 
+                                onclick="showTab('transports')" data-target="transports">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 text-white shadow-md group-hover:shadow-purple-500/30 transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="text-left">
+                                    <div class="text-sm font-bold group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Transports CTS</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Configuration API</div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <!-- Paramètres -->
+                        <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-xl bg-white/30 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-[1.01] backdrop-blur-sm border border-white/20 dark:border-slate-700/30" 
+                                onclick="showTab('settings')" data-target="settings">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-gray-700 text-white shadow-md group-hover:shadow-slate-500/30 transition-all duration-300 group-hover:scale-105">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="text-left">
+                                    <div class="text-sm font-bold group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">Paramètres</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Configuration générale</div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 🔧 Section Administration (si admin) -->
+                {% if current_user.is_admin %}
+                <div class="mb-6">
+                    <div class="flex items-center px-3 mb-4">
+                        <div class="w-1.5 h-8 bg-gradient-to-b from-pink-500 to-rose-600 rounded-full mr-3 shadow-sm"></div>
+                        <h3 class="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Administration</h3>
+                    </div>
+
+                    <button class="sidebar-nav group w-full flex items-center p-4 text-slate-700 dark:text-slate-300 rounded-xl bg-white/30 dark:bg-slate-800/30 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md hover:scale-[1.01] backdrop-blur-sm border border-white/20 dark:border-slate-700/30"
+                            onclick="window.location='{{ url_for('admin.admin_metrics') }}';">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-md group-hover:shadow-pink-500/30 transition-all duration-300 group-hover:scale-105">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <div class="text-left">
+                                <div class="text-sm font-bold group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">Métriques</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Analytics avancées</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+                {% endif %}
             </nav>
-            
-            <!-- Pied de la sidebar -->
-            <div class="p-5 bg-indigo-900/50 dark:bg-indigo-950/50 text-xs text-indigo-300">
-                <div class="flex items-center">
-                    <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                    <span>{{ current_user.email }}</span>
+
+            <!-- Footer de la sidebar avec informations système -->
+            <div class="p-4 border-t border-white/30 dark:border-slate-700/50 bg-white/20 dark:bg-slate-800/20 backdrop-blur-sm">
+                <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                        <span class="text-slate-600 dark:text-slate-400 font-medium">Système opérationnel</span>
+                    </div>
+                    <span class="text-slate-500 dark:text-slate-500 font-mono">v1.2.0</span>
                 </div>
-                <div class="mt-1">Dernière connexion : {{ current_user.last_login.strftime('%d/%m/%Y %H:%M') if current_user.last_login else 'Jamais' }}</div>
             </div>
         </div>
     </div>
 
-    <!-- Contenu principal -->
-    <div class="ml-64 flex-grow p-6 bg-gray-50 dark:bg-dark min-h-screen">
-        <!-- En-tête -->
-        <div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Tableau de bord</h1>
-                <p class="text-gray-600 dark:text-gray-400 mt-1">Gérez toutes les informations de l'établissement</p>
-            </div>
-            
-            <div class="flex items-center space-x-3">
-                <a href="{{ url_for('public.home') }}" class="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 px-4 py-2 rounded-lg flex items-center transition-colors">
-                    <span class="mr-2">🏠</span>
-                    <span>Retour au site</span>
-                </a>
-            </div>
+    <!-- 📱 Overlay pour mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Mobile Navigation Bottom Bar -->
+    <div class="md:hidden fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 z-50 backdrop-blur-lg bg-white/95 dark:bg-gray-800/95">
+        <div class="flex justify-around py-2">
+            <button class="flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="showTab('overview')">
+                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-xs mt-1 font-medium">Vue</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="showTab('absences')">
+                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span class="text-xs mt-1 font-medium">Absences</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="showTab('events')">
+                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-xs mt-1 font-medium">Événements</span>
+            </button>
+            <button class="flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700" onclick="showTab('settings')">
+                <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="text-xs mt-1 font-medium">Config</span>
+            </button>
         </div>
+    </div>
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="space-y-3 mb-6">
-                {% for category, message in messages %}
-                    {% set bg_color = 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' %}
-                    {% set icon = '📘' %}
-                    
-                    {% if category == 'success' %}
-                        {% set bg_color = 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' %}
-                        {% set icon = '✅' %}
-                    {% elif category == 'warning' %}
-                        {% set bg_color = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300' %}
-                        {% set icon = '⚠️' %}
-                    {% elif category == 'error' or category == 'danger' %}
-                        {% set bg_color = 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' %}
-                        {% set icon = '❌' %}
-                    {% endif %}
-                    
-                    <div class="flex items-center p-4 {{ bg_color }} rounded-lg animate-fade-in">
-                        <span class="text-xl mr-3">{{ icon }}</span>
-                        <span>{{ message }}</span>
-                    </div>
-                {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        <!-- Onglets avec leur contenu -->
-        <div class="space-y-8">
-            <!-- Section: Absences des professeurs -->
-            <div id="absences" class="tab-content active">
-                <!-- Cette div contient tout le contenu de l'onglet "Absences" -->
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">👩‍🏫</span> 
-                        <span>Gestion des absences</span>
-                    </h2>
-                    
-                    <!-- Formulaire d'ajout d'absence -->
-                    <form method="POST" class="mb-8 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ absence_form.hidden_tag() }}
-                        <h3 class="text-lg font-semibold text-indigo-800 dark:text-indigo-300 mb-4 flex items-center">
-                            <span class="mr-2">➕</span> Ajouter une absence
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-8 gap-4">
-                            <!-- Nom du professeur -->
-                            <div class="md:col-span-2">
-                                {{ absence_form.professeur.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ absence_form.professeur(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                            </div>
-                            
-                            <!-- Jours d'absence (checkboxes) -->
-                            <div class="md:col-span-5 grid grid-cols-3 sm:grid-cols-6 gap-3">
-                                <div class="flex items-center space-x-2 bg-white dark:bg-dark rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow">
-                                    {{ absence_form.lundi(class="rounded text-indigo-600 h-5 w-5") }}
-                                    {{ absence_form.lundi.label(class="text-sm font-medium text-gray-700 dark:text-gray-300") }}
-                                </div>
-                                <div class="flex items-center space-x-2 bg-white dark:bg-dark rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow">
-                                    {{ absence_form.mardi(class="rounded text-indigo-600 h-5 w-5") }}
-                                    {{ absence_form.mardi.label(class="text-sm font-medium text-gray-700 dark:text-gray-300") }}
-                                </div>
-                                <div class="flex items-center space-x-2 bg-white dark:bg-dark rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow">
-                                    {{ absence_form.mercredi(class="rounded text-indigo-600 h-5 w-5") }}
-                                    {{ absence_form.mercredi.label(class="text-sm font-medium text-gray-700 dark:text-gray-300") }}
-                                </div>
-                                <div class="flex items-center space-x-2 bg-white dark:bg-dark rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow">
-                                    {{ absence_form.jeudi(class="rounded text-indigo-600 h-5 w-5") }}
-                                    {{ absence_form.jeudi.label(class="text-sm font-medium text-gray-700 dark:text-gray-300") }}
-                                </div>
-                                <div class="flex items-center space-x-2 bg-white dark:bg-dark rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow">
-                                    {{ absence_form.vendredi(class="rounded text-indigo-600 h-5 w-5") }}
-                                    {{ absence_form.vendredi.label(class="text-sm font-medium text-gray-700 dark:text-gray-300") }}
-                                </div>
-                                <div class="flex items-center space-x-2 bg-white dark:bg-dark rounded-lg p-2 shadow-sm border border-gray-100 dark:border-gray-700 transition-all hover:shadow">
-                                    {{ absence_form.samedi(class="rounded text-indigo-600 h-5 w-5") }}
-                                    {{ absence_form.samedi.label(class="text-sm font-medium text-gray-700 dark:text-gray-300") }}
-                                </div>
-                            </div>
-                            
-                            <!-- Bouton de soumission -->
-                            <div class="md:col-span-1 flex items-end justify-center">
-                                <button type="submit" name="submit_absence" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
-                                    <span class="flex items-center justify-center"><span class="mr-1">✓</span> Ajouter</span>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    
-                    <!-- Liste des absences existantes -->
+    <!-- Main Content Area -->
+    <div class="main-content-area md:ml-72 transition-all duration-300">
+        <!-- Header moderne avec bouton hamburger intégré -->
+        <header class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b dark:border-gray-700 sticky top-0 z-10">
+            <div class="flex justify-between items-center p-6">
+                <div class="flex items-center space-x-4">
+                    <!-- Bouton hamburger intégré dans la navbar -->
+                    <button id="sidebar-toggle-btn" 
+                            class="p-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                            onclick="toggleSidebar()"
+                            title="Ouvrir/Fermer le menu">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                            <span class="mr-2">📋</span> Absences enregistrées
-                        </h3>
-                        
-                        {% if absences %}
-                            <div class="overflow-x-auto rounded-lg shadow">
-                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/50 dark:to-purple-900/50">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Professeur</th>
-                                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Lun</th>
-                                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Mar</th>
-                                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Mer</th>
-                                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Jeu</th>
-                                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Ven</th>
-                                            <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Sam</th>
-                                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white dark:bg-dark-lighter divide-y divide-gray-200 dark:divide-gray-700">
-                                        {% for absence in absences %}
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ absence.professeur }}</td>
-                                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                                    {% if absence.lundi %}
-                                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">✓</span>
-                                                    {% else %}
-                                                        <span class="text-gray-300 dark:text-gray-600">-</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                                    {% if absence.mardi %}
-                                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">✓</span>
-                                                    {% else %}
-                                                        <span class="text-gray-300 dark:text-gray-600">-</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                                    {% if absence.mercredi %}
-                                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">✓</span>
-                                                    {% else %}
-                                                        <span class="text-gray-300 dark:text-gray-600">-</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                                    {% if absence.jeudi %}
-                                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">✓</span>
-                                                    {% else %}
-                                                        <span class="text-gray-300 dark:text-gray-600">-</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                                    {% if absence.vendredi %}
-                                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">✓</span>
-                                                    {% else %}
-                                                        <span class="text-gray-300 dark:text-gray-600">-</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                                    {% if absence.samedi %}
-                                                        <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">✓</span>
-                                                    {% else %}
-                                                        <span class="text-gray-300 dark:text-gray-600">-</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                                    <form method="POST" class="inline">
-                                                        <input type="hidden" name="delete_absence" value="{{ absence.id }}">
-                                                        <button type="submit" class="bg-red-50 dark:bg-red-900/20 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none px-3 py-1 rounded-full text-sm transition-colors" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette absence ?')">
-                                                            <span class="flex items-center"><span class="mr-1">🗑️</span> Supprimer</span>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <div class="bg-gray-50 dark:bg-dark-hover rounded-lg p-8 text-center shadow-inner border border-gray-200 dark:border-gray-700">
-                                <p class="text-gray-500 dark:text-gray-400">Aucune absence enregistrée pour le moment.</p>
-                                <p class="text-sm text-indigo-600 dark:text-indigo-400 mt-2">Utilisez le formulaire ci-dessus pour ajouter vos premières absences.</p>
-                            </div>
-                        {% endif %}
+                        <h1 class="text-2xl font-bold text-gray-800 dark:text-white" id="page-title">Vue d'ensemble</h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-400" id="page-subtitle">Tableau de bord administrateur</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <!-- Indicateur de statut système -->
+                    <div class="hidden sm:flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-sm font-medium text-green-700 dark:text-green-400">Système opérationnel</span>
+                    </div>
+                    
+                    <!-- Menu utilisateur -->
+                    <div class="flex items-center space-x-3 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl">
+                        <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">{{ current_user.username[0].upper() }}</span>
+                        </div>
+                        <div class="hidden sm:block">
+                            <div class="text-sm font-medium text-gray-800 dark:text-white">{{ current_user.username }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Administrateur</div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Section: Événements -->
-            <div id="events" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">📅</span>
-                        <span>Gestion des événements</span>
-                    </h2>
-                    
-                    <!-- Formulaire d'ajout d'événement -->
-                    <form method="POST" class="mb-8 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ event_form.hidden_tag() }}
-                        <h3 class="text-lg font-semibold text-indigo-800 dark:text-indigo-300 mb-4 flex items-center">
-                            <span class="mr-2">➕</span> Ajouter/Modifier un événement
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                                {{ event_form.title.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ event_form.title(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                            </div>
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                                {{ event_form.date.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                <div class="relative">
-                                    {{ event_form.date(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 pl-8 transition-colors", placeholder="JJ/MM/AAAA") }}
-                                    <div class="absolute left-2 top-2 text-gray-400">🗓️</div>
+        </header>
+        
+        <!-- Flash Messages -->
+        {% include 'includes/flash_messages.html' %}
+        
+        <!-- Content Area avec padding uniforme -->
+        <div class="p-6 pb-20 md:pb-6">
+            <!-- Vue d'ensemble Tab - Complètement redesignée -->
+            <div id="overview-panel" class="tab-panel">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- Bienvenue et informations rapides -->
+                    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white">
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center">
+                            <div class="mb-6 lg:mb-0">
+                                <h1 class="text-3xl lg:text-4xl font-bold mb-2">Bonjour, {{ current_user.username }}! 👋</h1>
+                                <p class="text-white/90 text-lg">Voici un aperçu de votre établissement aujourd'hui</p>
+                                <div class="mt-4 flex items-center space-x-4 text-white/80">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span>{{ current_datetime.strftime('%A %d %B %Y') }}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span id="live-time">{{ current_datetime.strftime('%H:%M') }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="md:col-span-1">
-                                <button type="submit" name="submit_event" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105 h-full w-full flex items-center justify-center">
-                                    <span class="flex items-center justify-center"><span class="mr-1">✓</span> Enregistrer l'événement</span>
+                            <div class="flex space-x-4">
+                                <button onclick="showTab('absences')" class="px-8 py-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl transition-all duration-200 font-medium text-lg">
+                                    Gérer les absences
+                                </button>
+                                <button onclick="showTab('events')" class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-xl transition-all duration-200 font-medium text-lg">
+                                    Planifier un événement
                                 </button>
                             </div>
                         </div>
-                        <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                            {{ event_form.description.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                            {{ event_form.description(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", rows=3) }}
+                    </div>
+                    
+                    <!-- Grille d'indicateurs modernisée -->
+                    <div class="grid grid-cols-4 gap-8">
+                        <!-- Carte Menu du jour -->
+                        <div class="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700">
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/5"></div>
+                            <div class="relative p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-gray-800 dark:text-white">{{ stats.menu_items_today if stats else 0 }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plats servis</p>
+                                    </div>
+                                </div>
+                                <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Menu du jour</h3>
+                                <button onclick="showTab('cantine')" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center group-hover:translate-x-1 transition-transform duration-200">
+                                    Gérer le menu
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
-                    </form>
+                        
+                        <!-- Carte Événements -->
+                        <div class="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700">
+                            <div class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-green-600/5"></div>
+                            <div class="relative p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-gray-800 dark:text-white">{{ stats.events_this_week if stats else 0 }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cette semaine</p>
+                                    </div>
+                                </div>
+                                <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Événements</h3>
+                                <button onclick="showTab('events')" class="text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium flex items-center group-hover:translate-x-1 transition-transform duration-200">
+                                    Gérer les événements
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Carte Absences -->
+                        <div class="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700">
+                            <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-red-600/5"></div>
+                            <div class="relative p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
+                                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-gray-800 dark:text-white">{{ stats.absences_today if stats else 0 }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aujourd'hui</p>
+                                    </div>
+                                </div>
+                                <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Absences</h3>
+                                <button onclick="showTab('absences')" class="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium flex items-center group-hover:translate-x-1 transition-transform duration-200">
+                                    Gérer les absences
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Carte Utilisateurs -->
+                        <div class="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700">
+                            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-purple-600/5"></div>
+                            <div class="relative p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-gray-800 dark:text-white">{{ user_count_total or 1 }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Utilisateurs</p>
+                                    </div>
+                                </div>
+                                <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Système</h3>
+                                <a href="{{ url_for('admin.debug_users') }}" class="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium flex items-center group-hover:translate-x-1 transition-transform duration-200">
+                                    Gérer les utilisateurs
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Liste des événements existants -->
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                            <span class="mr-2">🎭</span> Événements à venir
-                        </h3>
-                        {% if future_events %}
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {% for event in future_events %}
-                                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg shadow-sm hover:shadow-md transition-all overflow-hidden border border-gray-200 dark:border-gray-700">
-                                        <div class="bg-indigo-100 dark:bg-indigo-900/40 px-4 py-2 flex justify-between items-center border-b border-indigo-200 dark:border-indigo-800">
-                                            <div class="flex items-center">
-                                                <span class="text-xl mr-2">🗓️</span>
-                                                <span class="font-semibold text-indigo-800 dark:text-indigo-300">{{ event.date.strftime('%d/%m/%Y') }}</span>
+            <!-- Absences Tab -->
+            <div id="absences-panel" class="tab-panel hidden">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- En-tête section -->
+                    <div class="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 class="text-3xl font-bold mb-2">📚 Gestion des Absences</h1>
+                                <p class="text-red-100">Gérez les absences des professeurs pour la semaine</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-4xl font-bold">{{ stats.absences_total if stats else 0 }}</div>
+                                <div class="text-red-200 text-sm">Absences cette semaine</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Formulaire d'ajout -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Ajouter une absence</h2>
+                            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                {{ absence_form.hidden_tag() }}
+                                
+                                <div>
+                                    {{ absence_form.professeur.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ absence_form.professeur(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700 dark:text-white", placeholder="Nom du professeur") }}
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Jours d'absence</label>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            {{ absence_form.lundi() }}
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Lundi</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            {{ absence_form.mardi() }}
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Mardi</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            {{ absence_form.mercredi() }}
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Mercredi</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            {{ absence_form.jeudi() }}
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Jeudi</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            {{ absence_form.vendredi() }}
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Vendredi</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            {{ absence_form.samedi() }}
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Samedi</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" name="submit_absence" class="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                    Ajouter l'absence
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Liste des absences -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Absences actuelles</h2>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                {% if absences %}
+                                    {% for absence in absences %}
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h3 class="font-semibold text-gray-800 dark:text-white">{{ absence.professeur }}</h3>
+                                                <div class="flex flex-wrap gap-1 mt-2">
+                                                    {% if absence.lundi %}<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-lg">Lun</span>{% endif %}
+                                                    {% if absence.mardi %}<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-lg">Mar</span>{% endif %}
+                                                    {% if absence.mercredi %}<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-lg">Mer</span>{% endif %}
+                                                    {% if absence.jeudi %}<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-lg">Jeu</span>{% endif %}
+                                                    {% if absence.vendredi %}<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-lg">Ven</span>{% endif %}
+                                                    {% if absence.samedi %}<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-lg">Sam</span>{% endif %}
+                                                </div>
                                             </div>
-                                            <form method="POST" class="inline">
-                                                <input type="hidden" name="delete_event" value="{{ event.id }}">
-                                                <button type="submit" class="bg-red-50 dark:bg-red-900/20 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none p-1 rounded-full text-sm transition-colors" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')">
-                                                    <span>🗑️</span>
+                                            <div class="flex space-x-2">
+                                                <button onclick="editAbsence({{ absence.id }}, '{{ absence.professeur }}', {{ absence.lundi|lower }}, {{ absence.mardi|lower }}, {{ absence.mercredi|lower }}, {{ absence.jeudi|lower }}, {{ absence.vendredi|lower }}, {{ absence.samedi|lower }})" 
+                                                        class="text-blue-600 hover:text-blue-800 p-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                    </svg>
+                                                </button>
+                                                <form method="POST" action="{{ url_for('admin.delete_absence', id=absence.id) }}" class="inline" onsubmit="return confirm('Supprimer cette absence ?')">
+                                                    {{ absence_form.hidden_tag() }}
+                                                    <button type="submit" class="text-red-600 hover:text-red-800 p-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <p>Aucune absence enregistrée</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Événements Tab -->
+            <div id="events-panel" class="tab-panel hidden">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- En-tête section -->
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 class="text-3xl font-bold mb-2">📅 Gestion des Événements</h1>
+                                <p class="text-green-100">Planifiez et gérez les événements de l'établissement</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-4xl font-bold">{{ stats.events_this_month if stats else 0 }}</div>
+                                <div class="text-green-200 text-sm">Événements ce mois</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Formulaire d'ajout -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Ajouter un événement</h2>
+                            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                {{ event_form.hidden_tag() }}
+                                
+                                <div>
+                                    {{ event_form.title.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ event_form.title(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white", placeholder="Titre de l'événement") }}
+                                </div>
+                                
+                                <div>
+                                    {{ event_form.date.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ event_form.date(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <div>
+                                    {{ event_form.description.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ event_form.description(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white", rows="4", placeholder="Description de l'événement") }}
+                                </div>
+                                
+                                <button type="submit" name="submit_event" class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                    Ajouter l'événement
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Liste des événements -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Événements à venir</h2>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                {% if events %}
+                                    {% for event in events %}
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <div class="bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-lg">
+                                                        <span class="text-sm font-medium text-green-800 dark:text-green-300">
+                                                            {{ event.date.strftime('%d/%m/%Y') }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <h3 class="font-semibold text-gray-800 dark:text-white mb-1">{{ event.title }}</h3>
+                                                {% if event.description %}
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ event.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <form method="POST" action="{{ url_for('admin.delete_event', id=event.id) }}" class="inline" onsubmit="return confirm('Supprimer cet événement ?')">
+                                                {{ event_form.hidden_tag() }}
+                                                <button type="submit" class="text-red-600 hover:text-red-800 p-1 ml-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
                                                 </button>
                                             </form>
                                         </div>
-                                        <div class="p-4">
-                                            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ event.title }}</h4>
-                                            <p class="text-gray-600 dark:text-gray-400">{{ event.description }}</p>
-                                        </div>
                                     </div>
-                                {% endfor %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <p>Aucun événement planifié</p>
+                                    </div>
+                                {% endif %}
                             </div>
-                        {% else %}
-                            <div class="bg-gray-50 dark:bg-dark-hover rounded-lg p-8 text-center shadow-inner border border-gray-200 dark:border-gray-700">
-                                <p class="text-gray-500 dark:text-gray-400">Aucun événement à venir.</p>
-                                <p class="text-sm text-indigo-600 dark:text-indigo-400 mt-2">Utilisez le formulaire ci-dessus pour créer votre premier événement.</p>
-                            </div>
-                        {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Section: Menu cantine -->
-            <div id="menu" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">🍽️</span>
-                        <span>Gestion du menu de la cantine</span>
-                    </h2>
-                    
-                    <!-- Formulaire d'ajout d'élément au menu -->
-                    <form method="POST" class="mb-8 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ menu_form.hidden_tag() }}
-                        <h3 class="text-lg font-semibold text-indigo-800 dark:text-indigo-300 mb-4 flex items-center">
-                            <span class="mr-2">➕</span> Ajouter un plat au menu du jour
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                                {{ menu_form.name.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                <div class="relative">
-                                    {{ menu_form.name(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 pl-8 transition-colors") }}
-                                    <div class="absolute left-2 top-2 text-gray-400">🍲</div>
-                                </div>
-                            </div>
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                                {{ menu_form.category.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ menu_form.category(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                            </div>
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-                                {{ menu_form.icons.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ menu_form.icons(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                            </div>
+            <!-- Menu Cantine Tab -->
+            <div id="cantine-panel" class="tab-panel hidden">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- En-tête section -->
+                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
                             <div>
-                                <button type="submit" name="submit_menu_item" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105 h-full w-full flex items-center justify-center">
-                                    <span class="flex items-center justify-center"><span class="mr-1">✓</span> Ajouter au menu</span>
-                                </button>
+                                <h1 class="text-3xl font-bold mb-2">🍽️ Gestion du Menu</h1>
+                                <p class="text-orange-100">Gérez les menus de la cantine scolaire</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-4xl font-bold">{{ stats.menu_items_total if stats else 0 }}</div>
+                                <div class="text-orange-200 text-sm">Plats disponibles</div>
                             </div>
                         </div>
-                    </form>
+                    </div>
 
-                    <!-- Liste des éléments du menu du jour -->
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                            <span class="mr-2">🍱</span> Menu du jour actuel
-                        </h3>
-                        {% if menu_items %}
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {% for item in menu_items %}
-                                    <div class="bg-white dark:bg-dark-hover rounded-lg shadow-sm hover:shadow-md transition-all overflow-hidden border border-gray-200 dark:border-gray-700">
-                                        {% set cat_icon = dict(menu_form.category.choices).get(item.category, 'Inconnue').split(' ')[0] %}
-                                        <div class="bg-gradient-to-r from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-900/20 px-4 py-2 flex justify-between items-center border-b border-indigo-200 dark:border-indigo-800">
-                                            <div class="flex items-center">
-                                                <span class="text-xl mr-2">{{ cat_icon }}</span>
-                                                <span class="font-semibold text-indigo-800 dark:text-indigo-300">
-                                                    {{ dict(menu_form.category.choices).get(item.category, 'Inconnue')|replace('🥗 ', '')|replace('🍖 ', '')|replace('🧀 ', '')|replace('🍦 ', '') }}
-                                                </span>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Formulaire d'ajout -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Ajouter un plat au menu</h2>
+                            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                {{ menu_form.hidden_tag() }}
+                                
+                                <div>
+                                    {{ menu_form.name.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ menu_form.name(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white", placeholder="Nom du plat") }}
+                                </div>
+                                
+                                <div>
+                                    {{ menu_form.category.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ menu_form.category(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <div>
+                                    {{ menu_form.icons.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ menu_form.icons(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <div>
+                                    {{ menu_form.date.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ menu_form.date(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <div>
+                                    {{ menu_form.description.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ menu_form.description(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white", rows="3", placeholder="Description du plat") }}
+                                </div>
+                                
+                                <button type="submit" name="submit_menu" class="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                    Ajouter au menu
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Liste des menus -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Menus récents</h2>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                {% if menu_items %}
+                                    {% for item in menu_items %}
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    {% if item.icons %}
+                                                    <span class="text-lg">{{ item.icons }}</span>
+                                                    {% endif %}
+                                                    <span class="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 text-xs rounded-lg">
+                                                        {% if item.category == 1 %}Entrée
+                                                        {% elif item.category == 2 %}Plat principal
+                                                        {% elif item.category == 3 %}Fromage
+                                                        {% elif item.category == 4 %}Dessert
+                                                        {% endif %}
+                                                    </span>
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ item.date.strftime('%d/%m/%Y') }}
+                                                    </span>
+                                                </div>
+                                                <h3 class="font-semibold text-gray-800 dark:text-white mb-1">{{ item.name }}</h3>
+                                                {% if item.description %}
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ item.description }}</p>
+                                                {% endif %}
                                             </div>
-                                            {% if item.icons %}
-                                            <div class="text-gray-600 dark:text-gray-400 text-sm">
-                                                {{ item.icons }}
-                                            </div>
+                                            <form method="POST" action="{{ url_for('admin.delete_menu_item', id=item.id) }}" class="inline" onsubmit="return confirm('Supprimer ce plat ?')">
+                                                {{ menu_form.hidden_tag() }}
+                                                <button type="submit" class="text-red-600 hover:text-red-800 p-1 ml-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                        </svg>
+                                        <p>Aucun plat au menu</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transports Tab -->
+            <div id="transports-panel" class="tab-panel hidden">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- En-tête section -->
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 class="text-3xl font-bold mb-2">🚌 Configuration Transports</h1>
+                                <p class="text-purple-100">Configurez l'intégration avec l'API CTS Strasbourg</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold">
+                                    {% if transport_config and transport_config.show_transports %}
+                                    <span class="text-green-300">✓ Activé</span>
+                                    {% else %}
+                                    <span class="text-red-300">✗ Désactivé</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-purple-200 text-sm">État du widget</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <!-- Configuration -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Configuration CTS</h2>
+                            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                {{ transport_form.hidden_tag() }}
+                                
+                                <div class="flex items-center space-x-2 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                                    {{ transport_form.show_transports(class="text-purple-600") }}
+                                    {{ transport_form.show_transports.label(class="text-gray-700 dark:text-gray-300 font-medium") }}
+                                </div>
+                                
+                                <div>
+                                    {{ transport_form.cts_api_token.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ transport_form.cts_api_token(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white", placeholder="Votre token API CTS") }}
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Obtenez votre token sur le portail open data CTS</p>
+                                </div>
+                                
+                                <div>
+                                    {{ transport_form.cts_stop_code.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ transport_form.cts_stop_code(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white", placeholder="366") }}
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ transport_form.cts_stop_code.description }}</p>
+                                </div>
+                                
+                                <div>
+                                    {{ transport_form.cts_stop_display.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ transport_form.cts_stop_display(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white", placeholder="Lycée Couffignal") }}
+                                </div>
+                                
+                                <div>
+                                    {{ transport_form.cts_vehicle_mode.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ transport_form.cts_vehicle_mode(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <button type="submit" name="submit_transport" class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                    Enregistrer la configuration
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Test et prévisualisation -->
+                        <div class="space-y-6">
+                            <!-- Test de connexion -->
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Test de l'API</h2>
+                                <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                    {{ cts_form.hidden_tag() }}
+                                    
+                                    <div>
+                                        {{ cts_form.stop_code.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                        {{ cts_form.stop_code(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white", placeholder="366") }}
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ cts_form.stop_code.description }}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        {{ cts_form.vehicle_mode.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                        {{ cts_form.vehicle_mode(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white") }}
+                                    </div>
+                                    
+                                    <button type="submit" name="submit_cts" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                        Tester l'arrêt
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Aide -->
+                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
+                                <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4">💡 Aide</h3>
+                                <div class="space-y-3 text-sm text-blue-700 dark:text-blue-300">
+                                    <p><strong>Comment obtenir un token CTS :</strong></p>
+                                    <ol class="list-decimal list-inside space-y-1 ml-4">
+                                        <li>Rendez-vous sur <a href="https://www.cts-strasbourg.eu/fr/portail-open-data/" target="_blank" class="underline hover:no-underline">le portail open data CTS</a></li>
+                                        <li>Créez un compte gratuit</li>
+                                        <li>Générez votre token API</li>
+                                        <li>Copiez-le dans le champ ci-dessus</li>
+                                    </ol>
+                                    <p class="mt-3"><strong>Exemples de codes d'arrêt :</strong></p>
+                                    <ul class="list-disc list-inside space-y-1 ml-4">
+                                        <li>366 - Lycée Couffignal</li>
+                                        <li>001 - Place de l'Homme de Fer</li>
+                                        <li>123 - Gare Centrale</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paramètres Tab -->
+            <div id="settings-panel" class="tab-panel hidden">
+                <div class="max-w-7xl mx-auto space-y-8">
+                    <!-- En-tête section -->
+                    <div class="bg-gradient-to-r from-gray-500 to-gray-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 class="text-3xl font-bold mb-2">⚙️ Paramètres Généraux</h1>
+                                <p class="text-gray-100">Configuration globale de l'application</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold">{{ site_config.site_name if site_config else 'EducInfo' }}</div>
+                                <div class="text-gray-200 text-sm">Nom du site</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Configuration générale -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Configuration du site</h2>
+                            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                {{ config_form.hidden_tag() }}
+                                
+                                <div>
+                                    {{ config_form.site_name.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ config_form.site_name(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <div>
+                                    {{ config_form.default_theme.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ config_form.default_theme(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-white") }}
+                                </div>
+                                
+                                <button type="submit" name="submit_config" class="w-full px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                    Enregistrer les paramètres
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Configuration météo -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Configuration météo</h2>
+                            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-4">
+                                {{ weather_form.hidden_tag() }}
+                                
+                                <div class="flex items-center space-x-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                                    {{ weather_form.show_weather(class="text-blue-600") }}
+                                    {{ weather_form.show_weather.label(class="text-gray-700 dark:text-gray-300 font-medium") }}
+                                </div>
+                                
+                                <div>
+                                    {{ weather_form.api_key.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ weather_form.api_key(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white", placeholder="Votre clé API OpenWeatherMap") }}
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Obtenez une clé gratuite sur openweathermap.org</p>
+                                </div>
+                                
+                                <div>
+                                    {{ weather_form.city.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2") }}
+                                    {{ weather_form.city(class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white", placeholder="Strasbourg") }}
+                                </div>
+                                
+                                <button type="submit" name="submit_weather" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors duration-200">
+                                    Enregistrer la configuration météo
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Actions système -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">Actions système</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <a href="{{ url_for('admin.debug_users') }}" class="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors group">
+                                <svg class="w-8 h-8 text-purple-600 dark:text-purple-400 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-purple-800 dark:text-purple-300">Utilisateurs</span>
+                            </a>
+                            
+                            <a href="{{ url_for('admin.admin_metrics') }}" class="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors group">
+                                <svg class="w-8 h-8 text-green-600 dark:text-green-400 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-green-800 dark:text-green-300">Métriques</span>
+                            </a>
+                            
+                            <a href="{{ url_for('public.home') }}" class="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors group">
+                                <svg class="w-8 h-8 text-blue-600 dark:text-blue-400 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-blue-800 dark:text-blue-300">Page d'accueil</span>
+                            </a>
+                            
+                            <a href="{{ url_for('admin.admin_emergency_reset') }}" class="flex flex-col items-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors group">
+                                <svg class="w-8 h-8 text-red-600 dark:text-red-400 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-red-800 dark:text-red-300">Urgence</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Test des notifications et diagnostics -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Section Test des notifications -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl flex items-center justify-center mr-4">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h10M4 12h10M4 5h10"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Test des Notifications</h2>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Tester l'affichage des messages flash</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- Test rapide - tous les types -->
+                                <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="w-full">
+                                    {{ menu_form.hidden_tag() }}
+                                    <input type="hidden" name="notification_type" value="all">
+                                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl">
+                                        🧪 Tester tous les types
+                                    </button>
+                                </form>
+                                
+                                <!-- Tests individuels -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="inline">
+                                        {{ menu_form.hidden_tag() }}
+                                        <input type="hidden" name="notification_type" value="success">
+                                        <button type="submit" class="w-full px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 font-medium rounded-lg transition-colors text-sm">
+                                            ✅ Succès
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="inline">
+                                        {{ menu_form.hidden_tag() }}
+                                        <input type="hidden" name="notification_type" value="info">
+                                        <button type="submit" class="w-full px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-lg transition-colors text-sm">
+                                            ℹ️ Info
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="inline">
+                                        {{ menu_form.hidden_tag() }}
+                                        <input type="hidden" name="notification_type" value="warning">
+                                        <button type="submit" class="w-full px-4 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium rounded-lg transition-colors text-sm">
+                                            ⚠️ Attention
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="inline">
+                                        {{ menu_form.hidden_tag() }}
+                                        <input type="hidden" name="notification_type" value="danger">
+                                        <button type="submit" class="w-full px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 font-medium rounded-lg transition-colors text-sm">
+                                            ❌ Erreur
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Tests spéciaux -->
+                                <div class="border-t pt-4 space-y-2">
+                                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tests spéciaux :</h4>
+                                    <div class="flex space-x-2">
+                                        <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="flex-1">
+                                            {{ menu_form.hidden_tag() }}
+                                            <input type="hidden" name="notification_type" value="multiple">
+                                            <button type="submit" class="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors text-xs">
+                                                📚 Multiples
+                                            </button>
+                                        </form>
+                                        
+                                        <form method="POST" action="{{ url_for('admin.test_notifications') }}" class="flex-1">
+                                            {{ menu_form.hidden_tag() }}
+                                            <input type="hidden" name="notification_type" value="long">
+                                            <button type="submit" class="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors text-xs">
+                                                📝 Message long
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Diagnostic système -->
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mr-4">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Diagnostic Système</h2>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Vérifier l'état des services</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <!-- Bouton de diagnostic complet -->
+                                <a href="{{ url_for('admin.system_status') }}" class="block w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl text-center">
+                                    🔍 Diagnostic complet
+                                </a>
+                                
+                                <!-- Statuts rapides -->
+                                <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 space-y-3">
+                                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">État rapide :</h4>
+                                    
+                                    <div class="flex items-center justify-between py-2">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Base de données</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                            <span class="text-xs text-green-600 dark:text-green-400 font-medium">Connectée</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between py-2">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Cache</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                            <span class="text-xs text-green-600 dark:text-green-400 font-medium">Actif</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between py-2">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Transport CTS</span>
+                                        <div class="flex items-center space-x-2">
+                                            {% if widget_config and widget_config.cts_api_token %}
+                                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                <span class="text-xs text-green-600 dark:text-green-400 font-medium">Configuré</span>
+                                            {% else %}
+                                                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                                <span class="text-xs text-yellow-600 dark:text-yellow-400 font-medium">À configurer</span>
                                             {% endif %}
                                         </div>
-                                        <div class="p-4 flex justify-between items-center">
-                                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ item.name }}</h4>
-                                            <form method="POST" class="inline">
-                                                <input type="hidden" name="delete_menu_item" value="{{ item.id }}">
-                                                <button type="submit" class="bg-red-50 dark:bg-red-900/20 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none p-1 rounded-full text-sm transition-colors" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet élément du menu ?')">
-                                                    <span>🗑️</span>
-                                                </button>
-                                            </form>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between py-2">
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">Météo</span>
+                                        <div class="flex items-center space-x-2">
+                                            {% if weather_config and weather_config.api_key %}
+                                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                                <span class="text-xs text-green-600 dark:text-green-400 font-medium">Configurée</span>
+                                            {% else %}
+                                                <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                                <span class="text-xs text-yellow-600 dark:text-yellow-400 font-medium">À configurer</span>
+                                            {% endif %}
                                         </div>
                                     </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="bg-gray-50 dark:bg-dark-hover rounded-lg p-8 text-center shadow-inner border border-gray-200 dark:border-gray-700">
-                                <p class="text-gray-500 dark:text-gray-400">Aucun élément dans le menu du jour pour le moment.</p>
-                                <p class="text-sm text-indigo-600 dark:text-indigo-400 mt-2">Utilisez le formulaire ci-dessus pour ajouter vos premiers plats.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section: Configuration du site -->
-            <div id="site-config" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">⚙️</span>
-                        <span>Configuration Générale du Site</span>
-                    </h2>
-                    <form method="POST" class="space-y-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ site_form.hidden_tag() }}
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ site_form.site_name.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ site_form.site_name(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Nom de l'établissement") }}
-                                {% if site_form.site_name.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in site_form.site_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                            <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ site_form.default_theme.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ site_form.default_theme(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                                {% if site_form.default_theme.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in site_form.default_theme.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 space-y-3">
-                            <h4 class="text-md font-medium text-gray-800 dark:text-gray-200 mb-2">Affichage des Widgets Publics</h4>
-                            <div class="flex items-center space-x-3">
-                                {{ site_form.show_weather(class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500") }}
-                                {{ site_form.show_weather.label(class="text-sm text-gray-700 dark:text-gray-300") }}
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                {{ site_form.show_menu_cantine(class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500") }}
-                                {{ site_form.show_menu_cantine.label(class="text-sm text-gray-700 dark:text-gray-300") }}
-                            </div>
-                             <!-- Le widget transport est configuré dans une autre section mais on pourrait l'ajouter ici aussi si show_transports est dans SiteConfigForm -->
-                        </div>
-
-                        <div>
-                            <button type="submit" name="submit_site" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 px-6 rounded-md shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
-                                <span class="flex items-center justify-center"><span class="mr-2">💾</span> Enregistrer la configuration du site</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Section: Configuration des widgets -->
-            <div id="widget-config" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">🧩</span>
-                        <span>Configuration des Widgets (Transport CTS)</span>
-                    </h2>
-                     <form method="POST" class="space-y-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ widget_form.hidden_tag() }}
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ widget_form.cts_api_token.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ widget_form.cts_api_token(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Votre token API CTS") }}
-                                {% if widget_form.cts_api_token.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in widget_form.cts_api_token.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                             <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ widget_form.cts_stop_code.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ widget_form.cts_stop_code(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Ex: HOMMEDEFER") }}
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Utilisez l'onglet "Transports CTS" pour rechercher et sélectionner un code d'arrêt.</p>
-                                {% if widget_form.cts_stop_code.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in widget_form.cts_stop_code.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ widget_form.cts_stop_display.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ widget_form.cts_stop_display(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Ex: Homme de Fer (Tram)") }}
-                                {% if widget_form.cts_stop_display.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in widget_form.cts_stop_display.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                            <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ widget_form.cts_vehicle_mode.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ widget_form.cts_vehicle_mode(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                                {% if widget_form.cts_vehicle_mode.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in widget_form.cts_vehicle_mode.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center space-x-3">
-                                {{ widget_form.show_transports(class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500") }}
-                                {{ widget_form.show_transports.label(class="text-sm text-gray-700 dark:text-gray-300") }}
-                            </div>
-                        </div>
-                        <div>
-                            <button type="submit" name="submit_widget" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 px-6 rounded-md shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
-                                <span class="flex items-center justify-center"><span class="mr-2">💾</span> Enregistrer la configuration Widgets/CTS</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Section: Configuration météo -->
-            <div id="weather-config" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">🌤️</span>
-                        <span>Configuration de la Météo</span>
-                    </h2>
-                    <form method="POST" class="space-y-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ weather_form.hidden_tag() }}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ weather_form.weather_api_key.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ weather_form.weather_api_key(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Votre clé API OpenWeatherMap") }}
-                                {% if weather_form.weather_api_key.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in weather_form.weather_api_key.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                            <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ weather_form.weather_city.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                                {{ weather_form.weather_city(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Ex: Strasbourg") }}
-                                {% if weather_form.weather_city.errors %}
-                                    <ul class="text-red-500 text-xs mt-1">{% for error in weather_form.weather_city.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                                {% endif %}
-                            </div>
-                        </div>
-                         <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center space-x-3">
-                                {{ weather_form.show_weather(class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500") }}
-                                {{ weather_form.show_weather.label(class="text-sm text-gray-700 dark:text-gray-300") }}
-                            </div>
-                        </div>
-                        <div>
-                            <button type="submit" name="submit_weather" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 px-6 rounded-md shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
-                                <span class="flex items-center justify-center"><span class="mr-2">💾</span> Enregistrer la configuration Météo</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Section: Configuration Transports CTS -->
-            <div id="cts-config" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">🚌</span>
-                        <span>Prévisualisation et Sélection Arrêt CTS</span>
-                    </h2>
-                    <form method="POST" class="mb-8 space-y-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-5 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-md">
-                        {{ cts_form.hidden_tag() if cts_form.hidden_tag }} {# Le CTSForm simplifié n'a pas hidden_tag par défaut #}
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ cts_form.stop_code.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") if cts_form.stop_code and cts_form.stop_code.label }}
-                                {{ cts_form.stop_code(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Code arrêt (ex: HOMMEDEFER)") }}
-                            </div>
-                            <div class="bg-white dark:bg-dark p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                                {{ cts_form.vehicle_mode.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") if cts_form.vehicle_mode and cts_form.vehicle_mode.label }}
-                                {{ cts_form.vehicle_mode(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors") }}
-                            </div>
-                            <div class="flex space-x-2">
-                                <button type="submit" name="submit_cts" class="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-2.5 px-4 rounded-md shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105">
-                                    <span class="flex items-center justify-center"><span class="mr-1">🔍</span> Prévisualiser</span>
-                                </button>
-                                {% if cts_results and searched_cts_stop %}
-                                <button type="submit" name="submit_cts_save" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2.5 px-4 rounded-md shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 transform hover:scale-105">
-                                     <span class="flex items-center justify-center"><span class="mr-1">💾</span> Utiliser cet arrêt</span>
-                                </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </form>
-
-                    {% if searched_cts_stop %}
-                    <div class="mt-6">
-                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
-                            Résultats pour l'arrêt : <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ searched_cts_stop }}</span>
-                            {% if searched_vehicle_mode %} (Mode: {{ searched_vehicle_mode }}) {% endif %}
-                        </h3>
-                        {% if cts_results %}
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {% for arrival in cts_results %}
-                                <div class="bg-white dark:bg-dark-hover rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="font-bold text-lg text-indigo-700 dark:text-indigo-300">{{ arrival.line }}</span>
-                                        <span class="text-sm px-2 py-0.5 rounded-full 
-                                            {% if arrival.mode == 'tram' %} bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 
-                                            {% elif arrival.mode == 'bus' %} bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300
-                                            {% else %} bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 {% endif %}">
-                                            {% if arrival.mode == 'tram' %}🚊 {% elif arrival.mode == 'bus' %}🚌 {% endif %}{{ arrival.mode|capitalize }}
-                                        </span>
-                                    </div>
-                                    <p class="text-gray-700 dark:text-gray-300 text-md">{{ arrival.destination }}</p>
-                                    <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Départ: {{ arrival.time }} 
-                                        {% if arrival.is_real_time %}
-                                            <span class="text-green-500" title="Temps réel">●</span>
-                                        {% else %}
-                                            <span class="text-yellow-500" title="Théorique">●</span>
-                                        {% endif %}
+                                </div>
+                                
+                                <!-- Note d'aide -->
+                                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                                    <p class="text-xs text-blue-700 dark:text-blue-300">
+                                        💡 <strong>Astuce :</strong> Le diagnostic complet vérifie tous les services et affiche des notifications détaillées sur leur état.
                                     </p>
                                 </div>
-                                {% endfor %}
                             </div>
-                        {% else %}
-                            <p class="text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-dark-hover p-4 rounded-md text-center">Aucun passage trouvé pour cet arrêt avec les filtres actuels.</p>
-                        {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Section: Mot de passe -->
-            <div id="password" class="tab-content">
-                <div class="bg-white dark:bg-dark-lighter shadow-lg rounded-xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-xl">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center border-b pb-4 border-indigo-100 dark:border-indigo-800">
-                        <span class="text-3xl mr-3 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">🔒</span>
-                        <span>Changer le mot de passe</span>
-                    </h2>
-                    <form method="POST" class="max-w-md mx-auto space-y-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg p-8 border border-indigo-100 dark:border-indigo-700 transition-all hover:shadow-lg">
-                        {{ password_form.hidden_tag() }}
-                        <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            {{ password_form.current_password.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                            {{ password_form.current_password(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="********") }}
-                            {% if password_form.current_password.errors %}
-                                <ul class="text-red-500 text-xs mt-1">{% for error in password_form.current_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                            {% endif %}
-                        </div>
-                        <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            {{ password_form.new_password.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                            {{ password_form.new_password(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Nouveau mot de passe") }}
-                             {% if password_form.new_password.errors %}
-                                <ul class="text-red-500 text-xs mt-1">{% for error in password_form.new_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                            {% endif %}
-                        </div>
-                        <div class="bg-white dark:bg-dark p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                            {{ password_form.confirm_password.label(class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1") }}
-                            {{ password_form.confirm_password(class="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-dark-lighter dark:text-gray-100 transition-colors", placeholder="Confirmer le nouveau mot de passe") }}
-                            {% if password_form.confirm_password.errors %}
-                                <ul class="text-red-500 text-xs mt-1">{% for error in password_form.confirm_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <button type="submit" name="submit_password" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 px-6 rounded-md shadow-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
-                                <span class="flex items-center justify-center"><span class="mr-2">🔑</span> Changer mon mot de passe</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Script pour la gestion des onglets
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href').substring(1);
-                
-                // Désactiver tous les onglets
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Activer l'onglet cliqué
-                this.classList.add('active');
-                document.getElementById(targetId).classList.add('active');
-            });
-        });
-        
-        // Gestion des messages flash en dynamique
-        const flashMessages = document.querySelectorAll('.flash-message');
-        flashMessages.forEach(message => {
-            setTimeout(() => {
-                message.classList.add('flash-message-leave');
-                setTimeout(() => {
-                    message.remove();
-                }, 300);
-            }, 5000);
-        });
-        
-        // S'assurer que la date s'affiche correctement
-        const dateElement = document.getElementById('date');
-        if (dateElement) {
-            // Forcer l'affichage de la date
-            dateElement.style.display = 'block';
-        }
-
-        // Mettre à jour l'horloge et la date
-        function updateAdminClock() {
-            const timeElement = document.getElementById('time');
-            const dateElement = document.getElementById('date');
-            
-            if (timeElement) {
-                const now = new Date();
-                const hours = now.getHours().toString().padStart(2, '0');
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                const seconds = now.getSeconds().toString().padStart(2, '0');
-                
-                // Mettre à jour l'heure avec les secondes
-                timeElement.textContent = `${hours}:${minutes}:${seconds}`;
-            }
-            
-            // Mettre à jour la date si elle existe
-            if (dateElement) {
-                const now = new Date();
-                const options = { weekday: 'long', day: 'numeric', month: 'long' };
-                const dateStr = now.toLocaleDateString('fr-FR', options);
-                dateElement.textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-            }
-        }
-        
-        // Mettre à jour immédiatement puis toutes les secondes
-        updateAdminClock();
-        setInterval(updateAdminClock, 1000);
-    });
-</script>
 {% endblock %} 
