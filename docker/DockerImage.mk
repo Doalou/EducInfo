@@ -42,13 +42,13 @@ CAP_ADD ?= # --cap-add SYS_PTRACE
 
 # Docker config
 DOCKERFILE ?= Dockerfile
-DOCKERFILE_PATH ?= $(DOCKERFILE)
-BUILD_CONTEXT_ROOT ?= .
+DOCKERFILE_PATH ?= docker/$(DOCKERFILE)
+BUILD_CONTEXT_ROOT ?= ..
 DOCKER_EXEC ?= docker
 PROGRESS_OUTPUT ?= plain
 BUILD_CONTEXT ?= $(shell dirname $(shell pwd))
 WORKDIR ?= /work
-PROJECT_WORKDIR ?= $(shell pwd)
+PROJECT_WORKDIR ?= $(shell dirname $(shell pwd))
 
 ARCH_LIST ?= linux/amd64
 

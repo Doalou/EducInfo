@@ -54,14 +54,16 @@ make dev
 # Instance unique
 docker-compose up -d
 
-# Construction manuelle depuis la racine du projet
-docker build -f docker/Dockerfile -t educinfo:latest .
+# Construction manuelle depuis la racine du projet (OBLIGATOIRE)
+docker buildx build . --file docker/Dockerfile -t educinfo:latest
 
 # Cluster load balancé
 make cluster
 # ou
 docker-compose -f docker-compose.cluster.yml up -d
 ```
+
+> **⚠️ Important** : La construction Docker doit **obligatoirement** être effectuée depuis la racine du projet avec le contexte `.` et le chemin `docker/Dockerfile`.
 
 ## 📋 Prérequis
 
