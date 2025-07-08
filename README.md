@@ -36,7 +36,7 @@ EducInfo est une solution complète d'affichage d'informations scolaires conçue
 
 ```bash
 # 1. Cloner le projet
-git clone <repository-url>
+git clone https://github.com/doalou/educinfo.git
 cd EducInfo-main
 
 # 2. Installation complète interactive
@@ -941,7 +941,7 @@ Cette architecture **double** permet une **évolutivité** maximale selon les be
 - [x] Amélioration des performances et stabilité pour affichage TV
 - [ ] Finalisation optimisations mode TV
 
-### Version 1.3.0 (Juillet 2025)
+### Version 1.3.0 (Août 2025)
 - [ ] Notifications visuelles pour les écrans TV
 - [ ] Widgets configurables pour différents types d'écrans
 - [ ] Dashboard analytics avec graphiques historiques
