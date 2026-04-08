@@ -1,0 +1,87 @@
+<!-- 📅 Events Section -->
+<section id="events" class="section-container mb-24 scroll-mt-24">
+    <div class="flex items-center gap-4 mb-8">
+        <div
+            class="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center text-sage-500 text-xl shadow-sm">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div>
+            <h3 class="text-2xl font-bold text-white">Événements Scolaires</h3>
+            <p class="text-neutral-500 text-sm">Annoncez les temps forts de l'établissement.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div class="xl:col-span-1">
+            <div class="bg-neutral-900 p-8 rounded-[2rem] border border-neutral-800 shadow-sm">
+                <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-6">
+                    {{ event_form.hidden_tag() }}
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Titre de
+                            l'événement</label>
+                        {{ event_form.title(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-4
+                        text-white focus:outline-none focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50
+                        transition-all placeholder:text-neutral-700", placeholder="ex: Portes Ouvertes") }}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Date</label>
+                        {{ event_form.date(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-4
+                        text-white focus:outline-none focus:ring-2 focus:ring-sage-500/50 focus:border-sage-500/50
+                        transition-all placeholder:text-neutral-700") }}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Description
+                            (optionnel)</label>
+                        {{ event_form.description(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl
+                        px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-sage-500/50
+                        focus:border-sage-500/50 transition-all placeholder:text-neutral-700", rows="3",
+                        placeholder="Détails de l'événement...") }}
+                    </div>
+
+                    <button type="submit" name="submit_event"
+                        class="bg-gradient-to-br from-sage-500 to-green-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-sage-500/20 hover:shadow-sage-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 w-full">
+                        <i class="fas fa-calendar-plus"></i>
+                        Publier l'événement
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="xl:col-span-2 space-y-4 max-h-[600px] overflow-y-auto pr-2">
+            {% if events %}
+            {% for event in events %}
+            <div
+                class="bg-neutral-900 p-6 rounded-3xl border border-neutral-800 border-l-4 border-l-sage-500 flex items-start justify-between group hover:border-neutral-700 transition-all shadow-sm">
+                <div class="flex gap-6">
+                    <div
+                        class="flex flex-col items-center justify-center bg-neutral-950 w-16 h-16 rounded-2xl border border-neutral-800">
+                        <span class="text-[10px] font-black uppercase text-sage-500 tracking-tighter">{{
+                            event.date.strftime('%b') }}</span>
+                        <span class="text-2xl font-black text-white leading-none">{{ event.date.strftime('%d') }}</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-2">{{ event.title }}</h4>
+                        <p class="text-neutral-400 text-sm leading-relaxed max-w-xl">{{ event.description or 'Aucune
+                            description fournie.' }}</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('admin.delete_event', id=event.id) }}"
+                    onsubmit="return confirm('Supprimer cet événement ?')">
+                    {{ event_form.hidden_tag() }}
+                    <button type="submit"
+                        class="w-10 h-10 bg-neutral-800 rounded-xl flex items-center justify-center text-neutral-400 hover:bg-neutral-900 hover:text-rose-500 transition-all">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="bg-neutral-900 rounded-3xl border border-neutral-800 py-20 text-center opacity-30">
+                <p class="font-bold uppercase tracking-widest text-white">Aucun événement à venir</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>

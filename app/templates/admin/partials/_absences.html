@@ -1,0 +1,125 @@
+<!-- 📚 Absences Section -->
+<section id="absences" class="section-container mb-24 scroll-mt-24">
+    <div class="flex items-center gap-4 mb-8">
+        <div
+            class="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center text-rose-500 text-xl shadow-sm">
+            <i class="fas fa-user-clock"></i>
+        </div>
+        <div>
+            <h3 class="text-2xl font-bold text-white">Gestion des Absences</h3>
+            <p class="text-neutral-500 text-sm">Signalez les professeurs absents pour l'affichage TV.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <!-- Form -->
+        <div class="xl:col-span-1">
+            <div class="bg-neutral-900 p-8 rounded-[2rem] border border-neutral-800 shadow-sm">
+                <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-6">
+                    {{ absence_form.hidden_tag() }}
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Nom du
+                            Professeur</label>
+                        {{ absence_form.professeur(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl
+                        px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50
+                        focus:border-amber-500/50 transition-all placeholder:text-neutral-700", placeholder="ex: M.
+                        Dupont") }}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Jours
+                            concernés</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            {% for day in ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'] %}
+                            <label class="group cursor-pointer">
+                                <input type="checkbox" name="{{ day }}" id="{{ day }}" class="hidden peer">
+                                <div
+                                    class="bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-center transition-all peer-checked:bg-rose-500 peer-checked:border-rose-500 peer-checked:shadow-lg peer-checked:shadow-rose-500/20 group-hover:bg-neutral-800">
+                                    <span
+                                        class="text-xs font-bold text-neutral-500 peer-checked:text-white uppercase">{{
+                                        day[:3] }}</span>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" name="submit_absence"
+                        class="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 w-full">
+                        <i class="fas fa-plus"></i>
+                        Enregistrer l'absence
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- List -->
+        <div class="xl:col-span-2">
+            <div
+                class="bg-neutral-900 rounded-[2rem] border border-neutral-800 overflow-hidden h-full flex flex-col shadow-sm">
+                <div class="p-6 border-b border-neutral-800 bg-neutral-950/30 flex items-center justify-between">
+                    <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Liste des absences
+                        actives</span>
+                    <span
+                        class="px-3 py-1 bg-rose-500/10 text-rose-500 text-[10px] font-bold rounded-full border border-rose-500/20">{{
+                        absences|length }} active(s)</span>
+                </div>
+                <div class="flex-1 overflow-y-auto max-h-[600px] p-6 space-y-4">
+                    {% if absences %}
+                    {% for absence in absences %}
+                    <div
+                        class="bg-neutral-950 p-5 rounded-2xl border border-neutral-800 flex items-center justify-between group hover:border-neutral-700 transition-all">
+                        <div class="flex items-center gap-5">
+                            <div
+                                class="w-12 h-12 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-500 font-bold text-xl uppercase">
+                                {{ absence.professeur[0] }}
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-lg leading-none mb-2">{{ absence.professeur }}</h4>
+                                <div class="flex gap-1.5">
+                                    <span
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black uppercase transition-all {{ 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' if absence.lundi else 'bg-neutral-800 text-neutral-600' }}">L</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black uppercase transition-all {{ 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' if absence.mardi else 'bg-neutral-800 text-neutral-600' }}">M</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black uppercase transition-all {{ 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' if absence.mercredi else 'bg-neutral-800 text-neutral-600' }}">M</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black uppercase transition-all {{ 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' if absence.jeudi else 'bg-neutral-800 text-neutral-600' }}">J</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black uppercase transition-all {{ 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' if absence.vendredi else 'bg-neutral-800 text-neutral-600' }}">V</span>
+                                    <span
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black uppercase transition-all {{ 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' if absence.samedi else 'bg-neutral-800 text-neutral-600' }}">S</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button
+                                onclick="editAbsence({{ absence.id }}, '{{ absence.professeur }}', {{ absence.lundi|lower }}, {{ absence.mardi|lower }}, {{ absence.mercredi|lower }}, {{ absence.jeudi|lower }}, {{ absence.vendredi|lower }}, {{ absence.samedi|lower }})"
+                                class="w-10 h-10 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-center text-neutral-400 hover:text-amber-500 hover:border-amber-500/50 transition-all"
+                                title="Modifier">
+                                <i class="fas fa-pen text-xs"></i>
+                            </button>
+                            <form method="POST" action="{{ url_for('admin.delete_absence', id=absence.id) }}"
+                                onsubmit="return confirm('Supprimer définitivement cette absence ?')">
+                                {{ absence_form.hidden_tag() }}
+                                <button type="submit"
+                                    class="w-10 h-10 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-500 hover:border-rose-500/50 transition-all"
+                                    title="Supprimer">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="flex flex-col items-center justify-center py-20 text-center opacity-30">
+                        <i class="fas fa-check-circle text-5xl mb-4 text-sage-500"></i>
+                        <p class="font-bold text-lg uppercase tracking-widest text-white">Tout est en ordre</p>
+                        <p class="text-sm mt-1 text-neutral-400">Aucun professeur n'est déclaré absent.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

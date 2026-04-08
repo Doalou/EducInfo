@@ -1,522 +1,172 @@
 {% extends 'base.html' %}
 
-{% block title %}Diagnostic et réinitialisation d'urgence{% endblock %}
-{% block description %}Outil de diagnostic et réinitialisation d'urgence pour l'administration EducInfo{% endblock %}
+{% block title %}Emergency Diagnostic | EducInfo{% endblock %}
 
 {% block extra_head %}
 <style>
-    :root {
-        --warning-primary: #f59e0b;
-        --warning-secondary: #fbbf24;
-        --danger-primary: #ef4444;
-        --success-primary: #10b981;
-        --info-primary: #3b82f6;
+    body {
+        background-color: #050505;
+        background-image:
+            radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+            radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 0.1) 0, transparent 50%),
+            radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.05) 0, transparent 50%);
     }
-    
-    .emergency-container {
-        background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 50%, #fef3c7 100%);
-        min-height: 100vh;
-        animation: gradient-shift 10s ease-in-out infinite;
-    }
-    
-    .dark .emergency-container {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(146, 64, 14, 0.05) 50%, rgba(245, 158, 11, 0.1) 100%);
-    }
-    
-    @keyframes gradient-shift {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-    }
-    
+
     .emergency-card {
-        background: rgba(255, 255, 255, 0.95);
+        @apply relative overflow-hidden;
+        background: rgba(15, 15, 20, 0.7);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 
-            0 25px 50px -12px rgba(245, 158, 11, 0.15),
-            0 10px 20px -5px rgba(245, 158, 11, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
-    
-    .dark .emergency-card {
-        background: rgba(15, 23, 42, 0.95);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        box-shadow: 
-            0 25px 50px -12px rgba(0, 0, 0, 0.5),
-            0 10px 20px -5px rgba(0, 0, 0, 0.3),
-            inset 0 1px 0 rgba(148, 163, 184, 0.1);
+
+    .shimmer-bar {
+        height: 4px;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite linear;
     }
-    
-    .warning-header {
-        background: linear-gradient(135deg, var(--warning-primary), var(--warning-secondary));
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .warning-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        animation: shimmer 3s infinite;
-    }
-    
+
     @keyframes shimmer {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-    
-    .warning-icon {
-        animation: warning-pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes warning-pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.875rem;
-        transition: all 0.3s ease;
-    }
-    
-    .status-badge.success {
-        background: rgba(16, 185, 129, 0.1);
-        color: #065f46;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    
-    .dark .status-badge.success {
-        background: rgba(16, 185, 129, 0.2);
-        color: #a7f3d0;
-        border: 1px solid rgba(16, 185, 129, 0.4);
-    }
-    
-    .status-badge.danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: #991b1b;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-    
-    .dark .status-badge.danger {
-        background: rgba(239, 68, 68, 0.2);
-        color: #fca5a5;
-        border: 1px solid rgba(239, 68, 68, 0.4);
-    }
-    
-    .info-card {
-        background: rgba(59, 130, 246, 0.05);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        backdrop-filter: blur(10px);
-    }
-    
-    .dark .info-card {
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-    
-    .system-info-card {
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(229, 231, 235, 0.5);
-        backdrop-filter: blur(10px);
-    }
-    
-    .dark .system-info-card {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid rgba(71, 85, 105, 0.5);
-    }
-    
-    .system-info-header {
-        background: linear-gradient(135deg, var(--info-primary), #2563eb);
-    }
-    
-    .form-field {
-        position: relative;
-    }
-    
-    .form-input {
-        background: rgba(255, 255, 255, 0.9);
-        border: 2px solid rgba(209, 213, 219, 0.5);
-        transition: all 0.3s ease;
-        padding-left: 3rem;
-    }
-    
-    .dark .form-input {
-        background: rgba(30, 41, 59, 0.9);
-        border: 2px solid rgba(71, 85, 105, 0.5);
-        color: #e2e8f0;
-    }
-    
-    .form-input:focus {
-        border-color: var(--warning-primary);
-        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-        background: rgba(255, 255, 255, 1);
-    }
-    
-    .dark .form-input:focus {
-        background: rgba(30, 41, 59, 1);
-        border-color: var(--warning-primary);
-    }
-    
-    .btn-warning {
-        background: linear-gradient(135deg, var(--warning-primary), var(--warning-secondary));
-        color: white;
-        font-weight: 600;
-        border: none;
-        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-        transition: all 0.3s ease;
-    }
-    
-    .btn-warning:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-    }
-    
-    .btn-danger {
-        background: linear-gradient(135deg, var(--danger-primary), #dc2626);
-        color: white;
-        font-weight: 600;
-        border: none;
-        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        transition: all 0.3s ease;
-    }
-    
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-    }
-    
-    .alert {
-        border-radius: 1rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .alert::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: currentColor;
-    }
-    
-    .alert.error {
-        background: rgba(254, 226, 226, 0.8);
-        border-color: rgba(252, 165, 165, 0.5);
-        color: #991b1b;
-    }
-    
-    .dark .alert.error {
-        background: rgba(127, 29, 29, 0.3);
-        border-color: rgba(185, 28, 28, 0.4);
-        color: #fca5a5;
-    }
-    
-    .alert.success {
-        background: rgba(209, 250, 229, 0.8);
-        border-color: rgba(167, 243, 208, 0.5);
-        color: #065f46;
-    }
-    
-    .dark .alert.success {
-        background: rgba(6, 95, 70, 0.3);
-        border-color: rgba(16, 185, 129, 0.4);
-        color: #a7f3d0;
-    }
-    
-    .alert.info {
-        background: rgba(219, 234, 254, 0.8);
-        border-color: rgba(147, 197, 253, 0.5);
-        color: #1e40af;
-    }
-    
-    .dark .alert.info {
-        background: rgba(30, 64, 175, 0.3);
-        border-color: rgba(59, 130, 246, 0.4);
-        color: #93c5fd;
-    }
-    
-    .progress-indicator {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        animation: pulse-indicator 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse-indicator {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.6; transform: scale(1.1); }
-    }
-    
-    @media (max-width: 768px) {
-        .emergency-card {
-            margin: 1rem;
-            padding: 1.5rem;
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
         }
     }
-    
-    @media (prefers-reduced-motion: reduce) {
-        .warning-icon, .progress-indicator, .warning-header::before { animation: none; }
-        .btn-warning:hover, .btn-danger:hover { transform: none; }
+
+    .glass-input {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        @apply w-full rounded-2xl py-4 px-6 text-white text-lg font-mono focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 outline-none transition-all placeholder:text-slate-600;
+    }
+
+    .btn-emergency {
+        @apply w-full py-4 rounded-2xl text-lg font-black uppercase tracking-widest transition-all active:scale-95;
+    }
+
+    .status-badge {
+        @apply px-4 py-1.5 rounded-xl text-xs font-black uppercase border;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<main class="emergency-container" role="main" aria-labelledby="page-title">
-    <div class="container mx-auto px-4 py-12">
-        <div class="emergency-card max-w-4xl mx-auto rounded-2xl shadow-2xl overflow-hidden">
-            
-            <!-- Header d'avertissement -->
-            <header class="warning-header px-6 py-5 flex items-center relative">
-                <div class="warning-icon mr-4">
-                    <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-                <h1 id="page-title" class="text-xl font-bold text-white">
-                    Diagnostic et réinitialisation d'urgence
-                </h1>
-            </header>
-            
-            <!-- Contenu principal -->
-            <div class="p-8">
-                {% include 'includes/flash_messages.html' %}
-                
-                <!-- Messages d'erreur -->
-                {% if error %}
-                <div class="alert error" role="alert" aria-labelledby="error-title">
-                    <div class="flex items-start">
-                        <svg class="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                            <h3 id="error-title" class="font-bold text-lg mb-2">Erreur rencontrée</h3>
-                            <p>{{ error }}</p>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if invalid_code %}
-                <div class="alert error" role="alert" aria-labelledby="invalid-code-title">
-                    <div class="flex items-start">
-                        <svg class="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                            <h3 id="invalid-code-title" class="font-semibold text-lg mb-2">Code de sécurité invalide ou expiré</h3>
-                            <p>Veuillez contacter l'administrateur système pour obtenir un nouveau code.</p>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if reset_success %}
-                <div class="alert success" role="alert" aria-labelledby="success-title">
-                    <div class="flex items-start">
-                        <svg class="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <div>
-                            <h3 id="success-title" class="font-bold text-lg mb-2">Réinitialisation réussie</h3>
-                            <p>Le mot de passe administrateur a été réinitialisé. Le nouveau mot de passe a été affiché dans les logs du serveur. Consultez-les pour vous connecter.</p>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
+<main class="min-h-screen flex items-center justify-center p-6">
+    <div class="emergency-card w-full max-w-2xl rounded-[3rem]">
+        <div class="shimmer-bar"></div>
 
-                {% if not show_form and not reset_success %}
-                    <!-- Informations initiales -->
-                    <div class="info-card p-6 rounded-2xl mb-8">
-                        <div class="flex items-start">
-                            <svg class="h-8 w-8 text-blue-500 dark:text-blue-400 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div class="flex-1">
-                                <h2 class="font-bold text-xl text-blue-800 dark:text-blue-200 mb-4">
-                                    Outil de diagnostic et réinitialisation
-                                </h2>
-                                <div class="space-y-4 text-blue-700 dark:text-blue-300">
-                                    <p>Cet outil vous permet de diagnostiquer et de résoudre les problèmes d'authentification lorsque les méthodes standard ne fonctionnent plus.</p>
-                                    <p>Un code de sécurité à usage unique est nécessaire pour continuer. Ce code peut être généré par l'administrateur système via la commande CLI :</p>
-                                    <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                                        <code class="text-blue-800 dark:text-blue-300 font-mono text-sm">
-                                            flask admin generate-emergency-code
-                                        </code>
-                                    </div>
-                                    <p>Cette mesure de sécurité garantit que seul un utilisateur autorisé puisse accéder à cet outil sensible.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Formulaire de vérification -->
-                    <form method="get" action="{{ url_for('admin.admin_emergency_reset') }}" class="space-y-6">
-                        <div class="form-field">
-                            <label for="code" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Code de sécurité
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                </div>
-                                <input type="password" 
-                                       id="code" 
-                                       name="code" 
-                                       required
-                                       class="form-input w-full rounded-xl py-3 px-4 text-gray-900 focus:outline-none"
-                                       placeholder="Entrez le code de sécurité"
-                                       aria-describedby="code-help">
-                            </div>
-                            <p id="code-help" class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                Les codes sont à usage unique et expirent après utilisation.
-                            </p>
-                        </div>
-                        
-                        <button type="submit" 
-                                class="btn-warning w-full sm:w-auto px-8 py-3 rounded-xl inline-flex items-center justify-center transition-all focus:outline-none focus:ring-4 focus:ring-amber-500/50">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            Vérifier le code
-                        </button>
-                    </form>
-                    
-                {% elif show_form %}
-                    <!-- Diagnostic du système -->
-                    <div class="alert success" role="alert" aria-labelledby="diagnostic-title">
-                        <div class="flex items-start">
-                            <svg class="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div>
-                                <h3 id="diagnostic-title" class="font-bold text-lg mb-2">Diagnostic du système</h3>
-                                <p>L'outil a pu accéder à la base de données et vérifier les utilisateurs.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Informations système -->
-                    <div class="system-info-card rounded-2xl mb-8 overflow-hidden">
-                        <div class="system-info-header px-6 py-4 text-white">
-                            <div class="flex items-center">
-                                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <h3 class="text-lg font-semibold">Informations système</h3>
-                            </div>
-                        </div>
-                        <div class="p-6 space-y-4">
-                            <div class="flex justify-between items-center py-3 border-b border-gray-200 dark:border-gray-600">
-                                <span class="font-semibold text-gray-700 dark:text-gray-300">Nombre d'utilisateurs :</span>
-                                <span class="status-badge success">{{ user_count }}</span>
-                            </div>
-                            <div class="flex justify-between items-center py-3 border-b border-gray-200 dark:border-gray-600">
-                                <span class="font-semibold text-gray-700 dark:text-gray-300">Utilisateur admin :</span>
-                                {% if admin_exists %}
-                                <span class="status-badge success">Existe</span>
-                                {% else %}
-                                <span class="status-badge danger">N'existe pas</span>
-                                {% endif %}
-                            </div>
-                            
-                            {% if admin_reset %}
-                            <div class="alert info mt-4">
-                                <div class="flex items-start">
-                                    <svg class="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                    <div>
-                                        <span class="font-semibold">Action effectuée :</span>
-                                        <p class="mt-1">L'utilisateur admin a été créé ou réinitialisé.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Formulaire de réinitialisation -->
-                    <form method="post" action="{{ url_for('admin.admin_emergency_reset_password') }}" class="space-y-6">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="code" value="{{ request.args.get('code') }}">
-                        
-                        <div class="alert error">
-                            <div class="flex items-start">
-                                <svg class="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <div>
-                                    <h4 class="font-bold text-lg mb-2">Attention</h4>
-                                    <p>Cette action va réinitialiser le mot de passe administrateur à sa valeur par défaut. Utilisez cette fonction uniquement en cas d'urgence quand l'accès administrateur est perdu.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" 
-                                class="btn-danger w-full px-8 py-4 rounded-xl inline-flex items-center justify-center text-lg transition-all focus:outline-none focus:ring-4 focus:ring-red-500/50">
-                            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                            </svg>
-                            Réinitialiser le mot de passe admin
-                        </button>
-                    </form>
-                {% endif %}
-
-                {% if reset_success %}
-                <!-- Informations système finales -->
-                <div class="system-info-card rounded-2xl overflow-hidden">
-                    <div class="system-info-header px-6 py-4 text-white">
-                        <div class="flex items-center">
-                            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <h3 class="text-lg font-semibold">État final du système</h3>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <div class="flex justify-between items-center py-3 border-b border-gray-200 dark:border-gray-600">
-                            <span class="font-semibold text-gray-700 dark:text-gray-300">Nombre d'utilisateurs :</span>
-                            <span class="status-badge success">{{ user_count }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-3">
-                            <span class="font-semibold text-gray-700 dark:text-gray-300">Utilisateur admin :</span>
-                            <span class="status-badge success">
-                                <div class="progress-indicator bg-green-500 mr-2"></div>
-                                Opérationnel
-                            </span>
-                        </div>
-                    </div>
+        <div class="p-10 md:p-16">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <div
+                    class="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl border border-amber-500/20 shadow-[0_0_40px_rgba(245,158,11,0.1)]">
+                    <i class="fas fa-shield-virus"></i>
                 </div>
-                
-                <div class="text-center mt-8">
-                    <a href="{{ url_for('auth.login') }}" 
-                       class="btn-warning inline-flex items-center px-8 py-3 rounded-xl transition-all focus:outline-none focus:ring-4 focus:ring-amber-500/50">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                        </svg>
-                        Se connecter maintenant
-                    </a>
-                </div>
-                {% endif %}
+                <h1 class="text-3xl font-extrabold text-white tracking-tight mb-3">Réinitialisation d'Urgence</h1>
+                <p class="text-slate-500 font-medium">Diagnostic système et restauration des accès privilégiés.</p>
             </div>
+
+            {% include 'includes/flash_messages.html' %}
+
+            {% if error %}
+            <div class="bg-rose-500/10 border border-rose-500/20 p-6 rounded-3xl flex items-center gap-4 mb-8">
+                <i class="fas fa-exclamation-circle text-rose-500 text-xl"></i>
+                <p class="text-rose-200 text-sm font-medium">{{ error }}</p>
+            </div>
+            {% endif %}
+
+            {% if reset_success %}
+            <div class="bg-sage-500/10 border border-sage-500/20 p-8 rounded-3xl text-center mb-8">
+                <div
+                    class="w-16 h-16 bg-sage-500/20 text-sage-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Restauré avec succès</h3>
+                <p class="text-slate-400 text-sm mb-8">Le mot de passe administrateur a été réinitialisé à <code
+                        class="bg-white/5 px-2 py-1 rounded text-sage-400">admin123</code>.</p>
+                <a href="{{ url_for('auth.login') }}"
+                    class="btn-emergency bg-sage-500 hover:bg-sage-600 text-white shadow-lg shadow-sage-500/20 flex items-center justify-center gap-3">
+                    Se Connecter <i class="fas fa-arrow-right text-sm"></i>
+                </a>
+            </div>
+            {% elif not show_form %}
+            <!-- Initial Challenge -->
+            <div class="bg-indigo-500/5 border border-indigo-500/10 p-8 rounded-3xl mb-10">
+                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Instruction de Sécurité
+                </h4>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Un code de sécurité à usage unique est nécessaire. Vous pouvez le générer via le terminal du serveur
+                    :
+                </p>
+                <div
+                    class="bg-black/40 p-4 rounded-xl border border-white/5 font-mono text-xs text-indigo-300 select-all">
+                    flask admin generate-emergency-code
+                </div>
+            </div>
+
+            <form method="get" action="{{ url_for('admin.admin_emergency_reset') }}" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-4">Code de
+                        Sécurité</label>
+                    <input type="password" name="code" required class="glass-input" placeholder="••••••••-••••">
+                </div>
+                <button type="submit"
+                    class="btn-emergency bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20">
+                    Vérifier l'Identité
+                </button>
+            </form>
+            {% else %}
+            <!-- Step 2: Confirmation -->
+            <div class="space-y-8">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass p-5 rounded-2xl border border-white/5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Comptes</p>
+                        <p class="text-2xl font-black text-white">{{ user_count }}</p>
+                    </div>
+                    <div class="glass p-5 rounded-2xl border border-white/5">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Admin Principal
+                        </p>
+                        <span
+                            class="status-badge {{ 'bg-sage-500/10 text-sage-500 border-sage-500/20' if admin_exists else 'bg-rose-500/10 text-rose-500 border-rose-500/20' }}">
+                            {{ 'Actif' if admin_exists else 'Manquant' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-rose-500/10 border border-rose-500/20 p-6 rounded-3xl">
+                    <h4 class="text-rose-500 font-bold mb-2 flex items-center gap-2">
+                        <i class="fas fa-radiation"></i> Zone de Danger
+                    </h4>
+                    <p class="text-rose-200/70 text-sm leading-relaxed">
+                        La validation réinitialisera instantanément le compte administrateur. Les sessions actives
+                        seront invalidées.
+                    </p>
+                </div>
+
+                <form method="post" action="{{ url_for('admin.admin_emergency_reset_password') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="code" value="{{ request.args.get('code') }}">
+                    <button type="submit"
+                        class="btn-emergency bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20">
+                        Exécuter la Réinitialisation
+                    </button>
+                </form>
+
+                <a href="{{ url_for('admin.admin_emergency_reset') }}"
+                    class="block text-center text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-widest">
+                    Annuler l'Opération
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white/5 p-4 text-center">
+            <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">EducInfo Security Protocol v1.4
+            </p>
         </div>
     </div>
 </main>
-{% endblock %} 
+{% endblock %}

@@ -110,6 +110,7 @@ class Config:
             app.config['CACHE_REDIS_URL'] = app.config['REDIS_URL']
         except Exception:
             app.config['CACHE_TYPE'] = 'simple'
+            app.config['REDIS_URL'] = None
 
 
 class DevelopmentConfig(Config):

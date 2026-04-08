@@ -6,7 +6,7 @@ Le format s'inspire de Keep a Changelog et le versioning suit SemVer.
 
 ## [2.0.0] - 2026-04-07
 
-### Securite
+### Sécurité
 - Suppression du mot de passe admin en dur (`admin123`) dans toute la codebase : config, CLI, scripts, Docker et fichiers d'environnement.
 - Generation automatique d'un mot de passe securise via `secrets.token_urlsafe` a chaque initialisation ou reinitialisation.
 - Protection des routes de diagnostic (`/debug/weather`, `/debug/transport`) deplacees derriere `@login_required` dans le blueprint admin.
@@ -45,3 +45,47 @@ Le format s'inspire de Keep a Changelog et le versioning suit SemVer.
 ### CI et documentation
 - Mise a jour des actions GitHub : `docker/build-push-action` `v6.18.0`, `docker/setup-buildx-action` `v3.11.1`, `docker/login-action` `v3.6.0`, `docker/metadata-action` `v5.8.0`, `sigstore/cosign-installer` `v4.0.0`.
 - README et documentation alignes sur la version 2.0.0.
+# Changelog
+
+Toutes les modifications notables de ce projet seront documentées dans ce fichier.
+
+Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
+et ce projet adhère au [Versionnage Sémantique](https://semver.org/spec/v2.0.0.html).
+
+
+## [1.4.0] - 2025-12-16
+
+### Added
+- Refonte complète de l'interface d'administration ("Obsidian Glass").
+- Nouvelle barre de navigation latérale (Sidebar) pour une navigation fluide par sections.
+- Tableau de bord restructuré en sections : Overview, Content, Configuration, System.
+- Système de notifications toast modernes.
+- Métriques système détaillées avec graphiques dynamiques (Chart.js).
+- Interface de diagnostic utilisateurs améliorée avec analyse de sécurité.
+- Page de réinitialisation d'urgence remise à neuf.
+- Support mobile complet avec sidebar responsive.
+- Widgets de prévisualisation live pour la Météo et les Transports.
+
+### Changed
+- Passage à Tailwind CSS pour l'ensemble de la console d'administration.
+- Amélioration de la réactivité et de l'accessibilité du dashboard.
+
+## [1.3.1] - 2025-12-15
+
+### Added
+- Refonte du système météo avec données enrichies (AQI, UV, Sunrise/Sunset).
+- Nouveau widget météo moderne sur la page d'accueil.
+- Système de cache météo intelligent avec bouton de rafraîchissement manuel.
+
+## [1.2.1] - 2025-06-11
+
+### Fixed
+- Correctifs mineurs post-release 1.2.0.
+
+## [1.2.0] - 2025-06-11
+
+### Added
+- Ajout du mode Cluster (Load Balancing).
+- Système de métriques avancé (psutil).
+- Support Multi-stage Docker builds.
+- Mode TV amélioré.

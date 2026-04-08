@@ -259,14 +259,16 @@ def dashboard():
         absence_form=forms['absence_form'],
         event_form=forms['event_form'],
         password_form=forms['password_form'],
-        config_form=forms['site_form'],
+        site_form=forms['site_form'],
         weather_form=forms['weather_form'],
         transport_form=forms['widget_form'],
         cts_form=forms['cts_form'],
         menu_form=forms['menu_form'],
         cts_results=cts_results,
         searched_cts_stop=searched_cts_stop,
-        searched_vehicle_mode=searched_vehicle_mode
+        searched_vehicle_mode=searched_vehicle_mode,
+        all_users=User.query.all(),
+        weather=weather_service.get_weather_data()
     )
 
 def handle_absence_deletion(request, forms, configs):

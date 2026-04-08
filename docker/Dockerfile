@@ -1,7 +1,7 @@
 # ==============================================
 # Stage 1: Builder - Installation des dépendances
 # ==============================================
-FROM python:3.12-slim-bookworm as builder
+FROM python:3.13-slim-bookworm as builder
 
 LABEL maintainer="contact@doalo.fr"
 LABEL description="EducInfo - Plateforme d'Information Scolaire (Builder)"
@@ -37,16 +37,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ==============================================
 # Stage 2: Production - Image finale optimisée
 # ==============================================
-FROM python:3.12-slim-bookworm as production
+FROM python:3.13-slim-bookworm as production
 
 LABEL maintainer="contact@doalo.fr"
-LABEL version="2.0.0"
+LABEL version="1.3.0"
 LABEL description="EducInfo - Plateforme d'Information Scolaire"
 
 # Métadonnées de l'image
 LABEL org.opencontainers.image.title="EducInfo"
 LABEL org.opencontainers.image.description="Plateforme d'information scolaire avec Flask"
-LABEL org.opencontainers.image.version="2.0.0"
+LABEL org.opencontainers.image.version="1.3.0"
 LABEL org.opencontainers.image.vendor="DoaLo"
 LABEL org.opencontainers.image.url="https://github.com/doalo/educinfo"
 LABEL org.opencontainers.image.source="https://github.com/doalo/educinfo"
@@ -110,20 +110,20 @@ ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/bin/entrypoint.sh"]
 ENV GUNICORN_WORKERS=""
 
 # Commande par défaut optimisée pour la production
-CMD ["sh", "-c", "gunicorn \
-     --bind 0.0.0.0:5000 \
-     --workers ${GUNICORN_WORKERS:-$(python -c 'import multiprocessing; print(min(multiprocessing.cpu_count() * 2 + 1, 9))')} \
-     --worker-class sync \
-     --worker-connections 1000 \
-     --max-requests 1000 \
-     --max-requests-jitter 100 \
-     --timeout 30 \
-     --keep-alive 2 \
-     --log-level info \
-     --access-logfile - \
-     --error-logfile - \
-     --capture-output \
-     run:app"]
+CMD ["gunicorn", \
+    "--bind", "0.0.0.0:5000", \
+    "--workers", "3", \
+    "--worker-class", "sync", \
+    "--worker-connections", "1000", \
+    "--max-requests", "1000", \
+    "--max-requests-jitter", "100", \
+    "--timeout", "30", \
+    "--keep-alive", "2", \
+    "--log-level", "info", \
+    "--access-logfile", "-", \
+    "--error-logfile", "-", \
+    "--capture-output", \
+    "run:app"]
 
 # ==============================================
 # Stage 3: Development - Image de développement

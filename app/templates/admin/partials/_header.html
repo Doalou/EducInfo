@@ -1,0 +1,35 @@
+<header
+    class="h-16 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 flex items-center justify-between px-4 lg:px-8 z-40 sticky top-0">
+    <div class="flex items-center gap-4">
+        <button id="sidebar-toggle" class="lg:hidden text-neutral-400 hover:text-white transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+        <div class="flex items-center gap-2">
+            <i class="fas fa-home text-neutral-500 text-sm"></i>
+            <span class="text-neutral-500 text-sm">/</span>
+            <span class="text-white font-semibold text-sm" id="breadcrumb-current">Tableau de bord</span>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-6">
+        <div class="relative hidden lg:block">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 text-xs"></i>
+            <input type="text" placeholder="Rechercher une fonction..."
+                class="bg-neutral-900 border border-neutral-800 rounded-full py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all w-64 text-neutral-200 placeholder:text-neutral-600">
+        </div>
+
+        <div class="flex items-center gap-3 border-l border-neutral-800 pl-6 text-neutral-400">
+            <a href="{{ url_for('public.home') }}" target="_blank" class="hover:text-white transition-colors p-2"
+                title="Voir le site public">
+                <i class="fas fa-external-link-alt"></i>
+            </a>
+            <!-- Notifications (Simulation) -->
+            <div class="relative">
+                <button class="hover:text-white transition-colors p-2" title="Notifications">
+                    <i class="far fa-bell"></i>
+                </button>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+            </div>
+        </div>
+    </div>
+</header>

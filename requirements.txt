@@ -1,22 +1,22 @@
 # Core Flask et extensions
-Flask==3.0.3
-Werkzeug>=3.0.1,<4.0
+Flask==3.1.2
+Werkzeug>=3.1.4,<4.0
 Flask-SQLAlchemy==3.1.1
-SQLAlchemy>=2.0.30,<2.1
-python-dotenv==1.0.1
-requests>=2.32.3,<2.33
+SQLAlchemy>=2.0.45,<2.1
+python-dotenv==1.2.1
+requests>=2.32.5,<3.0
 Flask-Login==0.6.3
-Flask-WTF==1.2.1
-WTForms==3.1.2
+Flask-WTF==1.2.2
+WTForms==3.2.1
 pytz==2024.1
 Flask-Migrate==4.0.7
 python-dateutil>=2.8.2,<3.0  # Pour le parsing avancé des dates ISO 8601
 
 # Serveur WSGI
-gunicorn==22.0.0
+gunicorn==23.0.0
 
 # Sécurité et validation
-cryptography>=42.0.0
+cryptography>=46.0.3
 email-validator>=2.1.1
 itsdangerous>=2.2.0
 

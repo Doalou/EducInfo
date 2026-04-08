@@ -1,96 +1,55 @@
-# 📺 EducInfo v2.0.0
+# 📺 EducInfo v1.3.0
 
 > **Système d'affichage scolaire intelligent optimisé pour écrans TV**
 
-EducInfo est une solution complète d'affichage d'informations scolaires conçue spécifiquement pour les écrans de télévision dans les établissements éducatifs. Le système offre un affichage temps réel des absences des professeurs, des menus de cantine, des événements scolaires, des informations météo et des horaires de transports en commun.
+EducInfo est une solution complète d'affichage numérique pour établissements scolaires (halls, couloirs, espaces communs). Elle permet de diffuser en temps réel les absences des professeurs, menus de cantine, événements, météo et transports, avec une interface "Pixel Perfect" pour écrans de télévision.
 
-## ✨ Fonctionnalités principales
+---
 
-### 🎯 Affichage TV optimisé
-- **Interface moderne** adaptée aux grands écrans
-- **Mode sombre automatique** pour réduire la fatigue visuelle
-- **Rafraîchissement automatique** des données en temps réel
-- **Affichage plein écran** avec navigation intuitive
+## ✨ Fonctionnalités Principales
 
-### 📊 Gestion des informations scolaires
-- **Absences des professeurs** par jour de la semaine
-- **Événements scolaires** avec dates et descriptions
-- **Menus de cantine** organisés par catégories (entrées, plats, desserts...)
-- **Système d'administration** complet avec interface web
+### 🎯 Affichage TV & UX
+- **Design pour Grands Écrans** : Interface épurée, polices lisibles à distance, contrastes élevés.
+- **Mode TV Exclusif** : Activation par simple URL (`?tv=true`) ou touche `F11`.
+- **Auto-Refresh** : Mise à jour automatique des données sans intervention.
+- **Thèmes Adaptatifs** : Mode sombre/clair automatique.
 
-### 🌤️ Widgets intelligents
-- **Météo en temps réel** via API OpenWeatherMap
-- **Transports en commun** CTS Strasbourg avec horaires temps réel
-- **Horloge et date** avec mise à jour automatique
-- **Configuration flexible** des widgets affichés
+### 📊 Contenu & Services
+- **Absences Professeurs** : Gestion par jour de la semaine.
+- **Menus Cantine** : Affichage coloré par catégories (Entrées, Plats, Desserts).
+- **Widgets Intelligents** :
+  - 🌤️ Météo locale (OpenWeatherMap).
+  - 🚌 Transports en commun (API CTS Strasbourg).
+  - 🕒 Horloge temps réel.
+- **Événements** : Agenda scolaire et annonces importantes.
 
-### ⚡ Performance et fiabilité
-- **Load balancing** intégré pour haute disponibilité
-- **Cache Redis** pour des performances optimales
-- **Base de données** SQLite/PostgreSQL selon l'environnement
-- **Métriques système** et monitoring intégré
+### ⚙️ Administration & Technique
+- **Dashboard Admin** : Gestion complète des données et utilisateurs.
+- **Monitoring** : Métriques système (CPU/RAM/Disque) et base de données.
+- **Haute Disponibilité** : Support complet du Clustering et Load Balancing.
+- **Sécurité** : Authentification forte, CSRF protection, Headers sécurisés.
 
-## 🚀 Installation rapide
+---
 
-### Installation automatisée (recommandée)
+## 🚀 Installation & Démarrage
 
-```bash
-# 1. Cloner le projet
-git clone https://github.com/doalou/educinfo.git
-cd EducInfo-main
+EducInfo propose deux modes d'installation selon vos besoins.
 
-# 2. Installation complète interactive
-./scripts/setup.sh
+### Option 1 : Docker (Recommandé)
 
-# 3. Démarrage de l'application
-make dev
-# ou
-./scripts/dev.sh
-```
-
-### Installation avec Docker
+#### Mode Simple (Développement / Petite structure)
+Idéal pour tester ou pour une installation légère sur un seul serveur.
 
 ```bash
-# Instance unique
+# Démarrer l'application
 docker-compose up -d
 
-# Construction manuelle depuis la racine du projet (OBLIGATOIRE)
-docker buildx build . --file docker/Dockerfile -t educinfo:latest
-
-# Cluster load balancé
-make cluster
-# ou
-docker-compose -f docker-compose.cluster.yml up -d
+# Accéder à l'application
+# http://localhost:5001
 ```
 
-> **⚠️ Important** : La construction Docker doit **obligatoirement** être effectuée depuis la racine du projet avec le contexte `.` et le chemin `docker/Dockerfile`.
-
-## 📋 Prérequis
-
-### Système
-- **Python 3.8+** ou **Docker**
-- **Système d'exploitation** : Linux, macOS, Windows
-- **Mémoire** : 512 MB minimum, 1 GB recommandé
-- **Stockage** : 500 MB d'espace libre
-
-### APIs externes (optionnelles)
-- **OpenWeatherMap** : Clé API pour la météo
-- **CTS Strasbourg** : Token API pour les transports
-
-## 🛠️ Scripts utilitaires
-
-Le projet inclut des scripts dans le dossier `scripts/` pour automatiser les tâches courantes :
-
-### Scripts principaux
-
-| Script | Description | Usage |
-|--------|-------------|-------|
-| `setup.sh` | Installation et configuration complète | `./scripts/setup.sh` |
-| `dev.sh` | Développement avec hot-reload | `./scripts/dev.sh` |
-| `cluster.sh` | Gestion du cluster load balancé | `./scripts/cluster.sh` |
-| `test-docker.sh` | Tests Docker automatisés | `./scripts/test-docker.sh` |
-
-### Commandes Make
+#### Mode Cluster (Production)
+Architecture haute disponibilité avec Load Balancer Nginx, Redis et PostgreSQL.
 
 ```bash
 # Développement
@@ -281,42 +240,17 @@ EducInfo propose **deux modes de déploiement** selon vos besoins :
 
 1. **Cloner le dépôt :**
 ```bash
+# 1. Cloner et installer les dépendances
 git clone https://github.com/doalou/educinfo.git
 cd educinfo
-```
-
-2. **Environnement virtuel :**
-```bash
 python -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-.venv\Scripts\activate     # Windows
-```
-
-3. **Installation des dépendances :**
-```bash
-# Installation standard (inclut psutil pour les métriques)
+source .venv/bin/activate  # ou .venv\Scripts\activate sous Windows
 pip install -r requirements.txt
 
-# Ou installation avec fonctionnalités optionnelles
-pip install -e ".[redis,monitoring,dev]"
-```
-
-4. **Configuration :**
-```bash
-# Copier le template de configuration
+# 2. Configurer
 cp .env.example .env
 
-# Éditer .env avec vos paramètres
-nano .env
-```
-
-5. **Initialisation :**
-```bash
-# Définir la variable d'environnement
-export FLASK_APP=run.py  # Linux/macOS
-$env:FLASK_APP="run.py"  # PowerShell Windows
-
-# Initialiser la base de données
+# 3. Initialiser la base de données
 flask init-db
 ```
 
@@ -351,6 +285,47 @@ HEALTH_CHECK_PATH=/health
 
 ## Utilisation
 
+### Mode Administrateur
+Accédez à `/admin` pour gérer le contenu.
+- **Utilisateur par défaut** : Créé lors du `flask init-db` (voir logs ou définir via CLI).
+- **Métriques** : Visualisez l'état de santé du serveur dans `/admin/metrics`.
+
+### Mode Affichage (TV)
+Pour un écran d'affichage dans un hall :
+1. Ouvrez le navigateur sur l'URL de l'accueil.
+2. Ajoutez `?tv=true` à la fin de l'URL ou cliquez sur le bouton "Mode TV".
+3. Passez en plein écran (`F11`).
+4. L'écran tournera désormais en autonomie.
+
+---
+
+## 🏗️ Architecture
+
+```
+EducInfo/
+├── app/
+│   ├── blueprints/    # Routes (admin, api, auth, public)
+│   ├── models/        # Modèles SQLAlchemy
+│   ├── services/      # Logique métier (Météo, Transport, etc.)
+│   └── static/        # Assets (CSS optimisé TV, JS)
+├── docker/            # Configuration conteneurs
+├── scripts/           # Utilitaires de maintenance
+└── tests/             # Tests unitaires et d'intégration
+```
+
+## 🤝 Contribuer
+
+Les contributions sont bienvenues ! Merci de consulter [CONTRIBUTING.md](CONTRIBUTING.md) (à créer) pour les directives.
+
+1. Forker le projet.
+2. Créer une branche (`git checkout -b feature/ma-feature`).
+3. Committer (`git commit -am 'Ajout de ma feature'`).
+4. Pusher (`git push origin feature/ma-feature`).
+5. Ouvrir une Pull Request.
+
+---
+
+## 📄 Licence
 ### Développement
 
 ```bash
@@ -971,7 +946,7 @@ Cette architecture **double** permet une **évolutivité** maximale selon les be
 
 ## Licence
 
-Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ## Remerciements
 

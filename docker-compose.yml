@@ -16,11 +16,12 @@ services:
       - WEATHER_CITY=${WEATHER_CITY:-Strasbourg}
       - SECRET_KEY=${SECRET_KEY:-}
     volumes:
+      - ./app:/app/app
       - ./instance:/app/instance
       - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -34,4 +35,4 @@ networks:
 
 volumes:
   educinfo-data:
-    driver: local 
+    driver: local

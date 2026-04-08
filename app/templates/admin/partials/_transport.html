@@ -1,0 +1,152 @@
+<!-- 🚌 Transport Section -->
+<section id="transport" class="section-container mb-24 scroll-mt-24">
+    <div class="flex items-center gap-4 mb-8">
+        <div
+            class="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center text-plum-400 text-xl shadow-sm">
+            <i class="fas fa-bus"></i>
+        </div>
+        <div>
+            <h3 class="text-2xl font-bold text-white">Transports CTS</h3>
+            <p class="text-neutral-500 text-sm">Configurez les horaires de tram/bus en temps réel.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-neutral-900 p-8 rounded-[2rem] border border-neutral-800 shadow-sm">
+            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-6">
+                {{ cts_form.hidden_tag() }}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Code Arrêt (3
+                            chiffres)</label>
+                        {{ cts_form.stop_code(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5
+                        py-4 text-white focus:outline-none focus:ring-2 focus:ring-plum-500/50 focus:border-plum-500/50
+                        transition-all placeholder:text-neutral-700", placeholder="ex: 366") }}
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Mode</label>
+                        {{ cts_form.vehicle_mode(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5
+                        py-4 text-white focus:outline-none focus:ring-2 focus:ring-plum-500/50 focus:border-plum-500/50
+                        transition-all") }}
+                    </div>
+                </div>
+
+                <button type="submit" name="submit_cts"
+                    class="w-full bg-neutral-800 text-neutral-300 font-bold py-3 px-6 rounded-2xl hover:bg-neutral-700 hover:text-white transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-search"></i>
+                    Tester l'arrêt
+                </button>
+            </form>
+
+            <hr class="border-neutral-800 my-8">
+
+            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-6">
+                {{ transport_form.hidden_tag() }}
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Nom affiché</label>
+                    {{ transport_form.cts_stop_display(class="w-full bg-neutral-950 border border-neutral-800
+                    rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-plum-500/50
+                    focus:border-plum-500/50 transition-all placeholder:text-neutral-700", placeholder="ex: Lycée
+                    Couffignal") }}
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Token API
+                        CTS</label>
+                    {{ transport_form.cts_api_token(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl
+                    px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-plum-500/50 focus:border-plum-500/50
+                    transition-all placeholder:text-neutral-700", type="password", placeholder="Votre token secret
+                    CTS...") }}
+                </div>
+
+                <!-- Hidden fields for saving from test -->
+                <div class="hidden">
+                    {{ transport_form.cts_stop_code() }}
+                    {{ transport_form.cts_vehicle_mode() }}
+                </div>
+
+                <div class="flex items-center gap-4 pt-4">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        {{ transport_form.show_transports(class="w-5 h-5 rounded accent-plum-500 bg-neutral-800
+                        border-neutral-700") }}
+                        <span
+                            class="text-sm font-bold text-neutral-400 group-hover:text-white transition-colors">Activer
+                            le widget</span>
+                    </label>
+                </div>
+
+                <button type="submit" name="submit_transport"
+                    class="bg-gradient-to-br from-plum-500 to-indigo-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-plum-500/20 hover:shadow-plum-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 w-full">
+                    <i class="fas fa-save"></i>
+                    Sauvegarder la config
+                </button>
+            </form>
+        </div>
+
+        <!-- 🚌 CTS Preview Card -->
+        <div class="bg-neutral-900 p-8 rounded-[2rem] border border-neutral-800 flex flex-col shadow-sm">
+            <h4 class="text-white font-bold mb-6 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-eye text-plum-400"></i>
+                    Résultats
+                </div>
+                {% if transport_config and transport_config.show_transports %}
+                <span
+                    class="px-2 py-1 bg-sage-500/10 text-sage-500 text-[10px] font-black uppercase rounded-lg border border-sage-500/20">Actif</span>
+                {% else %}
+                <span
+                    class="px-2 py-1 bg-neutral-800 text-neutral-500 text-[10px] font-black uppercase rounded-lg">Inactif</span>
+                {% endif %}
+            </h4>
+
+            <div class="flex-1 space-y-3" id="cts-preview-list">
+                {% if cts_results %}
+                <div class="bg-neutral-950 p-4 rounded-xl border border-neutral-800 mb-4 animate-pulse-once">
+                    <p
+                        class="text-xs text-neutral-400 mb-4 uppercase font-bold text-center border-b border-neutral-800 pb-2">
+                        Arrêt : <span class="text-white">{{ searched_cts_stop }}</span>
+                    </p>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for result in cts_results %}
+                        <div
+                            class="flex justify-between items-center py-2 px-2 hover:bg-neutral-900 rounded-lg transition-colors">
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="w-6 h-6 rounded bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-neutral-300">{{
+                                    result.ligne or '?' }}</span>
+                                <span class="font-bold text-white text-sm">{{ result.destination }}</span>
+                            </div>
+                            <span class="text-plum-400 font-mono font-bold text-sm bg-plum-500/10 px-2 py-1 rounded">{{
+                                result.arrivee }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <form method="POST" action="{{ url_for('admin.dashboard') }}" class="mt-4">
+                        {{ cts_form.hidden_tag() }}
+                        <!-- Hidden fields to pass state to save action if needed, though routes.py handles it differently -->
+                        <input type="hidden" name="stop_code" value="{{ searched_cts_stop }}">
+                        <input type="hidden" name="vehicle_mode" value="{{ searched_vehicle_mode }}">
+                        <button type="submit" name="submit_cts_save"
+                            class="w-full bg-plum-500 text-white text-xs font-bold py-3 rounded-xl hover:bg-plum-600 transition-colors shadow-lg shadow-plum-500/20">
+                            <i class="fas fa-check mr-2"></i>Utiliser cet arrêt
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="text-center py-20 opacity-30">
+                    <i class="fas fa-clock text-4xl mb-4 text-neutral-600"></i>
+                    <p class="text-sm font-bold uppercase tracking-widest text-neutral-500">Aucun résultat</p>
+                    <p class="text-[10px] mt-1 text-neutral-600">Testez un code d'arrêt pour voir les horaires.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-neutral-800">
+                <p class="text-xs text-neutral-500 italic">Le token API peut être obtenu sur le portail Open Data de la
+                    Canada (ou CTS Strasbourg).</p>
+            </div>
+        </div>
+    </div>
+</section>

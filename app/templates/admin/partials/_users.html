@@ -1,0 +1,90 @@
+<!-- 👥 Users Section -->
+<section id="users" class="section-container mb-24 scroll-mt-24">
+    <div class="flex items-center gap-4 mb-8">
+        <div
+            class="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center text-orange-400 text-xl shadow-sm">
+            <i class="fas fa-users"></i>
+        </div>
+        <div>
+            <h3 class="text-2xl font-bold text-white">Gestion des Utilisateurs</h3>
+            <p class="text-neutral-500 text-sm">Contrôlez les accès à cet espace d'administration.</p>
+        </div>
+    </div>
+
+    <div class="bg-neutral-900 rounded-[2rem] border border-neutral-800 overflow-hidden shadow-sm">
+        <div class="p-8 border-b border-neutral-800 flex justify-between items-center bg-neutral-950/30">
+            <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Liste des comptes ({{
+                user_count_total or 0 }})</span>
+            <a href="{{ url_for('admin.create_user') }}"
+                class="px-6 py-2 bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:scale-[1.05] transition-all text-xs flex items-center gap-2">
+                <i class="fas fa-user-plus"></i>
+                Nouvel Utilisateur
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[10px] uppercase font-bold text-neutral-500 tracking-widest">
+                        <th class="px-8 py-4 border-b border-neutral-800">Utilisateur</th>
+                        <th class="px-8 py-4 border-b border-neutral-800">Rôle</th>
+                        <th class="px-8 py-4 border-b border-neutral-800">Statut</th>
+                        <th class="px-8 py-4 border-b border-neutral-800 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-slate-300">
+                    {% if all_users %}
+                    {% for u in all_users %}
+                    <tr class="group hover:bg-neutral-800/50 transition-all">
+                        <td class="px-8 py-6 border-b border-neutral-800 flex items-center gap-4">
+                            <div
+                                class="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center font-bold text-orange-500 border border-orange-500/30 group-hover:scale-110 transition-all">
+                                {{ u.username[0].upper() }}
+                            </div>
+                            <span class="font-bold text-white">{{ u.username }}</span>
+                        </td>
+                        <td class="px-8 py-6 border-b border-neutral-800">
+                            {% if u.is_admin %}
+                            <span
+                                class="px-2 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase rounded-lg border border-amber-500/20">Admin</span>
+                            {% else %}
+                            <span
+                                class="px-2 py-1 bg-neutral-800 text-neutral-500 text-[10px] font-black uppercase rounded-lg">User</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-6 border-b border-neutral-800">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-1.5 h-1.5 rounded-full {{ 'bg-sage-500 shadow-md shadow-sage-500/50' if u.is_active else 'bg-rose-500' }}">
+                                </div>
+                                <span class="text-xs font-medium text-neutral-400">{{ 'Actif' if u.is_active else
+                                    'Inactif' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 border-b border-neutral-800 text-right">
+                            <div
+                                class="flex items-center justify-end gap-2 opacity-30 group-hover:opacity-100 transition-all">
+                                <a href="{{ url_for('admin.edit_user', user_id=u.id) }}"
+                                    class="w-8 h-8 bg-neutral-900 border border-neutral-800 rounded-lg flex items-center justify-center hover:text-orange-400 hover:border-orange-400/30 transition-all">
+                                    <i class="fas fa-user-edit text-[10px]"></i>
+                                </a>
+                                {% if u.id != current_user.id %}
+                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=u.id) }}"
+                                    onsubmit="return confirm('Supprimer ce compte ? Cette action est irréversible.')"
+                                    class="inline">
+                                    <button type="submit"
+                                        class="w-8 h-8 bg-neutral-900 border border-neutral-800 rounded-lg flex items-center justify-center hover:text-rose-500 hover:border-rose-500/30 transition-all">
+                                        <i class="fas fa-trash-alt text-[10px]"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -1,34 +1,39 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block description %}Système d'information moderne pour établissement scolaire - Gestion des absences, menu cantine, météo et transports{% endblock %}">
+    <meta name="description"
+        content="{% block description %}Système d'information moderne pour établissement scolaire - Gestion des absences, menu cantine, météo et transports{% endblock %}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    
+
     <!-- SEO et métadonnées améliorées -->
-    <meta name="keywords" content="éducation, école, lycée, gestion scolaire, absences professeurs, menu cantine, transport scolaire, météo">
+    <meta name="keywords"
+        content="éducation, école, lycée, gestion scolaire, absences professeurs, menu cantine, transport scolaire, météo">
     <meta name="author" content="EducInfo Team">
     <meta name="robots" content="index, follow">
     <meta name="language" content="fr">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request.url }}">
     <meta property="og:title" content="{% block og_title %}{{ site_config.site_name }}{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Plateforme d'information scolaire moderne et intuitive{% endblock %}">
+    <meta property="og:description"
+        content="{% block og_description %}Plateforme d'information scolaire moderne et intuitive{% endblock %}">
     <meta property="og:image" content="{{ url_for('static', filename='img/og-image.png', _external=True) }}">
     <meta property="og:locale" content="fr_FR">
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ request.url }}">
     <meta property="twitter:title" content="{% block twitter_title %}{{ site_config.site_name }}{% endblock %}">
-    <meta property="twitter:description" content="{% block twitter_description %}Plateforme d'information scolaire moderne{% endblock %}">
+    <meta property="twitter:description"
+        content="{% block twitter_description %}Plateforme d'information scolaire moderne{% endblock %}">
     <meta property="twitter:image" content="{{ url_for('static', filename='img/og-image.png', _external=True) }}">
-    
+
     <title>{% block title %}{{ site_config.site_name }}{% endblock %}</title>
-    
+
     <!-- Favicon amélioré avec support multi-format -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
@@ -36,7 +41,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
     <link rel="mask-icon" href="{{ url_for('static', filename='img/safari-pinned-tab.svg') }}" color="#4f46e5">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#4f46e5">
@@ -45,21 +50,25 @@
     <meta name="apple-mobile-web-app-title" content="{{ site_config.site_name }}">
     <meta name="msapplication-TileColor" content="#4f46e5">
     <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
-    
+
     <!-- Preload et optimisations de performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-    
+    <link rel="preload"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        as="style">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
     <!-- Preload critical resources -->
     <link rel="preload" href="{{ url_for('static', filename='css/style.css') }}" as="style">
     <link rel="preload" href="{{ url_for('static', filename='css/darkmode.css') }}" as="style">
-    
+
     <!-- DNS Prefetch pour les domaines externes -->
     <link rel="dns-prefetch" href="//api.openweathermap.org">
     <link rel="dns-prefetch" href="//api.cts-strasbourg.eu">
-    
+
     <!-- Tailwind CSS avec configuration personnalisée optimisée -->
     <script>
         // Configuration Tailwind plus propre
@@ -105,46 +114,54 @@
     <script>
         tailwind.config = window.tailwindConfig;
     </script>
-    
+
     <!-- Styles personnalisés -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/darkmode.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <style>
+        /* Correction Styles TV */
+        .weather-widget {
+            min-width: 350px !important;
+        }
+    </style>
+
     <!-- CSS spécifique à la page -->
     {% block extra_css %}{% endblock %}
-    
+
     <!-- Styles critiques inline pour éviter FOUC -->
     <style>
         /* Amélioration de la lisibilité et de l'accessibilité */
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             box-sizing: border-box;
         }
-        
+
         /* Gestion du focus pour l'accessibilité */
         *:focus {
             outline: 2px solid #4f46e5;
             outline-offset: 2px;
         }
-        
+
         *:focus:not(:focus-visible) {
             outline: none;
         }
         
         /* Variables CSS */
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #3b82f6;
-            --success-color: #059669;
-            --warning-color: #d97706;
-            --error-color: #dc2626;
-            --info-color: #2563eb;
-
+            --primary-color: #4f46e5;
+            --secondary-color: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            
             --border-radius-sm: 0.375rem;
             --border-radius: 0.5rem;
             --border-radius-lg: 0.75rem;
             --border-radius-xl: 1rem;
+
 
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
@@ -154,11 +171,11 @@
             --transition-normal: 250ms ease-in-out;
             --transition-slow: 400ms ease-in-out;
         }
-        
+
         html {
             height: 100%;
         }
-        
+
         body {
             font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             background: #f1f5f9;
@@ -186,7 +203,7 @@
             z-index: 50;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
         }
-        
+
         .status-content {
             display: grid;
             grid-template-columns: 1fr 2fr 1fr;
@@ -208,10 +225,11 @@
             transition: background 0.2s ease;
         }
 
+
         .school-logo:hover {
             background: rgba(255, 255, 255, 0.12);
         }
-        
+
         .logo-icon {
             display: flex;
             align-items: center;
@@ -221,7 +239,7 @@
             background: rgba(37, 99, 235, 0.8);
             border-radius: 12px;
         }
-        
+
         .logo-text {
             font-size: 1.125rem;
             font-weight: 700;
@@ -250,9 +268,11 @@
             transition: background 0.2s ease;
         }
 
+
         .time-widget:hover {
             background: rgba(255, 255, 255, 0.12);
         }
+
 
         .time-display {
             font-size: 2.5rem;
@@ -262,7 +282,7 @@
             line-height: 1;
             margin-bottom: 0.25rem;
         }
-        
+
         .date-display {
             font-size: 0.875rem;
             color: rgba(255, 255, 255, 0.7);
@@ -274,35 +294,47 @@
         .weather-widget {
             display: flex;
             align-items: center;
-            padding: 1rem 1.5rem;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: background 0.2s ease;
-            min-width: 200px;
+            padding: 1rem 2rem;
+            /* Increased padding to match time-widget */
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+            min-width: 280px;
+            height: auto;
+            margin: 0 1.5rem;
+            min-height: 105px;
+            /* Ensure minimum height alignment */
         }
 
         .weather-widget:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
         }
-        
+
         .weather-display {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
             width: 100%;
         }
-        
+
         .weather-icon {
-            font-size: 2.5rem; /* Doublé */
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            font-size: 3rem;
+            /* Adjusted for balance */
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
             line-height: 1;
+            animation: float 6s ease-in-out infinite;
         }
-        
+
         .weather-info {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        
+
         .weather-temp {
             font-size: 1.75rem;
             font-weight: 800;
@@ -311,49 +343,58 @@
             line-height: 1;
             margin-bottom: 0.25rem;
         }
-        
+
+
+
+        }
+
         .weather-desc {
-            font-size: 0.9rem; /* Augmenté */
-            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
             text-transform: capitalize;
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
-        
-        .weather-details {
-            display: flex;
-            gap: 1rem;
-            margin-top: 0.5rem;
+
+        .weather-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.25rem 1rem;
+            margin-left: 1.5rem;
+            padding-left: 1.5rem;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: 'JetBrains Mono', monospace;
         }
-        
-        .weather-detail {
+
+        .weather-mini-item {
             display: flex;
             flex-direction: column;
-            align-items: center;
         }
-        
-        .weather-detail-label {
-            font-size: 0.7rem;
+
+        .mini-label {
+            font-size: 0.65rem;
             color: rgba(255, 255, 255, 0.6);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            line-height: 1;
-            margin-bottom: 0.25rem;
         }
-        
-        .weather-detail-value {
+
+        .mini-value {
             font-size: 0.9rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1;
+            font-weight: 700;
+            color: white;
         }
-        
+
+
+
+
+
         .actions-section {
             display: flex;
             align-items: center;
             justify-content: flex-end;
             gap: 0.75rem;
         }
-        
+
         .action-btn {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -370,13 +411,16 @@
             height: 3rem;
         }
 
+
         .action-btn:hover {
             background: rgba(255, 255, 255, 0.16);
         }
 
+
         .action-btn:active {
             background: rgba(255, 255, 255, 0.1);
         }
+
 
         .admin-btn {
             background: rgba(37, 99, 235, 0.7);
@@ -385,7 +429,7 @@
         .admin-btn:hover {
             background: rgba(37, 99, 235, 0.85);
         }
-        
+
         /* Flash messages améliorés */
         .flash-container {
             position: fixed;
@@ -395,14 +439,14 @@
             max-width: 400px;
             width: 100%;
         }
-        
+
         .flash-message {
             border: 1px solid rgba(0, 0, 0, 0.08);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             animation: slide-in 0.25s ease-out;
             margin-bottom: 1rem;
         }
-        
+
         /* Responsive design pour la barre de statut */
         @media (max-width: 1024px) {
             .status-content {
@@ -410,52 +454,60 @@
                 text-align: center;
                 gap: 1.5rem;
             }
-            
+
             .center-section {
                 order: -1;
             }
-            
+
             .actions-section {
                 justify-content: center;
             }
         }
-        
+
         @media (max-width: 768px) {
             .status-content {
                 padding: 0 1rem;
             }
-            
+
             .center-section {
                 flex-direction: column;
                 gap: 1rem;
             }
-            
-            .time-widget, .weather-widget {
+
+            .time-widget,
+            .weather-widget {
                 padding: 0.75rem 1rem;
             }
-            
+
             .time-display {
                 font-size: 2rem;
             }
-            
+
             .weather-temp {
                 font-size: 1.5rem;
             }
-            
+
             .weather-display {
                 flex-direction: column;
                 text-align: center;
                 gap: 0.5rem;
             }
-            
+
             .weather-details {
                 justify-content: center;
             }
         }
         
         @keyframes slideIn {
-            0% { transform: translateX(100%); opacity: 0; }
-            100% { transform: translateX(0); opacity: 1; }
+            0% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         /* Mode sombre spécifique */
@@ -481,9 +533,9 @@
     <main id="main-content" class="relative z-10" role="main">
         <!-- Messages flash améliorés -->
         {% include 'includes/flash_messages.html' %}
-        
+
         <!-- Contenu de la page -->
-        <div class="min-h-screen" style="padding-bottom: 140px;">
+        <div class="min-h-screen" style="padding-bottom: 160px;">
             {% block content %}{% endblock %}
         </div>
     </main>
@@ -494,8 +546,10 @@
             <!-- Section école avec schema.org -->
             <div class="school-logo" itemscope itemtype="https://schema.org/EducationalOrganization">
                 <div class="logo-icon" role="img" aria-label="Logo de l'établissement">
-                    <svg class="w-8 h-8 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                    <svg class="w-8 h-8 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path
+                            d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
                     </svg>
                 </div>
                 <div class="logo-text" itemprop="name">{{ site_config.site_name }}</div>
@@ -513,23 +567,36 @@
                     </div>
                 </div>
 
-                <!-- Widget météo AGRANDI -->
+                <!-- Widget météo ENRICHI -->
                 {% if weather_config and weather_config.show_weather %}
                 <div class="weather-widget" role="region" aria-label="Informations météorologiques">
                     <div id="weather-display" class="weather-display">
-                        <div id="weather-icon" class="weather-icon" aria-hidden="true">🌤️</div>
+                        <div id="weather-icon" class="weather-icon" aria-hidden="true">
+                            {% if weather.icon_emoji %}{{ weather.icon_emoji }}{% else %}🌤️{% endif %}
+                        </div>
                         <div class="weather-info">
-                            <div id="weather-temp" class="weather-temp" aria-label="Température actuelle">--°C</div>
-                            <div id="weather-desc" class="weather-desc">Chargement...</div>
-                            <div class="weather-details">
-                                <div class="weather-detail">
-                                    <div class="weather-detail-label">Ressenti</div>
-                                    <div id="weather-feels" class="weather-detail-value">--°C</div>
-                                </div>
-                                <div class="weather-detail">
-                                    <div class="weather-detail-label">Humidité</div>
-                                    <div id="weather-humidity" class="weather-detail-value">--%</div>
-                                </div>
+                            <div id="weather-temp" class="weather-temp">{{ weather.temperature }}°C</div>
+                            <div id="weather-desc" class="weather-desc">{{ weather.description }}</div>
+                        </div>
+                        <div class="weather-details-grid">
+                            <div class="weather-mini-item">
+                                <span class="mini-label">Ressenti</span>
+                                <span id="weather-feels" class="mini-value">{{ weather.feels_like }}°C</span>
+                            </div>
+                            <div class="weather-mini-item">
+                                <span class="mini-label">Humidité</span>
+                                <span id="weather-humidity" class="mini-value">{{ weather.humidity }}%</span>
+                            </div>
+                            {% if weather.aqi %}
+                            <div class="weather-mini-item">
+                                <span class="mini-label">Air (AQI)</span>
+                                <span id="weather-aqi" class="mini-value" style="color: {{ weather.aqi.color }}">{{
+                                    weather.aqi.label }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="weather-mini-item">
+                                <span class="mini-label">Soleil</span>
+                                <span class="mini-value">↑{{ weather.sunrise }} ↓{{ weather.sunset }}</span>
                             </div>
                         </div>
                     </div>
@@ -540,60 +607,57 @@
             <!-- Section actions avec navigation -->
             <div class="actions-section">
                 <!-- Bouton Actualiser -->
-                <button id="refresh-page" 
-                        class="action-btn" 
-                        title="Actualiser la page pour obtenir les dernières données"
-                        aria-label="Actualiser la page"
-                        aria-pressed="false">
+                <button id="refresh-page" class="action-btn"
+                    title="Actualiser la page pour obtenir les dernières données" aria-label="Actualiser la page"
+                    aria-pressed="false">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                 </button>
 
                 <!-- Bouton Plein écran -->
-                <button id="fullscreen-toggle" 
-                        class="action-btn" 
-                        title="Basculer en mode plein écran"
-                        aria-label="Basculer le mode plein écran"
-                        aria-pressed="false">
+                <button id="fullscreen-toggle" class="action-btn" title="Basculer en mode plein écran"
+                    aria-label="Basculer le mode plein écran" aria-pressed="false">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
                 </button>
 
                 <!-- Bouton thème avec indication de l'état -->
-                <button id="theme-toggle" 
-                        class="action-btn" 
-                        title="Basculer entre thème clair et sombre"
-                        aria-label="Changer de thème"
-                        aria-pressed="false">
-                    <svg id="moon-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                <button id="theme-toggle" class="action-btn" title="Basculer entre thème clair et sombre"
+                    aria-label="Changer de thème" aria-pressed="false">
+                    <svg id="moon-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
-                    <svg id="sun-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    <svg id="sun-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                 </button>
 
                 <!-- Bouton admin (si utilisateur connecté) -->
                 {% if current_user.is_authenticated %}
-                <a href="{{ url_for('admin.dashboard') }}" 
-                   class="action-btn admin-btn" 
-                   title="Accéder au tableau de bord administrateur"
-                   aria-label="Administration">
+                <a href="{{ url_for('admin.dashboard') }}" class="action-btn admin-btn"
+                    title="Accéder au tableau de bord administrateur" aria-label="Administration">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </a>
                 {% else %}
                 <!-- Bouton connexion (si utilisateur non connecté) -->
-                <a href="{{ url_for('auth.login') }}" 
-                   class="action-btn admin-btn" 
-                   title="Se connecter à l'administration"
-                   aria-label="Connexion administration">
+                <a href="{{ url_for('auth.login') }}" class="action-btn admin-btn"
+                    title="Se connecter à l'administration" aria-label="Connexion administration">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
                 </a>
                 {% endif %}
@@ -631,31 +695,31 @@
                     };
                 },
                 formatTime: (date) => {
-                    return date.toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit', 
-                        second: '2-digit' 
+                    return date.toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
                     });
                 },
                 formatDate: (date) => {
-                    return date.toLocaleDateString('fr-FR', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                    return date.toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
                     });
                 }
             }
         };
 
         // Gestion des erreurs globales
-        window.addEventListener('error', function(e) {
+        window.addEventListener('error', function (e) {
             console.warn('Erreur JavaScript:', e.error);
             // Optionnel: envoyer l'erreur au serveur pour monitoring
         });
 
         // Initialisation
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initializeTheme();
             initializeClock();
             initializeWeather();
@@ -668,18 +732,18 @@
         function initializeTheme() {
             const themeToggle = document.getElementById('theme-toggle');
             const html = document.documentElement;
-            
+
             // Appliquer le thème sauvegardé
-            if (window.EducInfo.config.theme === 'dark' || 
+            if (window.EducInfo.config.theme === 'dark' ||
                 (window.EducInfo.config.theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 html.classList.add('dark');
                 themeToggle.setAttribute('aria-pressed', 'true');
             }
-            
+
             // Gestionnaire de clic
-            themeToggle.addEventListener('click', function() {
+            themeToggle.addEventListener('click', function () {
                 const isDark = html.classList.contains('dark');
-                
+
                 if (isDark) {
                     html.classList.remove('dark');
                     localStorage.setItem('theme', 'light');
@@ -689,15 +753,15 @@
                     localStorage.setItem('theme', 'dark');
                     this.setAttribute('aria-pressed', 'true');
                 }
-                
+
                 // Annoncer le changement aux lecteurs d'écran
-                this.setAttribute('aria-label', 
+                this.setAttribute('aria-label',
                     isDark ? 'Thème clair activé' : 'Thème sombre activé'
                 );
             });
-            
+
             // Écouter les changements de préférence système
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
                 if (localStorage.getItem('theme') === 'auto') {
                     if (e.matches) {
                         html.classList.add('dark');
@@ -711,12 +775,12 @@
         // Gestion du bouton actualiser
         function initializeRefreshButton() {
             const refreshButton = document.getElementById('refresh-page');
-            
-            refreshButton.addEventListener('click', function() {
+
+            refreshButton.addEventListener('click', function () {
                 // Animation de rotation pendant le chargement
                 this.style.transform = 'rotate(360deg)';
                 this.style.transition = 'transform 0.5s ease-in-out';
-                
+
                 // Actualiser la page après l'animation
                 setTimeout(() => {
                     window.location.reload();
@@ -731,7 +795,7 @@
                     const now = new Date();
                     const timeElement = document.getElementById('current-time');
                     const dateElement = document.getElementById('current-date');
-                    
+
                     if (timeElement) {
                         timeElement.textContent = window.EducInfo.utils.formatTime(now);
                     }
@@ -742,73 +806,80 @@
                     console.warn('Erreur mise à jour horloge:', error);
                 }
             }
-            
+
             updateClock();
             setInterval(updateClock, window.EducInfo.config.updateIntervals.clock);
         }
 
         // Gestion météo améliorée - CORRIGÉE
         function initializeWeather() {
-            const weatherEnabled = {% if weather_config and weather_config.show_weather %}true{% else %}false{% endif %};
-            
-            if (weatherEnabled) {
-                function updateWeather() {
-                    fetch(window.EducInfo.config.api.weather)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) {
-                                console.warn('Erreur météo:', data.error);
-                                return;
-                            }
-                            
-                            // Vérifier l'existence des éléments avant de les utiliser
-                            const elements = {
-                                icon: document.getElementById('weather-icon'),
-                                temp: document.getElementById('weather-temp'),
-                                desc: document.getElementById('weather-desc'),
-                                feels: document.getElementById('weather-feels'),
-                                humidity: document.getElementById('weather-humidity')
-                            };
-                            
-                            // Mettre à jour seulement les éléments qui existent
-                            if (elements.icon && data.emoji) {
-                                elements.icon.textContent = data.emoji;
-                            }
-                            if (elements.temp && data.temperature) {
-                                elements.temp.textContent = `${data.temperature}°C`;
-                            }
-                            if (elements.desc && data.description) {
-                                elements.desc.textContent = data.description;
-                            }
-                            if (elements.feels && data.feels_like) {
-                                elements.feels.textContent = `${data.feels_like}°C`;
-                            }
-                            if (elements.humidity && data.humidity) {
-                                elements.humidity.textContent = `${data.humidity}%`;
-                            }
-                        })
-                        .catch(error => {
-                            console.warn('Erreur récupération météo:', error);
-                            // Afficher des valeurs par défaut en cas d'erreur
-                            const tempElement = document.getElementById('weather-temp');
-                            const descElement = document.getElementById('weather-desc');
-                            if (tempElement) tempElement.textContent = '--°C';
-                            if (descElement) descElement.textContent = 'Non disponible';
-                        });
-                }
-                
-                // Première mise à jour immédiate
-                updateWeather();
-                // Mise à jour périodique
-                setInterval(updateWeather, window.EducInfo.config.updateIntervals.weather);
+            const weatherEnabled = {% if weather_config and weather_config.show_weather %} true{% else %} false{% endif %};
+
+        if (weatherEnabled) {
+            function updateWeather() {
+                fetch(window.EducInfo.config.api.weather)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.warn('Erreur météo:', data.error);
+                            return;
+                        }
+
+                        // Vérifier l'existence des éléments avant de les utiliser
+                        const elements = {
+                            icon: document.getElementById('weather-icon'),
+                            temp: document.getElementById('weather-temp'),
+                            desc: document.getElementById('weather-desc'),
+                            feels: document.getElementById('weather-feels'),
+                            humidity: document.getElementById('weather-humidity')
+                        };
+
+                        // Mettre à jour seulement les éléments qui existent
+                        if (elements.icon && data.emoji) {
+                            elements.icon.textContent = data.emoji;
+                        }
+                        if (elements.temp && data.temperature) {
+                            elements.temp.textContent = `${data.temperature}°C`;
+                        }
+                        if (elements.desc && data.description) {
+                            elements.desc.textContent = data.description;
+                        }
+                        if (elements.feels && data.feels_like) {
+                            elements.feels.textContent = `${data.feels_like}°C`;
+                        }
+                        if (elements.humidity && data.humidity) {
+                            elements.humidity.textContent = `${data.humidity}%`;
+                        }
+
+                        // Nouvelles métriques
+                        const aqiElement = document.getElementById('weather-aqi');
+                        if (aqiElement && data.aqi) {
+                            aqiElement.textContent = data.aqi.label;
+                            aqiElement.style.color = data.aqi.color;
+                        }
+                    })
+                    .catch(error => {
+                        console.warn('Erreur récupération météo:', error);
+                        // Afficher des valeurs par défaut en cas d'erreur
+                        const tempElement = document.getElementById('weather-temp');
+                        const descElement = document.getElementById('weather-desc');
+                        if (tempElement) tempElement.textContent = '--°C';
+                        if (descElement) descElement.textContent = 'Non disponible';
+                    });
             }
+
+            // Première mise à jour immédiate
+            updateWeather();
+            // Mise à jour périodique
+            setInterval(updateWeather, window.EducInfo.config.updateIntervals.weather);
+        }
         }
 
         // Gestion plein écran
         function initializeFullscreen() {
             const fullscreenToggle = document.getElementById('fullscreen-toggle');
-            
-            fullscreenToggle.addEventListener('click', function() {
+
+            fullscreenToggle.addEventListener('click', function () {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().then(() => {
                         this.setAttribute('aria-pressed', 'true');
@@ -823,9 +894,9 @@
                     });
                 }
             });
-            
+
             // Écouter les changements de plein écran
-            document.addEventListener('fullscreenchange', function() {
+            document.addEventListener('fullscreenchange', function () {
                 const isFullscreen = !!document.fullscreenElement;
                 fullscreenToggle.setAttribute('aria-pressed', isFullscreen.toString());
             });
@@ -847,7 +918,7 @@
         }
 
         // Support du raccourci F11 pour plein écran
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'F11') {
                 e.preventDefault();
                 document.getElementById('fullscreen-toggle').click();
@@ -857,23 +928,36 @@
 
     <!-- JavaScript spécifique à la page -->
     {% block extra_js %}{% endblock %}
-    
+
     <!-- CSS pour les animations supplémentaires -->
     <style>
         @keyframes shimmer {
-            0% { transform: translateX(-100%) skewX(-12deg); }
-            100% { transform: translateX(200%) skewX(-12deg); }
+            0% {
+                transform: translateX(-100%) skewX(-12deg);
+            }
+
+            100% {
+                transform: translateX(200%) skewX(-12deg);
+            }
         }
-        
+
         @keyframes slideOut {
-            0% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(100%); opacity: 0; }
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
         }
-        
+
         .animate-shimmer {
             animation: shimmer 2s infinite;
         }
     </style>
     {% endblock %}
 </body>
+
 </html>
