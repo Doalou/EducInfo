@@ -60,7 +60,7 @@ docker run -d \
   -v $(pwd)/instance:/app/instance \
   -v $(pwd)/logs:/app/logs \
   -e ADMIN_USERNAME=admin \
-  -e ADMIN_PASSWORD=admin123 \
+  -e ADMIN_PASSWORD=your-secure-password \
   --env-file .env \
   educinfo
 ```
@@ -82,8 +82,8 @@ make docker.test
 | `FLASK_APP` | Application Flask | `run.py` |
 | `FLASK_ENV` | Environnement | `production` |
 | `ADMIN_USERNAME` | Nom admin initial | `admin` |
-| `ADMIN_PASSWORD` | Mot de passe admin | `admin123` |
-| `SECRET_KEY` | Clé secrète Flask | `dev-secret-key...` |
+| `ADMIN_PASSWORD` | Mot de passe admin | (auto-généré) |
+| `SECRET_KEY` | Clé secrète Flask | (auto-généré) |
 | `WEATHER_API_KEY` | Clé OpenWeather | (vide) |
 | `WEATHER_CITY` | Ville météo | `Strasbourg` |
 | `CTS_API_TOKEN` | Token CTS | (vide) |

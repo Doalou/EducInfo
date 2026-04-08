@@ -1,6 +1,6 @@
 # Scripts EducInfo
 
-Ce dossier contient les scripts utilitaires pour EducInfo v1.2.0.
+Ce dossier contient les scripts utilitaires pour EducInfo v2.0.0.
 
 ## 📋 Scripts disponibles
 

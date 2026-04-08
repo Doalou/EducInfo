@@ -7,7 +7,7 @@ services:
     environment:
       - HOSTNAME=educinfo-instance-1
       - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_URL=postgresql://educinfo:educinfo_password@db:5432/educinfo
+      - POSTGRES_URL=postgresql://educinfo:${POSTGRES_PASSWORD:-changeme}@db:5432/educinfo
       - METRICS_INSTANCE_TTL=300
       - METRICS_UPDATE_INTERVAL=60
       - FLASK_ENV=production
@@ -27,7 +27,7 @@ services:
     environment:
       - HOSTNAME=educinfo-instance-2
       - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_URL=postgresql://educinfo:educinfo_password@db:5432/educinfo
+      - POSTGRES_URL=postgresql://educinfo:${POSTGRES_PASSWORD:-changeme}@db:5432/educinfo
       - METRICS_INSTANCE_TTL=300
       - METRICS_UPDATE_INTERVAL=60
       - FLASK_ENV=production
@@ -47,7 +47,7 @@ services:
     environment:
       - HOSTNAME=educinfo-instance-3
       - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_URL=postgresql://educinfo:educinfo_password@db:5432/educinfo
+      - POSTGRES_URL=postgresql://educinfo:${POSTGRES_PASSWORD:-changeme}@db:5432/educinfo
       - METRICS_INSTANCE_TTL=300
       - METRICS_UPDATE_INTERVAL=60
       - FLASK_ENV=production
@@ -90,12 +90,12 @@ services:
     volumes:
       - redis_data:/data
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    command: redis-server /usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-changeme}
     restart: unless-stopped
     networks:
       - educinfo-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -106,7 +106,7 @@ services:
     environment:
       POSTGRES_DB: educinfo
       POSTGRES_USER: educinfo
-      POSTGRES_PASSWORD: educinfo_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - db_data:/var/lib/postgresql/data

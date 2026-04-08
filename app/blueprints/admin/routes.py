@@ -2,7 +2,7 @@
 Routes pour le blueprint d'administration.
 Ce module définit les routes et la logique d'administration du site.
 """
-from flask import render_template, redirect, url_for, flash, request, current_app
+from flask import render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta, date
 from sqlalchemy import text
@@ -24,7 +24,7 @@ from app.models.menu import MenuItem
 from app.models.config import WidgetConfig, SiteConfig, WeatherConfig
 from app.models.user import User
 from app.extensions import db, logger, cache
-from app.services import transport_service, menu_service
+from app.services import transport_service, menu_service, weather_service
 
 # Constantes CTS pour l'admin
 CTS_ADMIN_PREVIEW_INTERVAL = "PT30M"
@@ -685,9 +685,9 @@ def admin_metrics():
                 memory_usage = memory.percent
                 disk = psutil.disk_usage('/')
                 disk_usage = disk.percent
-            except:
+            except Exception:
                 pass
-        
+
         # === Base de données (compteurs réels) ===
         db_metrics = {
             'users': 0,
@@ -1161,12 +1161,13 @@ def admin_emergency_reset_password():
         return redirect(url_for('admin.admin_emergency_reset'))
 
     try:
+        import secrets as _secrets
         admin_user = User.query.filter(User.is_admin == True).first()
-        new_password = "admin123" 
+        new_password = _secrets.token_urlsafe(12)
 
         if admin_user:
             admin_user.set_password(new_password)
-            logger.info(f"Mot de passe de l'admin {admin_user.username} réinitialisé via urgence avec code.")
+            logger.info(f"Mot de passe de l'admin {admin_user.username} réinitialisé via urgence. Nouveau mot de passe : {new_password}")
         else:
             flash("Aucun utilisateur admin trouvé. Aucune action effectuée.", 'warning')
             db.session.rollback() 
@@ -1378,7 +1379,7 @@ def system_status():
         import sys
         import platform
         flash(f"ℹ️ Système : Python {sys.version.split()[0]} sur {platform.system()} {platform.release()}", "info")
-        flash(f"ℹ️ Application : EducInfo v{current_app.config.get('APP_VERSION', '1.2.0')}", "info")
+        flash(f"ℹ️ Application : EducInfo v{current_app.config.get('APP_VERSION', '2.0.0')}", "info")
         
         logger.info(f"Diagnostic système effectué par {current_user.username}")
         
@@ -1386,4 +1387,76 @@ def system_status():
         logger.error(f"Erreur lors du diagnostic système: {e}")
         flash("Erreur lors du diagnostic système", "danger")
     
-    return redirect(url_for('admin.dashboard') + '#settings') 
+    return redirect(url_for('admin.dashboard') + '#settings')
+
+
+@bp.route('/debug/weather')
+@login_required
+def debug_weather():
+    """Route de diagnostic pour la météo (protégée par authentification)."""
+    from app.models.config import WeatherConfig
+    try:
+        weather_config = WeatherConfig.get_config()
+        weather_data = weather_service.get_weather_data()
+
+        debug_info = {
+            'weather_config': {
+                'show_weather': weather_config.show_weather if weather_config else None,
+                'city': weather_config.city if weather_config else None,
+                'has_api_key': bool(weather_config.api_key if weather_config else False),
+                'api_key_length': len(weather_config.api_key) if weather_config and weather_config.api_key else 0
+            },
+            'environment_config': {
+                'WEATHER_API_KEY': bool(current_app.config.get('WEATHER_API_KEY')),
+                'WEATHER_CITY': current_app.config.get('WEATHER_CITY', 'Non défini')
+            },
+            'weather_data': weather_data,
+            'cache_status': 'Actif' if hasattr(current_app, 'cache') else 'Inactif'
+        }
+
+        return jsonify(debug_info)
+    except Exception as e:
+        logger.error(f'Erreur debug_weather: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/debug/transport')
+@login_required
+def debug_transport():
+    """Route de diagnostic pour le transport (protégée par authentification)."""
+    try:
+        widget_config = WidgetConfig.query.first()
+        config_data = {
+            'show_transports': widget_config.show_transports if widget_config else False,
+            'cts_stop_code': widget_config.cts_stop_code if widget_config else None,
+            'cts_vehicle_mode': widget_config.cts_vehicle_mode if widget_config else None,
+            'has_api_token': bool(widget_config.cts_api_token if widget_config else False)
+        }
+
+        environment_data = {
+            'CTS_API_TOKEN': bool(current_app.config.get('CTS_API_TOKEN')),
+            'CTS_BASE_URL': current_app.config.get('CTS_BASE_URL', 'Non défini')
+        }
+
+        transport_data = {}
+        if widget_config and widget_config.has_valid_transport_config():
+            try:
+                transport_data = transport_service.get_stop_arrivals(
+                    stop_code=widget_config.cts_stop_code,
+                    vehicle_mode=widget_config.cts_vehicle_mode,
+                    api_token=widget_config.cts_api_token or current_app.config.get('CTS_API_TOKEN')
+                )
+            except Exception as e:
+                transport_data = {'error': str(e)}
+
+        debug_info = {
+            'widget_config': config_data,
+            'environment_config': environment_data,
+            'transport_data': transport_data,
+            'cache_status': 'Actif' if hasattr(current_app, 'cache') else 'Inactif'
+        }
+
+        return jsonify(debug_info)
+    except Exception as e:
+        logger.error(f'Erreur debug_transport: {e}')
+        return jsonify({'error': str(e)}), 500

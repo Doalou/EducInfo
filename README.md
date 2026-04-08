@@ -1,4 +1,4 @@
-# 📺 EducInfo v1.2.0
+# 📺 EducInfo v2.0.0
 
 > **Système d'affichage scolaire intelligent optimisé pour écrans TV**
 
@@ -110,7 +110,7 @@ EducInfo est une application web Flask spécialement conçue pour l'affichage su
 - **⚡ Système de cache optimisé** pour performances fluides
 - **📊 Monitoring et métriques système** pour supervision
 
-## ✨ Nouveautés de la version 1.2.0
+## ✨ Nouveautés de la version 2.0.0
 
 ### 🔗 Load Balancing et Haute Disponibilité
 - **Cluster multi-instances** : Déploiement avec 2-3 instances pour la haute disponibilité
@@ -419,7 +419,7 @@ docker-compose logs -f
 
 ```bash
 # Build image de production
-docker build -f docker/Dockerfile -t educinfo:1.2.0 --target production .
+docker build -f docker/Dockerfile -t educinfo:2.0.0 --target production .
 
 # Build image de développement
 docker build -f docker/Dockerfile -t educinfo:dev --target development .
@@ -431,7 +431,7 @@ docker run -d \
   -v educinfo_data:/app/instance \
   -v educinfo_logs:/app/logs \
   --env-file .env \
-  educinfo:1.2.0
+  educinfo:2.0.0
 ```
 
 ## 🔗 Déploiement en Cluster Load Balancé
@@ -618,7 +618,7 @@ flask add-demo-data
 ```json
 {
   "status": "healthy",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "timestamp": 1640995200,
   "database": "ok",
   "cache": "ok",
@@ -933,7 +933,7 @@ Cette architecture **double** permet une **évolutivité** maximale selon les be
 
 ## Roadmap
 
-### ✅ Version 1.2.0 (Juin 2025) - En cours
+### ✅ Version 2.0.0 (Juin 2025) - En cours
 - [x] Système de métriques système complet avec psutil
 - [x] Interface d'administration redesignée pour la gestion
 - [x] Dashboard métriques avec visualisations
@@ -984,5 +984,5 @@ Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE) po
 
 ---
 
-**EducInfo v1.2.0** - Développé avec ❤️ pour l'éducation
+**EducInfo v2.0.0** - Développé avec ❤️ pour l'éducation
 *Système d'affichage spécialisé pour écrans de télévision dans les établissements scolaires !* 📺🏫

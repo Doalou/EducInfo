@@ -102,10 +102,10 @@ init_database() {
     mkdir -p instance
     
     # Initialiser la base avec les données de développement
+    # Le mot de passe sera généré automatiquement et affiché
     python run.py init-db \
-        --admin-username "admin" \
-        --admin-password "admin123"
-    
+        --admin-username "admin"
+
     log "Base de données initialisée ✓"
 }
 

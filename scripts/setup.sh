@@ -56,7 +56,7 @@ show_banner() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                                                              ║"
-    echo "║                    🎓 EducInfo v1.2.0                       ║"
+    echo "║                    🎓 EducInfo v2.0.0                       ║"
     echo "║              Script d'Initialisation Complète               ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
@@ -191,14 +191,12 @@ initialize_database() {
     # Activer l'environnement virtuel
     source venv/bin/activate 2>/dev/null || true
     
-    # Initialiser la base de données
+    # Initialiser la base de données (le mot de passe sera généré automatiquement si non fourni)
     python run.py init-db \
-        --admin-username "admin" \
-        --admin-password "admin123"
-    
+        --admin-username "admin"
+
     log "Base de données initialisée"
-    warn "Utilisateur admin créé : admin / admin123"
-    warn "Changez le mot de passe en production !"
+    warn "Le mot de passe admin a été affiché ci-dessus. Conservez-le !"
 }
 
 # Configuration interactive des APIs
@@ -294,7 +292,7 @@ show_summary() {
     echo ""
     echo -e "${BLUE}🌐 Accès :${NC}"
     echo "   http://localhost:5000            # Application web"
-    echo "   Utilisateur: admin / admin123    # Compte administrateur"
+    echo "   Utilisateur: admin               # Mot de passe affiché lors de l'init"
     echo ""
     echo -e "${YELLOW}⚠️  N'oubliez pas :${NC}"
     echo "   • Modifier le mot de passe admin en production"

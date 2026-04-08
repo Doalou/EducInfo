@@ -30,12 +30,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Upgrade pip dans l'environnement virtuel
 RUN pip install --upgrade pip setuptools wheel
 
-# Copie et installation des dépendances Python
+# Copie et installation des dépendances Python (gunicorn inclus)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Installation de gunicorn avec les bonnes versions
-RUN pip install --no-cache-dir gunicorn==22.0.0
 
 # ==============================================
 # Stage 2: Production - Image finale optimisée
@@ -43,13 +40,13 @@ RUN pip install --no-cache-dir gunicorn==22.0.0
 FROM python:3.12-slim-bookworm as production
 
 LABEL maintainer="contact@doalo.fr"
-LABEL version="1.2.0"
+LABEL version="2.0.0"
 LABEL description="EducInfo - Plateforme d'Information Scolaire"
 
 # Métadonnées de l'image
 LABEL org.opencontainers.image.title="EducInfo"
 LABEL org.opencontainers.image.description="Plateforme d'information scolaire avec Flask"
-LABEL org.opencontainers.image.version="1.2.0"
+LABEL org.opencontainers.image.version="2.0.0"
 LABEL org.opencontainers.image.vendor="DoaLo"
 LABEL org.opencontainers.image.url="https://github.com/doalo/educinfo"
 LABEL org.opencontainers.image.source="https://github.com/doalo/educinfo"
@@ -63,7 +60,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Installation des dépendances système minimales
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    dos2unix \
     curl \
     ca-certificates \
     dumb-init \
@@ -85,10 +81,8 @@ WORKDIR /app
 # Copie du code source (optimisé avec .dockerignore)
 COPY --chown=educinfo:educinfo . .
 
-# Configuration et permissions des scripts
-COPY --chown=educinfo:educinfo scripts/ /app/scripts/
-COPY --chown=educinfo:educinfo docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN dos2unix /usr/local/bin/entrypoint.sh && \
+# Configuration et permissions des scripts (les fins de ligne LF sont gérées par .gitattributes)
+RUN cp /app/docker/entrypoint.sh /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh && \
     chmod +x /app/scripts/*.sh
 
@@ -107,27 +101,29 @@ USER educinfo
 # Exposition du port
 EXPOSE 5000
 
-# Point de montage pour les volumes
-VOLUME ["/app/instance", "/app/logs"]
+# Les volumes sont gérés par docker-compose, pas dans le Dockerfile
 
 # Entrypoint avec dumb-init pour une gestion propre des signaux
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/bin/entrypoint.sh"]
 
+# Nombre de workers configurable (défaut: auto basé sur CPU)
+ENV GUNICORN_WORKERS=""
+
 # Commande par défaut optimisée pour la production
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5000", \
-     "--workers", "3", \
-     "--worker-class", "sync", \
-     "--worker-connections", "1000", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "100", \
-     "--timeout", "30", \
-     "--keep-alive", "2", \
-     "--log-level", "info", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--capture-output", \
-     "run:app"]
+CMD ["sh", "-c", "gunicorn \
+     --bind 0.0.0.0:5000 \
+     --workers ${GUNICORN_WORKERS:-$(python -c 'import multiprocessing; print(min(multiprocessing.cpu_count() * 2 + 1, 9))')} \
+     --worker-class sync \
+     --worker-connections 1000 \
+     --max-requests 1000 \
+     --max-requests-jitter 100 \
+     --timeout 30 \
+     --keep-alive 2 \
+     --log-level info \
+     --access-logfile - \
+     --error-logfile - \
+     --capture-output \
+     run:app"]
 
 # ==============================================
 # Stage 3: Development - Image de développement
@@ -148,14 +144,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des dépendances de développement
-COPY requirements.txt .
-RUN /opt/venv/bin/pip install --no-cache-dir \
-    pytest>=8.0.0 \
-    pytest-cov>=4.0.0 \
-    pytest-flask>=1.3.0 \
-    black>=24.0.0 \
-    flake8>=7.0.0 \
-    isort>=5.13.0
+COPY requirements-dev.txt .
+RUN /opt/venv/bin/pip install --no-cache-dir -r requirements-dev.txt
 
 # Variables d'environnement pour le développement
 ENV FLASK_ENV=development

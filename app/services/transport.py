@@ -166,7 +166,7 @@ class TransportService:
                 'MinimumStopVisitsPerLine': 1,  # Au moins 1 passage par ligne
                 'PreviewInterval': preview_interval,
                 'VehicleMode': vehicle_mode if vehicle_mode != 'undefined' else None,
-                'RequestorRef': f'EducInfo-{current_app.config.get("APP_VERSION", "1.2.0")}',
+                'RequestorRef': f'EducInfo-{current_app.config.get("APP_VERSION", "2.0.0")}',
                 'RemoveCheckOut': True  # Ne pas retourner les départs "anciens"
             }
             
@@ -175,7 +175,7 @@ class TransportService:
             
             # Headers sans authentification Bearer (HTTP Basic sera utilisé)
             headers = {
-                'User-Agent': f'EducInfo/{current_app.config.get("APP_VERSION", "1.2.0")}',
+                'User-Agent': f'EducInfo/{current_app.config.get("APP_VERSION", "2.0.0")}',
                 'Accept': 'application/json'
             }
             
@@ -248,7 +248,7 @@ class TransportService:
                     error_msg = error_data.get('error', 'Paramètres de requête invalides')
                     logger.error(f"Requête CTS invalide pour l'arrêt {stop_code}: {error_msg}")
                     return self._format_error_response(f"Requête invalide: {error_msg}", "bad_request")
-                except:
+                except Exception:
                     logger.error(f"Paramètres de requête invalides pour l'arrêt {stop_code}")
                     return self._format_error_response("Paramètres de requête invalides", "bad_request")
             elif response.status_code == 404:

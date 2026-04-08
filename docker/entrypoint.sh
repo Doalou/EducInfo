@@ -6,7 +6,7 @@
 #
 # Variables d'environnement supportées:
 #   - ADMIN_USERNAME (défaut: admin)
-#   - ADMIN_PASSWORD (défaut: admin123)  
+#   - ADMIN_PASSWORD (auto-généré si non défini)
 #   - CTS_API_TOKEN (optionnel)
 #   - FLASK_APP (défaut: run.py)
 #   - FLASK_ENV (défaut: production)
@@ -28,9 +28,9 @@ if [ ! -f "$DB_PATH" ]; then
     echo "Base de données non trouvée: $DB_PATH"
     echo "Initialisation de la base de données..."
     
-    # Utiliser les variables d'environnement ou les valeurs par défaut
+    # Utiliser les variables d'environnement (mot de passe auto-généré si non défini)
     ADMIN_USER=${ADMIN_USERNAME:-"admin"}
-    ADMIN_PASS=${ADMIN_PASSWORD:-"admin123"}
+    ADMIN_PASS=${ADMIN_PASSWORD:-$(python -c "import secrets; print(secrets.token_urlsafe(12))")}
     CTS_TOKEN=${CTS_API_TOKEN:-""}
     
     # Construire la commande d'initialisation avec run.py

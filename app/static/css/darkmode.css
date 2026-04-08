@@ -121,8 +121,8 @@ html.dark textarea::placeholder {
 html.dark input:focus,
 html.dark select:focus,
 html.dark textarea:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
 }
 
 /* Checkboxes */
@@ -132,17 +132,17 @@ html.dark input[type="checkbox"] {
 }
 
 html.dark input[type="checkbox"]:checked {
-    background-color: #6366f1 !important;
-    border-color: #4f46e5 !important;
+    background-color: #2563eb !important;
+    border-color: #1d4ed8 !important;
 }
 
 html.dark input[type="checkbox"]:hover:not(:disabled) {
-    border-color: #818cf8 !important;
+    border-color: #60a5fa !important;
 }
 
 html.dark input[type="checkbox"]:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
 }
 
 html.dark label[for] {
@@ -155,7 +155,7 @@ html.dark .shadow,
 html.dark .shadow-md,
 html.dark .shadow-lg,
 html.dark .shadow-xl {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Borders */
@@ -178,13 +178,13 @@ html.dark a:hover:not(.btn) {
 /* Buttons */
 html.dark .btn-primary,
 html.dark button[type="submit"] {
-    background-color: #4f46e5 !important;
+    background-color: #2563eb !important;
     color: white !important;
 }
 
 html.dark .btn-primary:hover,
 html.dark button[type="submit"]:hover {
-    background-color: #4338ca !important;
+    background-color: #1d4ed8 !important;
 }
 
 html.dark .btn-secondary {
@@ -213,29 +213,29 @@ html.dark table tr:nth-child(even) {
 /* Alerts and notifications */
 html.dark .alert-info,
 html.dark .bg-blue-100 {
-    background-color: rgba(37, 99, 235, 0.2) !important;
-    color: #bfdbfe !important;
+    background-color: rgba(37, 99, 235, 0.15) !important;
+    color: #e0f2fe !important;
     border-color: #3b82f6 !important;
 }
 
 html.dark .alert-success,
 html.dark .bg-green-100 {
-    background-color: rgba(5, 150, 105, 0.2) !important;
-    color: #a7f3d0 !important;
+    background-color: rgba(5, 150, 105, 0.15) !important;
+    color: #d1fae5 !important;
     border-color: #10b981 !important;
 }
 
 html.dark .alert-warning,
 html.dark .bg-yellow-100 {
-    background-color: rgba(245, 158, 11, 0.2) !important;
-    color: #fde68a !important;
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fef3c7 !important;
     border-color: #f59e0b !important;
 }
 
 html.dark .alert-danger,
 html.dark .bg-red-100 {
-    background-color: rgba(239, 68, 68, 0.2) !important;
-    color: #fca5a5 !important;
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #fee2e2 !important;
     border-color: #ef4444 !important;
 }
 
@@ -258,7 +258,7 @@ html.dark .hover\:bg-red-100:hover {
 
 /* Active Tab */
 html.dark .tab-button.active {
-    background-color: #4f46e5 !important;
+    background-color: #2563eb !important;
     color: white !important;
 }
 
@@ -287,11 +287,11 @@ html.dark .dark\:shadow-subtle {
 
 /* Checkbox containers */
 html.dark .dark\:bg-indigo-900\/20 {
-    background-color: rgba(79, 70, 229, 0.2) !important;
+    background-color: rgba(37, 99, 235, 0.15) !important;
 }
 
 html.dark .dark\:border-indigo-700 {
-    border-color: #4f46e5 !important;
+    border-color: #2563eb !important;
 }
 
 html.dark .dark\:border-gray-700 {
@@ -300,9 +300,9 @@ html.dark .dark\:border-gray-700 {
 
 /* Support pour les gradients */
 html.dark .dark\:from-indigo-800 {
-    --tw-gradient-from: #3730a3 !important;
+    --tw-gradient-from: #1e40af !important;
 }
 
 html.dark .dark\:to-indigo-900 {
-    --tw-gradient-to: #312e81 !important;
-} 
+    --tw-gradient-to: #1e3a8a !important;
+}

@@ -49,8 +49,8 @@
     <!-- Preload et optimisations de performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- Preload critical resources -->
     <link rel="preload" href="{{ url_for('static', filename='css/style.css') }}" as="style">
@@ -68,8 +68,8 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                        'mono': ['JetBrains Mono', 'Monaco', 'Cascadia Code', 'monospace']
+                        'sans': ['Space Grotesk', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'mono': ['IBM Plex Mono', 'JetBrains Mono', 'Monaco', 'Cascadia Code', 'monospace']
                     },
                     colors: {
                         primary: {
@@ -84,22 +84,10 @@
                         }
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'fade-in': 'fadeIn 0.5s ease-out',
-                        'bounce-gentle': 'bounceGentle 2s ease-in-out infinite',
-                        'pulse-slow': 'pulseSlow 3s ease-in-out infinite'
+                        'slide-in': 'slideIn 0.25s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-out'
                     },
                     keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        },
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.5)' },
-                            '100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.8)' }
-                        },
                         slideIn: {
                             '0%': { transform: 'translateX(100%)' },
                             '100%': { transform: 'translateX(0)' }
@@ -107,14 +95,6 @@
                         fadeIn: {
                             '0%': { opacity: '0' },
                             '100%': { opacity: '1' }
-                        },
-                        bounceGentle: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-5px)' }
-                        },
-                        pulseSlow: {
-                            '0%, 100%': { opacity: '1' },
-                            '50%': { opacity: '0.5' }
                         }
                     }
                 }
@@ -152,27 +132,27 @@
             outline: none;
         }
         
-        /* Variables CSS pour une meilleure cohérence */
+        /* Variables CSS */
         :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #6366f1;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
-            --info-color: #3b82f6;
-            
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --info-color: #2563eb;
+
             --border-radius-sm: 0.375rem;
             --border-radius: 0.5rem;
             --border-radius-lg: 0.75rem;
             --border-radius-xl: 1rem;
-            
+
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-            
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 20px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+
             --transition-fast: 150ms ease-in-out;
-            --transition-normal: 300ms ease-in-out;
-            --transition-slow: 500ms ease-in-out;
+            --transition-normal: 250ms ease-in-out;
+            --transition-slow: 400ms ease-in-out;
         }
         
         html {
@@ -180,38 +160,31 @@
         }
         
         body {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #6b7280 0%, #374151 50%, #111827 100%);
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            background-size: cover;
+            font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f1f5f9;
             min-height: 100vh;
             margin: 0;
             padding: 0;
             line-height: 1.6;
             font-size: 16px;
         }
-        
-        /* Mode sombre avec dégradé plus sombre */
+
+        /* Mode sombre */
         .dark body {
-            background: linear-gradient(135deg, #374151 0%, #1f2937 50%, #0f172a 100%);
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            background-size: cover;
+            background: #0f172a;
         }
         
-        /* Barre de statut principale - AJUSTÉE pour cohérence avec dashboard admin */
+        /* Barre de statut principale */
         .status-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 120px; /* Ajusté pour correspondre au dashboard admin */
-            background: rgba(30, 41, 59, 0.9);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            height: 120px;
+            background: #1e293b;
+            border-top: 1px solid #334155;
             z-index: 50;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
         }
         
         .status-content {
@@ -229,15 +202,14 @@
             align-items: center;
             gap: 1rem;
             padding: 1rem 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: background 0.2s ease;
         }
-        
+
         .school-logo:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
         }
         
         .logo-icon {
@@ -246,7 +218,7 @@
             justify-content: center;
             width: 3rem;
             height: 3rem;
-            background: rgba(99, 102, 241, 0.8);
+            background: rgba(37, 99, 235, 0.8);
             border-radius: 12px;
         }
         
@@ -272,23 +244,21 @@
             align-items: center;
             text-align: center;
             padding: 1rem 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: background 0.2s ease;
         }
-        
+
         .time-widget:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
         }
-        
+
         .time-display {
             font-size: 2.5rem;
-            font-weight: 900;
+            font-weight: 800;
             font-family: 'Courier New', monospace;
             color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             line-height: 1;
             margin-bottom: 0.25rem;
         }
@@ -300,21 +270,20 @@
             text-transform: capitalize;
         }
 
-        /* Widget météo AGRANDI - Cohérence avec dashboard */
+        /* Widget météo */
         .weather-widget {
             display: flex;
             align-items: center;
             padding: 1rem 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: background 0.2s ease;
             min-width: 200px;
         }
-        
+
         .weather-widget:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
         }
         
         .weather-display {
@@ -335,11 +304,10 @@
         }
         
         .weather-temp {
-            font-size: 1.75rem; /* Doublé */
-            font-weight: 900;
+            font-size: 1.75rem;
+            font-weight: 800;
             font-family: 'Courier New', monospace;
             color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             line-height: 1;
             margin-bottom: 0.25rem;
         }
@@ -387,8 +355,8 @@
         }
         
         .action-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.9);
             border-radius: 10px;
             padding: 0.75rem;
@@ -396,28 +364,26 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background 0.2s ease;
             text-decoration: none;
             min-width: 3rem;
             height: 3rem;
         }
-        
+
         .action-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.16);
         }
-        
+
         .action-btn:active {
-            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.1);
         }
-        
+
         .admin-btn {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8));
+            background: rgba(37, 99, 235, 0.7);
         }
-        
+
         .admin-btn:hover {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 1), rgba(139, 92, 246, 1));
+            background: rgba(37, 99, 235, 0.85);
         }
         
         /* Flash messages améliorés */
@@ -431,10 +397,9 @@
         }
         
         .flash-message {
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            animation: slide-in 0.3s ease-out;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: slide-in 0.25s ease-out;
             margin-bottom: 1rem;
         }
         
@@ -488,35 +453,24 @@
             }
         }
         
-        /* Animations améliorées */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
-        
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
-            100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4); }
-        }
-        
         @keyframes slideIn {
             0% { transform: translateX(100%); opacity: 0; }
             100% { transform: translateX(0); opacity: 1; }
         }
-        
+
         /* Mode sombre spécifique */
         .dark .status-bar {
-            background: rgba(15, 23, 42, 0.8);
-            border-color: rgba(255, 255, 255, 0.1);
+            background: #0f172a;
+            border-color: #1e293b;
         }
-        
+
         .dark .action-btn, .dark .time-widget, .dark .weather-widget, .dark .school-logo {
-            background: rgba(15, 23, 42, 0.6);
-            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.08);
         }
-        
+
         .dark .action-btn:hover, .dark .time-widget:hover, .dark .weather-widget:hover {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>

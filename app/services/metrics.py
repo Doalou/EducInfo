@@ -386,7 +386,7 @@ class MetricsAggregator:
                 return f"{hours}h {minutes}m"
             else:
                 return f"{minutes}m"
-        except:
+        except Exception:
             return "0m"
 
 

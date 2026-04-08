@@ -46,7 +46,7 @@ def create_app(config_name=None, test_config=None):
     init_health_check(app)
     init_metrics_heartbeat(app)
     
-    logger.info(f"EducInfo {app.config.get('APP_VERSION', '1.2.0')} initialisé en mode {config_name}")
+    logger.info(f"EducInfo {app.config.get('APP_VERSION', '2.0.0')} initialisé en mode {config_name}")
     
     return app
 
@@ -171,7 +171,7 @@ def register_context_processors(app):
     def app_context():
         return {
             'app_name': app.config.get('APP_NAME', 'EducInfo'),
-            'app_version': app.config.get('APP_VERSION', '1.2.0'),
+            'app_version': app.config.get('APP_VERSION', '2.0.0'),
             'debug_mode': app.debug
         }
     

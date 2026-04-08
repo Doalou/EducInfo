@@ -3,6 +3,7 @@ Commandes CLI pour l'application EducInfo.
 Ce module contient les commandes pour gérer l'application via le terminal.
 """
 import os
+import secrets
 import click
 from datetime import datetime, date
 from flask import current_app
@@ -72,10 +73,16 @@ def init_db(cts_token=None, admin_username=None, admin_password=None):
         password = admin_password
         
         if not password and click:  # Si dans un contexte CLI
-            password = click.prompt('Mot de passe administrateur', hide_input=True, 
-                                   confirmation_prompt=True, default="admin123")
+            generated = secrets.token_urlsafe(12)
+            password = click.prompt('Mot de passe administrateur', hide_input=True,
+                                   confirmation_prompt=True, default=generated)
+            if password == generated:
+                print(f'⚠️  Mot de passe admin généré automatiquement : {generated}')
+                print('   Conservez-le précieusement ou changez-le dans le dashboard admin.')
         elif not password:  # Fallback
-            password = "admin123"
+            password = secrets.token_urlsafe(12)
+            print(f'⚠️  Mot de passe admin généré automatiquement : {password}')
+            print('   Conservez-le précieusement ou changez-le dans le dashboard admin.')
         
         admin = User(username=username, is_admin=True)
         admin.set_password(password)
@@ -136,13 +143,15 @@ def reset_db():
     widget_config.cts_stop_display = "Arrêt Homme de Fer"
     db.session.add(widget_config)
     
-    # Créer un utilisateur admin
+    # Créer un utilisateur admin avec mot de passe aléatoire
+    generated_password = secrets.token_urlsafe(12)
     user = User()
     user.username = "admin"
     user.is_admin = True
-    user.set_password("admin123")
+    user.set_password(generated_password)
     db.session.add(user)
-    print("Utilisateur admin créé: admin / admin123")
+    print(f"Utilisateur admin créé: admin / {generated_password}")
+    print("⚠️  Conservez ce mot de passe ou changez-le dans le dashboard admin.")
     
     # Ajouter des données de démonstration pour les absences
     absence1 = Absence()
@@ -461,7 +470,7 @@ def register_commands(app):
             click.echo(f"\n🔗 URLs utiles:")
             click.echo(f"  - Configuration: /admin (dashboard)")
             click.echo(f"  - API météo: /get_weather")
-            click.echo(f"  - Debug météo: /debug/weather")
+            click.echo(f"  - Debug météo: /admin/debug/weather (authentification requise)")
     
     @app.cli.command()
     def show_config():

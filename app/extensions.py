@@ -1,4 +1,5 @@
 """Extensions Flask optimisées pour EducInfo."""
+from sqlalchemy import text
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
@@ -203,12 +204,12 @@ def init_health_check(app):
         
         health_data = {
             'status': 'healthy',
-            'version': app.config.get('APP_VERSION', '1.2.0'),
+            'version': app.config.get('APP_VERSION', '2.0.0'),
             'timestamp': int(time.time())
         }
         
         try:
-            db.session.execute('SELECT 1')
+            db.session.execute(text('SELECT 1'))
             health_data['database'] = 'ok'
         except Exception:
             health_data['database'] = 'error'

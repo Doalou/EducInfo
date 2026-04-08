@@ -1,910 +1,260 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ site_config.site_name }} - Tableau d'Information{% endblock %}
-{% block description %}Informations en temps réel pour l'établissement scolaire - Absences, Menu, Transports, Événements{% endblock %}
+{% block title %}{{ site_config.site_name }} - Tableau d'information{% endblock %}
+{% block description %}Affichage scolaire en direct: absences, restauration, transports et vie de l'établissement.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tv-mode.css') }}">
-<style>
-    /* Interface TV optimisée pour établissement scolaire - VERSION STATIQUE */
-    body.tv-mode {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 30%, #f8fafc 70%, #e2e8f0 100%);
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: #1e293b;
-        font-size: 16px;
-        line-height: 1.5;
-    }
-
-    html.dark body.tv-mode {
-        background: linear-gradient(135deg, #0c1726 0%, #1e293b 30%, #0f172a 70%, #1e293b 100%);
-        color: #f1f5f9;
-    }
-
-    /* Conteneur principal en grille - Disposition optimisée */
-    .school-dashboard {
-        display: grid;
-        grid-template-areas: 
-            "absences absences transports"
-            "menu events transports";
-        grid-template-columns: 1fr 1fr 0.8fr;
-        grid-template-rows: 1fr 1fr;
-        gap: 2rem;
-        padding: 1.5rem;
-        padding-bottom: 5rem;
-        height: calc(100vh - 5rem);
-        max-width: 100vw;
-    }
-
-    /* Zones spécifiques */
-    .zone-absences { grid-area: absences; }
-    .zone-menu { grid-area: menu; }
-    .zone-transports { grid-area: transports; }
-    .zone-events { grid-area: events; }
-
-    /* Cartes d'information - Design amélioré */
-    .info-card {
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(15px);
-        border-radius: 1.5rem;
-        box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.08), 
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-    }
-
-    .info-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, 
-            #f59e0b 0%, 
-            #ef4444 25%, 
-            #8b5cf6 50%, 
-            #06b6d4 75%, 
-            #22c55e 100%);
-        z-index: 1;
-    }
-
-    html.dark .info-card {
-        background: rgba(30, 41, 59, 0.98);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.4),
-            0 2px 8px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    }
-
-    .info-card:hover {
-        transform: translateY(-4px) scale(1.01);
-        box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.15),
-            0 8px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    /* En-têtes des cartes avec couleurs statiques */
-    .card-header {
-        color: white;
-        padding: 1.5rem 2rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* En-tête spécifique pour absences - Rouge statique */
-    .zone-absences .card-header {
-        background: linear-gradient(45deg, #dc2626, #ef4444);
-        box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
-    }
-
-    /* En-tête spécifique pour menu - Vert statique */
-    .zone-menu .card-header {
-        background: linear-gradient(45deg, #16a34a, #22c55e);
-        box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
-    }
-
-    /* En-tête spécifique pour transports - Bleu statique */
-    .zone-transports .card-header {
-        background: linear-gradient(45deg, #2563eb, #3b82f6);
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-    }
-
-    /* En-tête spécifique pour événements - Violet statique */
-    .zone-events .card-header {
-        background: linear-gradient(45deg, #7c3aed, #8b5cf6);
-        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-    }
-
-    /* Bordure colorée pour les en-têtes */
-    .card-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.2);
-        z-index: 1;
-    }
-
-    .card-title {
-        font-size: 1.375rem;
-        font-weight: 800;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 2;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        letter-spacing: 0.025em;
-    }
-
-    .card-icon {
-        font-size: 1.75rem;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    }
-
-    /* Corps des cartes */
-    .card-body {
-        padding: 2rem;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
-    }
-
-    html.dark .card-body {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
-    }
-
-    /* Styles pour les absences - Version améliorée */
-    .absences-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 1.25rem;
-        flex: 1;
-    }
-
-    .day-column {
-        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-        border-radius: 1rem;
-        padding: 1.25rem;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        min-height: 160px;
-        border: 2px solid rgba(239, 68, 68, 0.1);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .day-column::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #ef4444, #f59e0b);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .day-column:hover {
-        border-color: #ef4444;
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 12px 30px rgba(239, 68, 68, 0.25);
-    }
-
-    .day-column:hover::before {
-        opacity: 1;
-    }
-
-    html.dark .day-column {
-        background: linear-gradient(135deg, #374151, #4b5563);
-        border-color: rgba(248, 113, 113, 0.2);
-    }
-
-    html.dark .day-column:hover {
-        border-color: #f87171;
-        box-shadow: 0 12px 30px rgba(248, 113, 113, 0.2);
-    }
-
-    .day-name {
-        font-size: 1.125rem;
-        font-weight: 800;
-        color: #dc2626;
-        margin-bottom: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        background: linear-gradient(45deg, #dc2626, #f59e0b);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    html.dark .day-name {
-        background: linear-gradient(45deg, #f87171, #fbbf24);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .absence-list {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .teacher-absent {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15));
-        border: 2px solid rgba(239, 68, 68, 0.4);
-        color: #991b1b;
-        padding: 0.75rem;
-        border-radius: 0.75rem;
-        font-size: 0.875rem;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .teacher-absent::before {
-        content: '⚠️';
-        position: absolute;
-        top: 0.25rem;
-        right: 0.25rem;
-        font-size: 0.75rem;
-        opacity: 0.7;
-    }
-
-    .teacher-absent:hover {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(249, 115, 22, 0.25));
-        transform: scale(1.05);
-        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-    }
-
-    html.dark .teacher-absent {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
-        border-color: rgba(248, 113, 113, 0.5);
-        color: #fca5a5;
-    }
-
-    .no-absence {
-        color: #15803d;
-        font-weight: 700;
-        font-size: 1rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-        gap: 0.75rem;
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(132, 204, 22, 0.1));
-        border-radius: 0.75rem;
-        padding: 1rem;
-        border: 2px solid rgba(34, 197, 94, 0.3);
-    }
-
-    html.dark .no-absence {
-        color: #4ade80;
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(132, 204, 22, 0.15));
-        border-color: rgba(74, 222, 128, 0.4);
-    }
-
-    /* Styles pour le menu avec couleurs plus vives */
-    .menu-categories {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        flex: 1;
-    }
-
-    .menu-category {
-        border-radius: 1rem;
-        padding: 1.5rem;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border: 3px solid transparent;
-    }
-
-    /* Catégories avec des couleurs plus vibrantes */
-    .menu-category:nth-child(1) {
-        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 50%, #a7f3d0 100%);
-        border-image: linear-gradient(45deg, #22c55e, #16a34a) 1;
-    }
-
-    .menu-category:nth-child(2) {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
-        border-image: linear-gradient(45deg, #f59e0b, #d97706) 1;
-    }
-
-    .menu-category:nth-child(3) {
-        background: linear-gradient(135deg, #fef2f2 0%, #fecaca 50%, #fca5a5 100%);
-        border-image: linear-gradient(45deg, #ef4444, #dc2626) 1;
-    }
-
-    .menu-category:nth-child(4) {
-        background: linear-gradient(135deg, #f3e8ff 0%, #ddd6fe 50%, #c4b5fd 100%);
-        border-image: linear-gradient(45deg, #8b5cf6, #7c3aed) 1;
-    }
-
-    /* Mode sombre pour les catégories */
-    html.dark .menu-category:nth-child(1) {
-        background: linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%);
-    }
-
-    html.dark .menu-category:nth-child(2) {
-        background: linear-gradient(135deg, #451a03 0%, #92400e 50%, #b45309 100%);
-    }
-
-    html.dark .menu-category:nth-child(3) {
-        background: linear-gradient(135deg, #450a0a 0%, #991b1b 50%, #b91c1c 100%);
-    }
-
-    html.dark .menu-category:nth-child(4) {
-        background: linear-gradient(135deg, #2e1065 0%, #581c87 50%, #6b21a8 100%);
-    }
-
-    .menu-category:hover {
-        transform: translateY(-6px) scale(1.03);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    }
-
-    .category-name {
-        font-size: 1.125rem;
-        font-weight: 800;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        letter-spacing: 0.5px;
-    }
-
-    /* Couleurs spécifiques pour les noms de catégories */
-    .menu-category:nth-child(1) .category-name { color: #14532d; }
-    .menu-category:nth-child(2) .category-name { color: #92400e; }
-    .menu-category:nth-child(3) .category-name { color: #991b1b; }
-    .menu-category:nth-child(4) .category-name { color: #581c87; }
-
-    html.dark .menu-category:nth-child(1) .category-name { color: #86efac; }
-    html.dark .menu-category:nth-child(2) .category-name { color: #fbbf24; }
-    html.dark .menu-category:nth-child(3) .category-name { color: #f87171; }
-    html.dark .menu-category:nth-child(4) .category-name { color: #a78bfa; }
-
-    .menu-item {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 1rem;
-        border-radius: 0.75rem;
-        margin-bottom: 0.75rem;
-        font-size: 0.925rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .menu-item:hover {
-        background: rgba(255, 255, 255, 1);
-        transform: translateX(8px) scale(1.02);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        border-color: currentColor;
-    }
-
-    html.dark .menu-item {
-        background: rgba(15, 23, 42, 0.8);
-        border-color: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    html.dark .menu-item:hover {
-        background: rgba(15, 23, 42, 0.95);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-    }
-
-    /* Couleurs pour les items selon la catégorie */
-    .menu-category:nth-child(1) .menu-item { color: #14532d; }
-    .menu-category:nth-child(2) .menu-item { color: #92400e; }
-    .menu-category:nth-child(3) .menu-item { color: #991b1b; }
-    .menu-category:nth-child(4) .menu-item { color: #581c87; }
-
-    html.dark .menu-category:nth-child(1) .menu-item { color: #86efac; }
-    html.dark .menu-category:nth-child(2) .menu-item { color: #fcd34d; }
-    html.dark .menu-category:nth-child(3) .menu-item { color: #fca5a5; }
-    html.dark .menu-category:nth-child(4) .menu-item { color: #c4b5fd; }
-
-    /* Styles pour les transports - Version améliorée */
-    .transport-list {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .transport-item {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe, #93c5fd);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 2px solid rgba(59, 130, 246, 0.3);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .transport-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    }
-
-    .transport-item:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.3);
-        border-color: rgba(59, 130, 246, 0.6);
-    }
-
-    html.dark .transport-item {
-        background: linear-gradient(135deg, #1e3a8a, #1d4ed8, #2563eb);
-        border: 2px solid rgba(59, 130, 246, 0.4);
-    }
-
-    .transport-info {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .line-number {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8, #1e40af);
-        color: white;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        font-weight: 800;
-        min-width: 3rem;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
-        font-size: 1.125rem;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .destination {
-        font-weight: 700;
-        color: #1e40af;
-        font-size: 1rem;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    html.dark .destination {
-        color: #93c5fd;
-    }
-
-    .time-left {
-        font-size: 1.25rem;
-        font-weight: 800;
-        color: #1e40af;
-        background: rgba(255, 255, 255, 0.95);
-        padding: 0.75rem 1.25rem;
-        border-radius: 0.75rem;
-        border: 2px solid rgba(37, 99, 235, 0.3);
-        min-width: 5rem;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
-    }
-
-    html.dark .time-left {
-        color: #60a5fa;
-        background: rgba(15, 23, 42, 0.95);
-        border-color: rgba(96, 165, 250, 0.4);
-    }
-
-    /* Styles pour les événements - Version améliorée */
-    .events-list {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .event-item {
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7, #bbf7d0);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        border: 3px solid rgba(139, 92, 246, 0.3);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .event-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #8b5cf6, #a855f7, #c084fc);
-    }
-
-    .event-item:hover {
-        transform: translateY(-4px) scale(1.02);
-        border-color: rgba(139, 92, 246, 0.6);
-        box-shadow: 0 15px 35px rgba(139, 92, 246, 0.25);
-    }
-
-    html.dark .event-item {
-        background: linear-gradient(135deg, #14532d, #166534, #15803d);
-        border: 3px solid rgba(139, 92, 246, 0.4);
-    }
-
-    .event-title {
-        font-size: 1.125rem;
-        font-weight: 800;
-        color: #6b21a8;
-        margin-bottom: 0.75rem;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    html.dark .event-title {
-        color: #a78bfa;
-    }
-
-    .event-date {
-        font-size: 0.975rem;
-        color: #7c3aed;
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.15));
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        border: 2px solid rgba(139, 92, 246, 0.3);
-    }
-
-    html.dark .event-date {
-        color: #c4b5fd;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(168, 85, 247, 0.25));
-        border-color: rgba(196, 181, 253, 0.4);
-    }
-
-    .event-description {
-        font-size: 0.925rem;
-        color: #047857;
-        line-height: 1.5;
-        font-weight: 500;
-    }
-
-    html.dark .event-description {
-        color: #86efac;
-    }
-
-    /* États vides avec couleurs améliorées */
-    .empty-state {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: #64748b;
-        gap: 1.5rem;
-        background: linear-gradient(135deg, rgba(100, 116, 139, 0.08), rgba(148, 163, 184, 0.08));
-        border-radius: 1.5rem;
-        padding: 2.5rem;
-        border: 2px dashed rgba(100, 116, 139, 0.3);
-    }
-
-    html.dark .empty-state {
-        color: #94a3b8;
-        background: linear-gradient(135deg, rgba(148, 163, 184, 0.12), rgba(203, 213, 225, 0.08));
-        border-color: rgba(148, 163, 184, 0.4);
-    }
-
-    .empty-icon {
-        font-size: 3.5rem;
-        opacity: 0.7;
-        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-    }
-
-    .empty-message {
-        font-size: 1.125rem;
-        font-weight: 700;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    /* États de chargement colorés */
-    .loading-state {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1.5rem;
-    }
-
-    .spinner {
-        width: 3.5rem;
-        height: 3.5rem;
-        border: 4px solid rgba(79, 70, 229, 0.2);
-        border-top: 4px solid #4f46e5;
-        border-radius: 50%;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-    }
-
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-
-    /* Responsive design amélioré */
-    @media (max-width: 1600px) {
-        .school-dashboard {
-            grid-template-areas: 
-                "absences absences"
-                "menu events"
-                "transports transports";
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .absences-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    @media (max-width: 1200px) {
-        .school-dashboard {
-            grid-template-areas: 
-                "absences"
-                "menu"
-                "events"
-                "transports";
-            grid-template-columns: 1fr;
-            grid-template-rows: repeat(4, auto);
-            gap: 1.25rem;
-        }
-
-        .absences-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .absences-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .menu-categories {
-            grid-template-columns: 1fr;
-        }
-
-        .school-dashboard {
-            padding: 1rem;
-            gap: 1rem;
-        }
-
-        .card-body {
-            padding: 1.25rem;
-        }
-    }
-
-    /* Cartes statiques - sans animations */
-    .info-card {
-        opacity: 1;
-        transform: translateY(0);
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<div class="school-dashboard">
-    <!-- Zone Absences des Professeurs -->
-    <div class="info-card zone-absences">
-        <div class="card-header">
-            <h2 class="card-title">
-                <span class="card-icon">👨‍🏫</span>
-                Absences des Professeurs
-            </h2>
+<section class="school-dashboard">
+    <header class="dashboard-intro">
+        <div class="intro-copy">
+            <p class="intro-kicker">Tableau d'information</p>
+            <h1>{{ site_config.site_name }}</h1>
+            <p class="intro-text">
+                Les infos utiles de la journee, mises en page pour etre lues de loin sans bruit visuel.
+            </p>
         </div>
-        <div class="card-body">
-            {% if absences_by_day %}
-                <div class="absences-grid">
-                    {% for day, teachers in absences_by_day.items() %}
-                    <div class="day-column">
-                        <div class="day-name">{{ day }}</div>
-                        <div class="absence-list">
-                            {% if teachers %}
-                                {% for teacher in teachers %}
-                                    <div class="teacher-absent">{{ teacher }}</div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="no-absence">
-                                    <span style="font-size: 2.5rem;">✅</span>
-                                    <span>Tous présents</span>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">👥</div>
-                    <div class="empty-message">Aucune absence programmée</div>
-                </div>
-            {% endif %}
+        <div class="intro-meta">
+            <div class="meta-pill">
+                <span class="meta-label">Widgets actifs</span>
+                <span class="meta-value">{{ active_widgets|length + 2 }}</span>
+            </div>
+            <div class="meta-pill">
+                <span class="meta-label">Mis a jour</span>
+                <span class="meta-value">En direct</span>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <!-- Zone Menu de la Cantine -->
-    <div class="info-card zone-menu">
-        <div class="card-header">
-            <h2 class="card-title">
-                <span class="card-icon">🍽️</span>
-                Menu du Jour
-            </h2>
-        </div>
-        <div class="card-body">
-            {% if todays_menu %}
-                <div class="menu-categories">
-                    {% for category_name, items in todays_menu.items() %}
-                    <div class="menu-category">
-                        <div class="category-name">
-                            {% if category_name == "Entrée" %}🥗
-                            {% elif category_name == "Plat principal" %}🍖
-                            {% elif category_name == "Fromage" %}🧀
-                            {% elif category_name == "Dessert" %}🍦
-                            {% endif %}
-                            {{ category_name }}
-                        </div>
-                        {% for item in items %}
-                            <div class="menu-item">
-                                {% if item.icons %}{{ item.icons }} {% endif %}{{ item.name }}
+    <div class="dashboard-grid">
+        <section class="info-card info-card-wide zone-absences" aria-labelledby="absences-title">
+            <div class="card-shell">
+                <div class="card-header">
+                    <div>
+                        <p class="card-eyebrow">Equipe enseignante</p>
+                        <h2 id="absences-title" class="card-title">
+                            <span class="card-icon" aria-hidden="true">👨‍🏫</span>
+                            Absences de la semaine
+                        </h2>
+                    </div>
+                    <span class="card-badge">{{ absences|length }} professeur{% if absences|length > 1 %}s{% endif %}</span>
+                </div>
+
+                <div class="card-body">
+                    <div class="absences-grid">
+                        {% for day, teachers in absences_by_day.items() %}
+                        <article class="day-column{% if teachers %} day-column-alert{% endif %}">
+                            <div class="day-heading">
+                                <p class="day-name">{{ day }}</p>
+                                <p class="day-count">{{ teachers|length }} absence{% if teachers|length > 1 %}s{% endif %}</p>
                             </div>
+
+                            <div class="absence-list">
+                                {% if teachers %}
+                                    {% for teacher in teachers %}
+                                    <div class="teacher-absent">{{ teacher }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="no-absence">
+                                        <span class="state-icon" aria-hidden="true">OK</span>
+                                        <span>Tous presents</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </article>
                         {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">🍴</div>
-                    <div class="empty-message">Menu non disponible aujourd'hui</div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Zone Transports -->
-    <div class="info-card zone-transports">
-        <div class="card-header">
-            <h2 class="card-title">
-                <span class="card-icon">🚌</span>
-                Transports CTS
-            </h2>
-        </div>
-        <div class="card-body">
-            <div id="transports-loading" class="loading-state">
-                <div class="spinner"></div>
-                <div style="font-weight: 600; color: #4f46e5;">Chargement horaires...</div>
             </div>
-            <div id="transports-content" class="transport-list" style="display: none;"></div>
-            <div id="transports-error" class="empty-state" style="display: none;">
-                <div class="empty-icon">⚠️</div>
-                <div class="empty-message">Service transport indisponible</div>
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Zone Événements -->
-    <div class="info-card zone-events">
-        <div class="card-header">
-            <h2 class="card-title">
-                <span class="card-icon">📅</span>
-                Événements à Venir
-            </h2>
-        </div>
-        <div class="card-body">
-            {% if upcoming_events %}
-                <div class="events-list">
-                    {% for event in upcoming_events %}
-                    <div class="event-item">
-                        <div class="event-title">{{ event.title }}</div>
-                        <div class="event-date">📅 {{ event.date.strftime('%d/%m/%Y') }}</div>
-                        {% if event.description %}
-                            <div class="event-description">{{ event.description }}</div>
-                        {% endif %}
+        <section class="info-card zone-menu" aria-labelledby="menu-title">
+            <div class="card-shell">
+                <div class="card-header">
+                    <div>
+                        <p class="card-eyebrow">Restauration</p>
+                        <h2 id="menu-title" class="card-title">
+                            <span class="card-icon" aria-hidden="true">🍽️</span>
+                            Menu du jour
+                        </h2>
                     </div>
-                    {% endfor %}
+                    <span class="card-badge">{{ todays_menu|length }} rubrique{% if todays_menu|length > 1 %}s{% endif %}</span>
                 </div>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">📅</div>
-                    <div class="empty-message">Aucun événement prévu</div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
 
+                <div class="card-body">
+                    {% if todays_menu %}
+                    <div class="menu-categories">
+                        {% for category_name, items in todays_menu.items() %}
+                        <article class="menu-category" data-tone="{{ loop.index }}">
+                            <div class="category-head">
+                                <div class="category-name">
+                                    {% if category_name == "Entrée" %}🥗
+                                    {% elif category_name == "Plat principal" %}🍲
+                                    {% elif category_name == "Fromage" %}🧀
+                                    {% elif category_name == "Dessert" %}🍎
+                                    {% else %}•{% endif %}
+                                    {{ category_name }}
+                                </div>
+                            </div>
+
+                            <div class="menu-items">
+                                {% for item in items %}
+                                <div class="menu-item">
+                                    {% if item.icons %}<span class="menu-item-icons">{{ item.icons }}</span>{% endif %}
+                                    <span>{{ item.name }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <span class="empty-icon" aria-hidden="true">🍴</span>
+                        <p class="empty-title">Pas de menu affiche aujourd'hui</p>
+                        <p class="empty-copy">Le service restauration n'a pas encore publie la selection du jour.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="info-card zone-transports" aria-labelledby="transports-title">
+            <div class="card-shell">
+                <div class="card-header">
+                    <div>
+                        <p class="card-eyebrow">Mobilite</p>
+                        <h2 id="transports-title" class="card-title">
+                            <span class="card-icon" aria-hidden="true">🚌</span>
+                            Prochains transports
+                        </h2>
+                    </div>
+                    <span class="card-badge badge-live">Live</span>
+                </div>
+
+                <div class="card-body">
+                    <div id="transports-loading" class="loading-state">
+                        <div class="spinner" aria-hidden="true"></div>
+                        <p>Lecture des prochains passages...</p>
+                    </div>
+
+                    <div id="transports-content" class="transport-list" hidden></div>
+
+                    <div id="transports-error" class="empty-state" hidden>
+                        <span class="empty-icon" aria-hidden="true">⚠</span>
+                        <p class="empty-title">Service transport indisponible</p>
+                        <p class="empty-copy">Les donnees temps reel ne repondent pas pour le moment.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-card zone-events" aria-labelledby="events-title">
+            <div class="card-shell">
+                <div class="card-header">
+                    <div>
+                        <p class="card-eyebrow">Vie de l'etablissement</p>
+                        <h2 id="events-title" class="card-title">
+                            <span class="card-icon" aria-hidden="true">📌</span>
+                            A l'agenda
+                        </h2>
+                    </div>
+                    <span class="card-badge">{{ upcoming_events|length }} evenement{% if upcoming_events|length > 1 %}s{% endif %}</span>
+                </div>
+
+                <div class="card-body">
+                    {% if upcoming_events %}
+                    <div class="events-list">
+                        {% for event in upcoming_events %}
+                        <article class="event-item">
+                            <p class="event-date">{{ event.date.strftime('%d/%m/%Y') }}</p>
+                            <h3 class="event-title">{{ event.title }}</h3>
+                            {% if event.description %}
+                            <p class="event-description">{{ event.description }}</p>
+                            {% endif %}
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <span class="empty-icon" aria-hidden="true">📭</span>
+                        <p class="empty-title">Agenda leger pour l'instant</p>
+                        <p class="empty-copy">Aucun evenement n'est programme dans les prochains jours.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Activation du mode TV
+document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('tv-mode');
-    
-    // Chargement des transports avec animations améliorées
+
+    const loading = document.getElementById('transports-loading');
+    const content = document.getElementById('transports-content');
+    const error = document.getElementById('transports-error');
+
+    function setTransportState(state) {
+        loading.hidden = state !== 'loading';
+        content.hidden = state !== 'ready';
+        error.hidden = state !== 'error';
+    }
+
+    function transportLineLabel(dep) {
+        return dep.display_line || dep.line_name || dep.line || '--';
+    }
+
+    function transportTimeLabel(dep) {
+        return dep.time_left_text || dep.expected_time || 'A venir';
+    }
+
     async function loadTransports() {
+        setTransportState('loading');
+
         try {
-            const response = await fetch('{{ url_for("public.get_transports") }}');
+            const response = await fetch('{{ url_for("public.get_transports") }}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                }
+            });
             const data = await response.json();
-            
-            const loading = document.getElementById('transports-loading');
-            const content = document.getElementById('transports-content');
-            const error = document.getElementById('transports-error');
-            
-            if (data.error || !data.arrivals || data.arrivals.length === 0) {
-                loading.style.display = 'none';
-                error.style.display = 'flex';
+
+            if (!response.ok || data.error || !data.arrivals || data.arrivals.length === 0) {
+                setTransportState('error');
                 return;
             }
-            
-            content.innerHTML = data.arrivals.map(dep => `
-                <div class="transport-item">
+
+            content.innerHTML = data.arrivals.slice(0, 6).map(dep => `
+                <article class="transport-item">
                     <div class="transport-info">
-                        <div class="line-number">${dep.display_line || dep.line_name}</div>
-                        <div class="destination">${dep.destination_display || dep.destination}</div>
+                        <span class="transport-line">${transportLineLabel(dep)}</span>
+                        <div class="transport-copy">
+                            <p class="transport-destination">${dep.destination_display || dep.destination || 'Destination'}</p>
+                            <p class="transport-meta">${dep.realtime_indicator || dep.vehicle_mode || 'Temps reel'}</p>
+                        </div>
                     </div>
-                    <div class="time-left">${dep.time_left_text || dep.expected_time}</div>
-                </div>
+                    <div class="transport-time">${transportTimeLabel(dep)}</div>
+                </article>
             `).join('');
-            
-            loading.style.display = 'none';
-            content.style.display = 'flex';
-            
-        } catch (error) {
-            console.error('Erreur transports:', error);
-            document.getElementById('transports-loading').style.display = 'none';
-            document.getElementById('transports-error').style.display = 'flex';
+
+            setTransportState('ready');
+        } catch (err) {
+            console.error('Erreur transports:', err);
+            setTransportState('error');
         }
     }
-    
-    // Chargement initial
+
     loadTransports();
-    
-    // Actualisation périodique
-    setInterval(() => {
-        loadTransports();
-    }, 60000); // 1 minute
-    
-    // Rafraîchissement complet de la page toutes les 30 minutes
-    setTimeout(() => location.reload(), 1800000);
+    window.setInterval(loadTransports, 60000);
+    window.setTimeout(() => window.location.reload(), 1800000);
 });
 </script>
-{% endblock %} 
+{% endblock %}

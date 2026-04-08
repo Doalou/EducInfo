@@ -101,7 +101,7 @@ def common_context():
             'weather_config': weather_config,
             'widget_config': widget_config,
             'weather': weather_data,
-            'app_version': current_app.config.get('APP_VERSION', '1.2.0'),
+            'app_version': current_app.config.get('APP_VERSION', '2.0.0'),
         }
         
         # Mettre en cache pour les prochaines requêtes (mais pas trop longtemps pour la météo)
@@ -120,7 +120,7 @@ def common_context():
             'weather_config': None,
             'widget_config': None,
             'weather': None,
-            'app_version': current_app.config.get('APP_VERSION', '1.2.0'),
+            'app_version': current_app.config.get('APP_VERSION', '2.0.0'),
         }
 
 def get_weather_emoji(icon_code):
@@ -224,9 +224,9 @@ def format_time(date_string):
                     return dt.strftime('%H:%M')
                 except ValueError:
                     continue
-        except:
+        except Exception:
             pass
-        
+
         return '--:--'
 
 def format_date(date_string):

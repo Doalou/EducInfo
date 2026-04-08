@@ -5,16 +5,16 @@ services:
       dockerfile: docker/Dockerfile
     container_name: educinfo-app
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - FLASK_APP=run.py
       - FLASK_ENV=production
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - CTS_API_TOKEN=${CTS_API_TOKEN:-}
       - WEATHER_API_KEY=${WEATHER_API_KEY:-}
       - WEATHER_CITY=${WEATHER_CITY:-Strasbourg}
-      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-prod}
+      - SECRET_KEY=${SECRET_KEY:-}
     volumes:
       - ./instance:/app/instance
       - ./logs:/app/logs

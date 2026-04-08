@@ -5,6 +5,7 @@ Gestion avancée des erreurs, cache intelligent et validation des données.
 import logging
 from flask import jsonify, request, current_app
 from datetime import datetime, timedelta
+from sqlalchemy import text
 import pytz
 from app.services.weather import WeatherService
 from app.services.transport import TransportService
@@ -62,7 +63,7 @@ def create_api_response(data=None, success=True, message=None, error_code=None, 
     response = {
         'success': success,
         'timestamp': datetime.now(pytz.timezone('Europe/Paris')).isoformat(),
-        'version': current_app.config.get('APP_VERSION', '1.2.0')
+        'version': current_app.config.get('APP_VERSION', '2.0.0')
     }
     
     if data is not None:
@@ -92,7 +93,7 @@ def version():
     try:
         return create_api_response(
             data={
-                'version': current_app.config.get('APP_VERSION', '1.2.0'),
+                'version': current_app.config.get('APP_VERSION', '2.0.0'),
                 'name': current_app.config.get('APP_NAME', 'EducInfo'),
                 'environment': current_app.config.get('FLASK_ENV', 'production'),
                 'features': {
@@ -523,14 +524,14 @@ def health():
         health_status = {
             'status': 'healthy',
             'timestamp': datetime.now(pytz.timezone('Europe/Paris')).isoformat(),
-            'version': current_app.config.get('APP_VERSION', '1.2.0'),
+            'version': current_app.config.get('APP_VERSION', '2.0.0'),
             'services': {}
         }
         
         # Vérification de la base de données
         try:
             from app.extensions import db
-            db.session.execute('SELECT 1')
+            db.session.execute(text('SELECT 1'))
             health_status['services']['database'] = 'healthy'
         except Exception as e:
             health_status['services']['database'] = f'unhealthy: {str(e)}'
@@ -602,7 +603,7 @@ def stats():
             },
             'system': {
                 'uptime': datetime.now(pytz.timezone('Europe/Paris')).isoformat(),
-                'version': current_app.config.get('APP_VERSION', '1.2.0')
+                'version': current_app.config.get('APP_VERSION', '2.0.0')
             }
         }
         

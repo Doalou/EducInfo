@@ -12,7 +12,7 @@ INSTANCE_DIR = os.path.join(ROOT_DIR, 'instance')
 class Config:
     """Configuration de base, commune à tous les environnements."""
     
-    APP_VERSION = "1.2.0"
+    APP_VERSION = "2.0.0"
     APP_NAME = "EducInfo"
     
     # Sécurité
@@ -76,10 +76,6 @@ class Config:
         'health_check_interval': 30
     }
     
-    # Rate limiting
-    RATELIMIT_STORAGE_URL = os.environ.get('RATELIMIT_STORAGE_URL', 'redis://localhost:6379/1')
-    RATELIMIT_DEFAULT = "100 per hour"
-    
     # API externes
     WEATHER_API_KEY = os.environ.get('WEATHER_API_KEY', '')
     WEATHER_CITY = os.environ.get('WEATHER_CITY', 'Strasbourg')
@@ -88,7 +84,7 @@ class Config:
     
     # Admin par défaut
     DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME', 'admin')
-    DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'admin123')
+    DEFAULT_ADMIN_PASSWORD = os.environ.get('DEFAULT_ADMIN_PASSWORD') or secrets.token_urlsafe(12)
     
     # JWT
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
@@ -112,7 +108,7 @@ class Config:
             redis_client.ping()
             app.config['CACHE_TYPE'] = 'redis'
             app.config['CACHE_REDIS_URL'] = app.config['REDIS_URL']
-        except (ImportError, Exception):
+        except Exception:
             app.config['CACHE_TYPE'] = 'simple'
 
 

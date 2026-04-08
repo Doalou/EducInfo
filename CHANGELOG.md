@@ -1,0 +1,47 @@
+# Changelog
+
+Toutes les evolutions notables du projet seront documentees ici.
+
+Le format s'inspire de Keep a Changelog et le versioning suit SemVer.
+
+## [2.0.0] - 2026-04-07
+
+### Securite
+- Suppression du mot de passe admin en dur (`admin123`) dans toute la codebase : config, CLI, scripts, Docker et fichiers d'environnement.
+- Generation automatique d'un mot de passe securise via `secrets.token_urlsafe` a chaque initialisation ou reinitialisation.
+- Protection des routes de diagnostic (`/debug/weather`, `/debug/transport`) deplacees derriere `@login_required` dans le blueprint admin.
+- Suppression des mots de passe Redis et PostgreSQL en dur dans les fichiers d'exemple ; remplacement par des placeholders a renseigner.
+- Suppression de `SECRET_KEY` par defaut dans `docker-compose.yml` (champ laisse vide pour forcer la definition).
+- Remplacement des `except:` generiques par `except Exception:` dans les services et utilitaires.
+
+### Interface
+- Refonte visuelle globale : suppression du glassmorphisme, des gradients omnipresents, des animations decoratives (glow, float, bounce, barre arc-en-ciel).
+- Nouvelle direction sobre et lisible : fonds opaques, bordures fines, ombres subtiles, couleurs plates sur les headers de cartes.
+- Palette recentree sur le bleu (`#2563eb`) comme couleur primaire, en remplacement de l'indigo/violet.
+- Sidebar admin simplifiee : items compacts, icones carrees, suppression du logo etoile et du label "Dashboard Admin v1.2.0".
+- Allègement typographique : tailles et graisses reduites pour une lecture plus naturelle a distance.
+- Nouvelle composition de l'ecran public avec grille editorialisee, cartes plus lisibles et hierarchie de lecture renforcee.
+- Page de connexion epuree et coherente avec le nouveau style.
+- Externalisation du style de la page publique dans `app/static/css/tv-mode.css`.
+- Nettoyage de `style.css` : suppression des keyframes inutilisees, effets de particules, shimmer de badges.
+- Harmonisation de `darkmode.css` avec la nouvelle palette et amelioration du contraste des alertes en mode sombre.
+
+### Infrastructure et Docker
+- Dockerfile optimise : suppression de `dos2unix` (fins de ligne gerees par `.gitattributes`), nombre de workers Gunicorn auto-calcule selon les CPU.
+- Suppression de la directive `VOLUME` du Dockerfile (geree par docker-compose).
+- Separation des dependances dev dans `requirements-dev.txt` ; suppression de pytest/black/flake8 du `requirements.txt` de production.
+- Gunicorn ajoute directement dans `requirements.txt` au lieu d'une installation separee dans le Dockerfile.
+- Port par defaut du docker-compose passe de `5000:5000` a `5001:5000` pour eviter le conflit avec AirPlay Receiver sur macOS.
+- Mots de passe cluster (`POSTGRES_PASSWORD`, `REDIS_PASSWORD`) injectes via variables d'environnement avec fallback `changeme`.
+- Mot de passe Redis configure dynamiquement au demarrage via `--requirepass` au lieu d'un `requirepass` statique dans `redis.conf`.
+
+### Technique
+- Passage de la version applicative a `2.0.0` dans la configuration, pyproject.toml, Dockerfile, README, scripts et fichiers d'environnement.
+- Correction des appels `db.session.execute('SELECT 1')` en `db.session.execute(text('SELECT 1'))` pour compatibilite SQLAlchemy 2.x.
+- Ajout de l'import `sqlalchemy.text` dans `extensions.py` et `api/routes.py`.
+- Route de diagnostic meteo/transport deplacee de `public/routes.py` vers `admin/routes.py` avec authentification obligatoire.
+- Message de reinitialisation d'urgence mis a jour pour ne plus mentionner un mot de passe fixe.
+
+### CI et documentation
+- Mise a jour des actions GitHub : `docker/build-push-action` `v6.18.0`, `docker/setup-buildx-action` `v3.11.1`, `docker/login-action` `v3.6.0`, `docker/metadata-action` `v5.8.0`, `sigstore/cosign-installer` `v4.0.0`.
+- README et documentation alignes sur la version 2.0.0.
