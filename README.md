@@ -1,6 +1,7 @@
 # 📺 EducInfo v1.3.0
 
 > **Système d'affichage scolaire intelligent optimisé pour écrans TV**
+# Le projet est actuellement en cours de refonte, la description ci-dessous correspond à l'ancienne version et une nouvelle version sera bientôt proposée.
 
 EducInfo est une solution complète d'affichage numérique pour établissements scolaires (halls, couloirs, espaces communs). Elle permet de diffuser en temps réel les absences des professeurs, menus de cantine, événements, météo et transports, avec une interface "Pixel Perfect" pour écrans de télévision.
 
