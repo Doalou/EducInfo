@@ -5,7 +5,7 @@
 {% block extra_css %}
 <style>
     .user-card {
-        @apply glass p-6 rounded-3xl border border-white/5 transition-all hover:bg-white/[0.05];
+        @apply bg-neutral-900 p-6 rounded-xl border border-neutral-800 transition-all hover:bg-neutral-800;
     }
 
     .status-pill {
@@ -13,11 +13,15 @@
     }
 
     .filter-btn {
-        @apply px-4 py-2 glass rounded-xl text-xs font-bold text-slate-400 border border-white/5 transition-all hover:text-white;
+        @apply px-4 py-2 bg-neutral-900 rounded-lg text-xs font-bold text-slate-400 border border-neutral-800 transition-all hover:text-white;
     }
 
     .filter-btn.active {
         @apply bg-indigo-500/20 text-indigo-400 border-indigo-500/50;
+    }
+
+    .flat-input {
+        @apply bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all w-full;
     }
 </style>
 {% endblock %}
@@ -34,19 +38,19 @@
             <i class="fas fa-plus mr-2"></i> Nouveau
         </button>
         <button onclick="exportUserData()"
-            class="glass px-6 py-2 rounded-xl text-xs font-bold text-slate-400 border border-white/5 hover:text-white transition-all">
+            class="bg-neutral-900 px-6 py-2 rounded-xl text-xs font-bold text-slate-400 border border-neutral-800 hover:text-white transition-all">
             <i class="fas fa-download mr-2"></i> Exporter
         </button>
     </div>
 </div>
 
-<!-- Security Score Card -->
+<!-- Score de sécurité -->
 <div class="mb-10">
-    <div class="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col md:flex-row items-center gap-8">
+    <div class="bg-neutral-900 p-8 rounded-xl border border-neutral-800 flex flex-col md:flex-row items-center gap-8">
         <div class="relative w-32 h-32 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90">
                 <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent"
-                    class="text-white/5" />
+                    class="text-neutral-800" />
                 <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent"
                     class="{% if debug_info.security.security_score >= 80 %}text-sage-500{% elif debug_info.security.security_score >= 60 %}text-amber-500{% else %}text-rose-500{% endif %}"
                     stroke-dasharray="{{ 58 * 2 * 3.14159 }}"
@@ -76,9 +80,9 @@
     </div>
 </div>
 
-<!-- Forms Container -->
+<!-- Formulaire de création -->
 <div id="create-user-form"
-    class="hidden glass p-8 rounded-[2.5rem] border border-white/5 mb-10 overflow-hidden relative">
+    class="hidden bg-neutral-900 p-8 rounded-xl border border-neutral-800 mb-10 overflow-hidden relative">
     <div class="absolute top-0 right-0 p-8">
         <button onclick="toggleCreateUserForm()" class="text-slate-500 hover:text-white transition-colors">
             <i class="fas fa-times"></i>
@@ -91,23 +95,23 @@
         <div class="space-y-1.5">
             {{ create_user_form.identifiant.label(class="text-[10px] font-black text-slate-500 uppercase tracking-widest
             ml-1") }}
-            {{ create_user_form.identifiant(class="glass-input", placeholder="Identifiant") }}
+            {{ create_user_form.identifiant(class="flat-input", placeholder="Identifiant") }}
         </div>
         <div class="space-y-1.5">
             {{ create_user_form.password.label(class="text-[10px] font-black text-slate-500 uppercase tracking-widest
             ml-1") }}
-            {{ create_user_form.password(class="glass-input", placeholder="••••••••") }}
+            {{ create_user_form.password(class="flat-input", placeholder="••••••••") }}
         </div>
         <div class="space-y-1.5">
             {{ create_user_form.password_confirm.label(class="text-[10px] font-black text-slate-500 uppercase
             tracking-widest ml-1") }}
-            {{ create_user_form.password_confirm(class="glass-input", placeholder="••••••••") }}
+            {{ create_user_form.password_confirm(class="flat-input", placeholder="••••••••") }}
         </div>
         <div class="flex items-center gap-6 mt-4 md:col-span-2">
             <label class="flex items-center gap-3 cursor-pointer group">
                 {{ create_user_form.is_admin(class="hidden peer") }}
                 <div
-                    class="w-5 h-5 rounded-md border-2 border-white/10 peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-all flex items-center justify-center">
+                    class="w-5 h-5 rounded-md border-2 border-neutral-700 peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-all flex items-center justify-center">
                     <i class="fas fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100"></i>
                 </div>
                 <span
@@ -116,7 +120,7 @@
             <label class="flex items-center gap-3 cursor-pointer group">
                 {{ create_user_form.is_active(class="hidden peer", checked=true) }}
                 <div
-                    class="w-5 h-5 rounded-md border-2 border-white/10 peer-checked:bg-sage-500 peer-checked:border-sage-500 transition-all flex items-center justify-center">
+                    class="w-5 h-5 rounded-md border-2 border-neutral-700 peer-checked:bg-sage-500 peer-checked:border-sage-500 transition-all flex items-center justify-center">
                     <i class="fas fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100"></i>
                 </div>
                 <span
@@ -124,7 +128,7 @@
                     Actif</span>
             </label>
         </div>
-        <div class="lg:col-span-3 flex justify-end gap-3 mt-4 border-t border-white/5 pt-6">
+        <div class="lg:col-span-3 flex justify-end gap-3 mt-4 border-t border-neutral-800 pt-6">
             <button type="button" onclick="toggleCreateUserForm()"
                 class="px-6 py-2 text-xs font-bold text-slate-400 hover:text-white transition-all uppercase tracking-widest">Annuler</button>
             <button type="submit"
@@ -133,15 +137,15 @@
     </form>
 </div>
 
-<!-- Alerts List -->
+<!-- Liste des alertes -->
 {% if debug_info.security.alerts %}
 <div class="space-y-4 mb-10">
     {% for alert in debug_info.security.alerts %}
     <div
-        class="glass border-l-4 p-6 rounded-2xl flex items-start gap-4 
-                {% if alert.type == 'danger' %}border-l-rose-500 bg-rose-500/5{% elif alert.type == 'warning' %}border-l-amber-500 bg-amber-500/5{% else %}border-l-indigo-500 bg-indigo-500/5{% endif %}">
+        class="bg-neutral-900 border-l-4 p-6 rounded-xl flex items-start gap-4 border border-neutral-800
+                {% if alert.type == 'danger' %}border-l-rose-500{% elif alert.type == 'warning' %}border-l-amber-500{% else %}border-l-indigo-500{% endif %}">
         <div
-            class="w-10 h-10 rounded-full flex items-center justify-center 
+            class="w-10 h-10 rounded-full flex items-center justify-center
                     {% if alert.type == 'danger' %}bg-rose-500/20 text-rose-500{% elif alert.type == 'warning' %}bg-amber-500/20 text-amber-500{% else %}bg-indigo-500/20 text-indigo-500{% endif %}">
             <i
                 class="fas fa-{% if alert.type == 'danger' %}shield-alt{% elif alert.type == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
@@ -155,7 +159,7 @@
 </div>
 {% endif %}
 
-<!-- Metrics Grid -->
+<!-- Grille de métriques -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
     <div class="user-card">
         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Répartition Statut</p>
@@ -164,7 +168,7 @@
                 <span class="text-xs font-bold text-slate-400">Actifs</span>
                 <span class="text-lg font-mono font-bold text-white">{{ debug_info.metrics.active_users }}</span>
             </div>
-            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+            <div class="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                 <div class="h-full bg-sage-500"
                     style="width: {{ (debug_info.metrics.active_users / debug_info.metrics.total_users * 100) if debug_info.metrics.total_users > 0 else 0 }}%">
                 </div>
@@ -176,13 +180,13 @@
         </div>
     </div>
     <div class="user-card">
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Rôles / Privilèges</p>
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Roles / Privilèges</p>
         <div class="space-y-3">
             <div class="flex justify-between items-end">
                 <span class="text-xs font-bold text-slate-400">Administrateurs</span>
                 <span class="text-lg font-mono font-bold text-white">{{ debug_info.metrics.admin_users }}</span>
             </div>
-            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+            <div class="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                 <div class="h-full bg-amber-500"
                     style="width: {{ (debug_info.metrics.admin_users / debug_info.metrics.total_users * 100) if debug_info.metrics.total_users > 0 else 0 }}%">
                 </div>
@@ -201,7 +205,7 @@
                 <span class="text-xs font-bold text-slate-400">7 derniers jours</span>
                 <span class="text-lg font-mono font-bold text-white">{{ debug_info.metrics.recently_active }}</span>
             </div>
-            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+            <div class="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
                 <div class="h-full bg-indigo-500"
                     style="width: {{ (debug_info.metrics.recently_active / debug_info.metrics.total_users * 100) if debug_info.metrics.total_users > 0 else 0 }}%">
                 </div>
@@ -214,13 +218,13 @@
     </div>
 </div>
 
-<!-- Main List -->
-<div class="glass p-8 rounded-[2.5rem] border border-white/5">
+<!-- Liste principale -->
+<div class="bg-neutral-900 p-8 rounded-xl border border-neutral-800">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div class="relative flex-1 max-w-md">
             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
             <input type="text" id="user-search" placeholder="Rechercher par identifiant..."
-                class="w-full glass-input !pl-12 !py-3" />
+                class="flat-input !pl-12 !py-3" />
         </div>
         <div class="flex flex-wrap gap-2">
             <button onclick="filterUsers('all')" class="filter-btn active" data-filter="all">Tous</button>
@@ -233,7 +237,7 @@
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead>
-                <tr class="text-left border-b border-white/5">
+                <tr class="text-left border-b border-neutral-800">
                     <th class="pb-4 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Utilisateur
                     </th>
                     <th class="pb-4 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Statut</th>
@@ -242,16 +246,16 @@
                     <th class="pb-4 px-4"></th>
                 </tr>
             </thead>
-            <tbody id="users-table-body" class="divide-y divide-white/[0.02]">
+            <tbody id="users-table-body" class="divide-y divide-neutral-800/50">
                 {% for user in users %}
-                <tr class="user-row hover:bg-white/[0.02] transition-colors"
+                <tr class="user-row hover:bg-neutral-800/50 transition-colors"
                     data-user-role="{{ 'admin' if user.is_admin else 'user' }}"
                     data-user-status="{{ 'active' if user.is_active else 'inactive' }}"
                     data-user-name="{{ user.identifiant|lower }}">
                     <td class="py-5 px-4">
                         <div class="flex items-center gap-3">
                             <div
-                                class="w-10 h-10 rounded-xl glass border border-white/10 flex items-center justify-center text-xs font-black text-indigo-400">
+                                class="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-black text-indigo-400">
                                 {{ (user.identifiant or 'NN')[:2].upper() }}
                             </div>
                             <div>
@@ -265,7 +269,7 @@
                             {% if user.is_admin %}
                             <span class="status-pill bg-amber-500/10 text-amber-500 border-amber-500/20">Admin</span>
                             {% else %}
-                            <span class="status-pill bg-indigo-500/10 text-indigo-500 border-indigo-500/20">User</span>
+                            <span class="status-pill bg-indigo-500/10 text-indigo-500 border-indigo-500/20">Standard</span>
                             {% endif %}
 
                             {% if user.is_active %}
@@ -312,8 +316,8 @@
 
 <!-- Modals -->
 <div id="edit-user-modal"
-    class="fixed inset-0 z-50 hidden bg-obsidian-950/80 backdrop-blur-md flex items-center justify-center p-6">
-    <div class="glass w-full max-w-md rounded-[2.5rem] border border-white/10 p-10 relative overflow-hidden">
+    class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-6">
+    <div class="bg-neutral-900 w-full max-w-md rounded-xl border border-neutral-800 p-10 relative overflow-hidden">
         <h3 class="text-2xl font-extrabold text-white tracking-tight mb-8">Éditer l'Utilisateur</h3>
 
         <form id="edit-user-form" action="" method="post" class="space-y-6">
@@ -321,24 +325,24 @@
             <div class="space-y-1.5">
                 {{ edit_user_form.identifiant.label(class="text-[10px] font-black text-slate-500 uppercase
                 tracking-widest ml-1") }}
-                {{ edit_user_form.identifiant(class="glass-input") }}
+                {{ edit_user_form.identifiant(class="flat-input") }}
             </div>
             <div class="space-y-1.5">
                 {{ edit_user_form.new_password.label(class="text-[10px] font-black text-slate-500 uppercase
                 tracking-widest ml-1") }}
-                {{ edit_user_form.new_password(class="glass-input", placeholder="Laisser vide pour garder l'actuel") }}
+                {{ edit_user_form.new_password(class="flat-input", placeholder="Laisser vide pour garder l'actuel") }}
             </div>
             <div class="space-y-1.5">
                 {{ edit_user_form.new_password_confirm.label(class="text-[10px] font-black text-slate-500 uppercase
                 tracking-widest ml-1") }}
-                {{ edit_user_form.new_password_confirm(class="glass-input") }}
+                {{ edit_user_form.new_password_confirm(class="flat-input") }}
             </div>
 
             <div class="flex items-center gap-6 pt-2">
                 <label class="flex items-center gap-3 cursor-pointer group">
                     {{ edit_user_form.is_admin(class="hidden peer") }}
                     <div
-                        class="w-5 h-5 rounded-md border-2 border-white/10 peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-all flex items-center justify-center">
+                        class="w-5 h-5 rounded-md border-2 border-neutral-700 peer-checked:bg-indigo-500 peer-checked:border-indigo-500 transition-all flex items-center justify-center">
                         <i class="fas fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100"></i>
                     </div>
                     <span class="text-xs font-bold text-slate-400 group-hover:text-slate-200">Admin</span>
@@ -346,14 +350,14 @@
                 <label class="flex items-center gap-3 cursor-pointer group">
                     {{ edit_user_form.is_active(class="hidden peer") }}
                     <div
-                        class="w-5 h-5 rounded-md border-2 border-white/10 peer-checked:bg-sage-500 peer-checked:border-sage-500 transition-all flex items-center justify-center">
+                        class="w-5 h-5 rounded-md border-2 border-neutral-700 peer-checked:bg-sage-500 peer-checked:border-sage-500 transition-all flex items-center justify-center">
                         <i class="fas fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100"></i>
                     </div>
                     <span class="text-xs font-bold text-slate-400 group-hover:text-slate-200">Actif</span>
                 </label>
             </div>
 
-            <div class="flex justify-end gap-3 pt-6 border-t border-white/5">
+            <div class="flex justify-end gap-3 pt-6 border-t border-neutral-800">
                 <button type="button" onclick="closeEditModal()"
                     class="px-6 py-2 text-xs font-bold text-slate-400 hover:text-white transition-all uppercase tracking-widest">Annuler</button>
                 <button type="submit"
@@ -365,10 +369,10 @@
 </div>
 
 <div id="delete-user-modal"
-    class="fixed inset-0 z-50 hidden bg-obsidian-950/80 backdrop-blur-md flex items-center justify-center p-6">
-    <div class="glass w-full max-w-md rounded-[2.5rem] border border-rose-500/20 p-10 relative text-center">
+    class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-6">
+    <div class="bg-neutral-900 w-full max-w-md rounded-xl border border-rose-500/20 p-10 relative text-center">
         <div
-            class="w-20 h-20 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl border border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.1)]">
+            class="w-20 h-20 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl border border-rose-500/20">
             <i class="fas fa-user-minus"></i>
         </div>
         <h3 class="text-2xl font-extrabold text-white tracking-tight mb-2">Supprimer l'Utilisateur</h3>
@@ -382,7 +386,7 @@
             <label class="flex items-center justify-center gap-3 cursor-pointer group mb-8">
                 {{ delete_user_form.confirm_delete(class="hidden peer") }}
                 <div
-                    class="w-5 h-5 rounded-md border-2 border-white/10 peer-checked:bg-rose-500 peer-checked:border-rose-500 transition-all flex items-center justify-center">
+                    class="w-5 h-5 rounded-md border-2 border-neutral-700 peer-checked:bg-rose-500 peer-checked:border-rose-500 transition-all flex items-center justify-center">
                     <i class="fas fa-check text-[10px] text-white opacity-0 peer-checked:opacity-100"></i>
                 </div>
                 <span class="text-xs font-bold text-slate-400 group-hover:text-slate-200">Je confirme la
@@ -391,7 +395,7 @@
 
             <div class="flex gap-4">
                 <button type="button" onclick="closeDeleteModal()"
-                    class="flex-1 glass px-6 py-3 rounded-xl text-xs font-bold text-slate-400 border border-white/5 hover:text-white transition-all uppercase tracking-widest">Annuler</button>
+                    class="flex-1 bg-neutral-900 px-6 py-3 rounded-xl text-xs font-bold text-slate-400 border border-neutral-800 hover:text-white transition-all uppercase tracking-widest">Annuler</button>
                 <button type="submit"
                     class="flex-1 bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-lg shadow-rose-500/20 transition-all uppercase tracking-widest">Supprimer</button>
             </div>
@@ -478,7 +482,7 @@
         applyFilters();
     });
 
-    // Close modals on backdrop click
+    // Fermer les modals au clic sur le fond
     [document.getElementById('edit-user-modal'), document.getElementById('delete-user-modal')].forEach(m => {
         m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
     });

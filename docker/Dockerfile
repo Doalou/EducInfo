@@ -40,14 +40,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.13-slim-bookworm as production
 
 LABEL maintainer="contact@doalo.fr"
-LABEL version="1.3.0"
+LABEL version="2.0.0"
 LABEL description="EducInfo - Plateforme d'Information Scolaire"
 
 # Métadonnées de l'image
 LABEL org.opencontainers.image.title="EducInfo"
 LABEL org.opencontainers.image.description="Plateforme d'information scolaire avec Flask"
-LABEL org.opencontainers.image.version="1.3.0"
-LABEL org.opencontainers.image.vendor="DoaLo"
+LABEL org.opencontainers.image.version="2.0.0"
+LABEL org.opencontainers.image.vendor="Doalo"
 LABEL org.opencontainers.image.url="https://github.com/doalo/educinfo"
 LABEL org.opencontainers.image.source="https://github.com/doalo/educinfo"
 
@@ -156,4 +156,3 @@ USER educinfo
 
 # Commande par défaut pour le développement
 CMD ["python", "run.py", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
-

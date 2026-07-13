@@ -45,13 +45,6 @@ Le format s'inspire de Keep a Changelog et le versioning suit SemVer.
 ### CI et documentation
 - Mise a jour des actions GitHub : `docker/build-push-action` `v6.18.0`, `docker/setup-buildx-action` `v3.11.1`, `docker/login-action` `v3.6.0`, `docker/metadata-action` `v5.8.0`, `sigstore/cosign-installer` `v4.0.0`.
 - README et documentation alignes sur la version 2.0.0.
-# Changelog
-
-Toutes les modifications notables de ce projet seront documentées dans ce fichier.
-
-Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère au [Versionnage Sémantique](https://semver.org/spec/v2.0.0.html).
-
 
 ## [1.4.0] - 2025-12-16
 

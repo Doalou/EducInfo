@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ site_config.site_name }} - Tableau d'information{% endblock %}
-{% block description %}Affichage scolaire en direct: absences, restauration, transports et vie de l'établissement.{% endblock %}
+{% block description %}Affichage scolaire en direct : absences, restauration, transports et vie de l'établissement.{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tv-mode.css') }}">
@@ -10,36 +10,17 @@
 {% block content %}
 <section class="school-dashboard">
     <header class="dashboard-intro">
-        <div class="intro-copy">
-            <p class="intro-kicker">Tableau d'information</p>
-            <h1>{{ site_config.site_name }}</h1>
-            <p class="intro-text">
-                Les infos utiles de la journee, mises en page pour etre lues de loin sans bruit visuel.
-            </p>
-        </div>
-        <div class="intro-meta">
-            <div class="meta-pill">
-                <span class="meta-label">Widgets actifs</span>
-                <span class="meta-value">{{ active_widgets|length + 2 }}</span>
-            </div>
-            <div class="meta-pill">
-                <span class="meta-label">Mis a jour</span>
-                <span class="meta-value">En direct</span>
-            </div>
-        </div>
+        <h1>{{ site_config.site_name }}</h1>
     </header>
 
     <div class="dashboard-grid">
         <section class="info-card info-card-wide zone-absences" aria-labelledby="absences-title">
             <div class="card-shell">
                 <div class="card-header">
-                    <div>
-                        <p class="card-eyebrow">Equipe enseignante</p>
-                        <h2 id="absences-title" class="card-title">
-                            <span class="card-icon" aria-hidden="true">👨‍🏫</span>
-                            Absences de la semaine
-                        </h2>
-                    </div>
+                    <h2 id="absences-title" class="card-title">
+                        <span class="card-icon" aria-hidden="true">👨‍🏫</span>
+                        Absences de la semaine
+                    </h2>
                     <span class="card-badge">{{ absences|length }} professeur{% if absences|length > 1 %}s{% endif %}</span>
                 </div>
 
@@ -60,7 +41,7 @@
                                 {% else %}
                                     <div class="no-absence">
                                         <span class="state-icon" aria-hidden="true">OK</span>
-                                        <span>Tous presents</span>
+                                        <span>Tous présents</span>
                                     </div>
                                 {% endif %}
                             </div>
@@ -74,13 +55,10 @@
         <section class="info-card zone-menu" aria-labelledby="menu-title">
             <div class="card-shell">
                 <div class="card-header">
-                    <div>
-                        <p class="card-eyebrow">Restauration</p>
-                        <h2 id="menu-title" class="card-title">
-                            <span class="card-icon" aria-hidden="true">🍽️</span>
-                            Menu du jour
-                        </h2>
-                    </div>
+                    <h2 id="menu-title" class="card-title">
+                        <span class="card-icon" aria-hidden="true">🍽️</span>
+                        Menu du jour
+                    </h2>
                     <span class="card-badge">{{ todays_menu|length }} rubrique{% if todays_menu|length > 1 %}s{% endif %}</span>
                 </div>
 
@@ -114,8 +92,8 @@
                     {% else %}
                     <div class="empty-state">
                         <span class="empty-icon" aria-hidden="true">🍴</span>
-                        <p class="empty-title">Pas de menu affiche aujourd'hui</p>
-                        <p class="empty-copy">Le service restauration n'a pas encore publie la selection du jour.</p>
+                        <p class="empty-title">Pas de menu affiché aujourd'hui</p>
+                        <p class="empty-copy">Le service restauration n'a pas encore publié la sélection du jour.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -125,14 +103,10 @@
         <section class="info-card zone-transports" aria-labelledby="transports-title">
             <div class="card-shell">
                 <div class="card-header">
-                    <div>
-                        <p class="card-eyebrow">Mobilite</p>
-                        <h2 id="transports-title" class="card-title">
-                            <span class="card-icon" aria-hidden="true">🚌</span>
-                            Prochains transports
-                        </h2>
-                    </div>
-                    <span class="card-badge badge-live">Live</span>
+                    <h2 id="transports-title" class="card-title">
+                        <span class="card-icon" aria-hidden="true">🚌</span>
+                        Prochains transports
+                    </h2>
                 </div>
 
                 <div class="card-body">
@@ -146,7 +120,7 @@
                     <div id="transports-error" class="empty-state" hidden>
                         <span class="empty-icon" aria-hidden="true">⚠</span>
                         <p class="empty-title">Service transport indisponible</p>
-                        <p class="empty-copy">Les donnees temps reel ne repondent pas pour le moment.</p>
+                        <p class="empty-copy">Les données temps réel ne répondent pas pour le moment.</p>
                     </div>
                 </div>
             </div>
@@ -155,14 +129,11 @@
         <section class="info-card zone-events" aria-labelledby="events-title">
             <div class="card-shell">
                 <div class="card-header">
-                    <div>
-                        <p class="card-eyebrow">Vie de l'etablissement</p>
-                        <h2 id="events-title" class="card-title">
-                            <span class="card-icon" aria-hidden="true">📌</span>
-                            A l'agenda
-                        </h2>
-                    </div>
-                    <span class="card-badge">{{ upcoming_events|length }} evenement{% if upcoming_events|length > 1 %}s{% endif %}</span>
+                    <h2 id="events-title" class="card-title">
+                        <span class="card-icon" aria-hidden="true">📌</span>
+                        À l'agenda
+                    </h2>
+                    <span class="card-badge">{{ upcoming_events|length }} événement{% if upcoming_events|length > 1 %}s{% endif %}</span>
                 </div>
 
                 <div class="card-body">
@@ -181,8 +152,8 @@
                     {% else %}
                     <div class="empty-state">
                         <span class="empty-icon" aria-hidden="true">📭</span>
-                        <p class="empty-title">Agenda leger pour l'instant</p>
-                        <p class="empty-copy">Aucun evenement n'est programme dans les prochains jours.</p>
+                        <p class="empty-title">Agenda léger pour l'instant</p>
+                        <p class="empty-copy">Aucun événement n'est programmé dans les prochains jours.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -212,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function transportTimeLabel(dep) {
-        return dep.time_left_text || dep.expected_time || 'A venir';
+        return dep.time_left_text || dep.expected_time || 'À venir';
     }
 
     async function loadTransports() {
@@ -232,18 +203,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            content.innerHTML = data.arrivals.slice(0, 6).map(dep => `
-                <article class="transport-item">
-                    <div class="transport-info">
-                        <span class="transport-line">${transportLineLabel(dep)}</span>
-                        <div class="transport-copy">
-                            <p class="transport-destination">${dep.destination_display || dep.destination || 'Destination'}</p>
-                            <p class="transport-meta">${dep.realtime_indicator || dep.vehicle_mode || 'Temps reel'}</p>
-                        </div>
-                    </div>
-                    <div class="transport-time">${transportTimeLabel(dep)}</div>
-                </article>
-            `).join('');
+            const fragment = document.createDocumentFragment();
+            data.arrivals.slice(0, 6).forEach(dep => {
+                const article = document.createElement('article');
+                article.className = 'transport-item';
+
+                const info = document.createElement('div');
+                info.className = 'transport-info';
+
+                const line = document.createElement('span');
+                line.className = 'transport-line';
+                line.textContent = transportLineLabel(dep);
+
+                const copy = document.createElement('div');
+                copy.className = 'transport-copy';
+
+                const dest = document.createElement('p');
+                dest.className = 'transport-destination';
+                dest.textContent = dep.destination_display || dep.destination || 'Destination';
+
+                const meta = document.createElement('p');
+                meta.className = 'transport-meta';
+                meta.textContent = dep.realtime_indicator || dep.vehicle_mode || 'Temps réel';
+
+                const time = document.createElement('div');
+                time.className = 'transport-time';
+                time.textContent = transportTimeLabel(dep);
+
+                copy.appendChild(dest);
+                copy.appendChild(meta);
+                info.appendChild(line);
+                info.appendChild(copy);
+                article.appendChild(info);
+                article.appendChild(time);
+                fragment.appendChild(article);
+            });
+            content.innerHTML = '';
+            content.appendChild(fragment);
 
             setTransportState('ready');
         } catch (err) {

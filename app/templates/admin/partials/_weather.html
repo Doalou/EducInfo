@@ -1,112 +1,89 @@
-<!-- 🌤️ Weather Configuration Section -->
-<section id="weather" class="section-container mb-24 scroll-mt-24">
-    <div class="flex items-center gap-4 mb-8">
-        <div
-            class="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center text-sky-400 text-xl shadow-sm">
-            <i class="fas fa-cloud-sun"></i>
-        </div>
+<!-- Météo -->
+<section id="weather" class="adm-section adm-focus-blue">
+    <div class="adm-section-head">
+        <div class="adm-section-icon adm-section-icon-blue"><i class="fas fa-cloud-sun"></i></div>
         <div>
-            <h3 class="text-2xl font-bold text-white">Configuration Météo</h3>
-            <p class="text-neutral-500 text-sm">Paramétrez le widget météo enrichi (v1.3.1).</p>
+            <h3 class="adm-section-title">Configuration Météo</h3>
+            <p class="adm-section-desc">Paramétrez le widget météo enrichi (AQI, UV, Soleil).</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="bg-neutral-900 p-8 rounded-[2rem] border border-neutral-800 relative overflow-hidden shadow-sm">
-            <div class="absolute -right-10 -top-10 text-9xl opacity-5 pointer-events-none text-white">☀️</div>
-            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-6 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Formulaire -->
+        <div class="adm-card adm-card-body-lg relative overflow-hidden">
+            <span class="adm-preview-deco">☀️</span>
+            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-5 relative">
                 {{ weather_form.hidden_tag() }}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Ville</label>
-                        {{ weather_form.city(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5
-                        py-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50
-                        transition-all placeholder:text-neutral-700", placeholder="ex: Strasbourg") }}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="adm-field">
+                        {{ weather_form.city.label(class="adm-label") }}
+                        {{ weather_form.city(class="adm-input", placeholder="ex: Strasbourg") }}
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Clé API
-                            OpenWeatherMap</label>
-                        {{ weather_form.api_key(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5
-                        py-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50
-                        transition-all placeholder:text-neutral-700", type="password", placeholder="Clé secrète...") }}
+                    <div class="adm-field">
+                        {{ weather_form.api_key.label(class="adm-label") }}
+                        {{ weather_form.api_key(class="adm-input", type="password", placeholder="Clé secrète...") }}
                     </div>
                 </div>
 
-                <label
-                    class="flex items-center gap-4 p-5 bg-neutral-950/50 rounded-2xl border border-neutral-800 cursor-pointer hover:bg-neutral-900 transition-all group">
-                    {{ weather_form.show_weather(class="w-6 h-6 rounded-lg accent-sky-500 bg-neutral-800
-                    border-neutral-700") }}
+                <label class="adm-toggle-label" for="{{ weather_form.show_weather.id }}">
+                    {{ weather_form.show_weather(class="") }}
                     <div>
-                        <span
-                            class="block text-white font-bold leading-none mb-1 group-hover:text-sky-400 transition-colors">Afficher
-                            le widget Météo</span>
-                        <span class="text-xs text-neutral-400">Affiche les infos enrichies (AQI, UV, Soleil) sur la
-                            TV.</span>
+                        <p class="adm-toggle-title">Afficher le widget Météo</p>
+                        <p class="adm-toggle-desc">Affiche les données enrichies (AQI, UV, Soleil) sur l'écran TV.</p>
                     </div>
                 </label>
 
-                <button type="submit" name="submit_weather"
-                    class="bg-gradient-to-br from-sky-500 to-blue-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 w-full">
-                    <i class="fas fa-save font-bold"></i>
-                    Sauvegarder la configuration
+                <button type="submit" name="submit_weather" class="adm-btn adm-btn-blue">
+                    <i class="fas fa-save"></i> Sauvegarder
                 </button>
             </form>
         </div>
 
-        <div
-            class="bg-gradient-to-br from-neutral-900/60 to-neutral-950/90 rounded-[2rem] border border-neutral-800 p-8 relative overflow-hidden group shadow-sm">
-            <h4 class="text-white font-bold mb-6 flex items-center justify-between relative z-10">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-eye text-sky-400"></i>
-                    Aperçu Direct
-                </div>
-                <span
-                    class="text-[10px] bg-neutral-800 px-2 py-1 rounded text-neutral-400 uppercase font-black tracking-wider">{{
-                    'LIVE' if
-                    weather_config.api_key else 'DEMO' }}</span>
-            </h4>
+        <!-- Aperçu -->
+        <div class="adm-preview-card flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+                <h4 class="text-white font-semibold flex items-center gap-2">
+                    <i class="fas fa-eye adm-c-blue"></i> Aperçu Direct
+                </h4>
+                <span class="adm-badge {{ 'adm-badge-green' if weather_config.api_key else 'adm-badge-neutral' }}">
+                    {{ 'LIVE' if weather_config.api_key else 'DEMO' }}
+                </span>
+            </div>
 
             {% if weather %}
-            <div class="relative z-10 text-center py-6">
-                <!-- Weather Icon -->
-                <div
-                    class="text-6xl mb-4 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] transform group-hover:scale-110 transition-transform duration-500">
-                    {{ weather.emoji or '☁️' }}
-                </div>
-
-                <!-- Temp -->
-                <div class="text-4xl font-black text-white mb-1 tracking-tighter">
-                    {{ weather.temp }}°C
-                </div>
-                <p class="text-sky-300 font-medium text-sm capitalize mb-6">{{ weather.description }}</p>
-
-                <!-- Grid Stats -->
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="bg-white/5 p-2 rounded-xl border border-white/5">
-                        <i class="fas fa-wind text-neutral-400 mb-1"></i>
+            <div class="flex-1 flex flex-col items-center justify-center text-center py-4">
+                <div class="text-6xl mb-4">{{ weather.emoji or '☁️' }}</div>
+                <p class="text-4xl font-bold text-white mb-1 adm-live-clock">{{ weather.temp }}°C</p>
+                <p class="adm-c-blue text-sm font-medium capitalize mb-6">{{ weather.description }}</p>
+                <div class="grid grid-cols-2 gap-3 w-full text-sm">
+                    <div class="adm-card p-3 text-center">
+                        <i class="fas fa-wind adm-c-muted mb-1 block"></i>
                         <p class="font-bold text-white">{{ weather.wind_speed or '--' }} km/h</p>
+                        <p class="text-[10px] adm-c-muted uppercase tracking-wider">Vent</p>
                     </div>
-                    <div class="bg-white/5 p-2 rounded-xl border border-white/5">
-                        <i class="fas fa-tint text-neutral-400 mb-1"></i>
+                    <div class="adm-card p-3 text-center">
+                        <i class="fas fa-tint adm-c-muted mb-1 block"></i>
                         <p class="font-bold text-white">{{ weather.humidity }}%</p>
+                        <p class="text-[10px] adm-c-muted uppercase tracking-wider">Humidité</p>
                     </div>
                 </div>
             </div>
             {% else %}
-            <div class="relative z-10 flex flex-col items-center justify-center h-48 opacity-40">
-                <i class="fas fa-cloud-slash text-4xl mb-4 text-neutral-600"></i>
-                <p class="text-xs font-bold uppercase tracking-widest text-center text-neutral-500">Aucune donnée météo
-                </p>
+            <div class="adm-empty flex-1">
+                <div class="adm-empty-icon adm-c-muted"><i class="fas fa-cloud-slash"></i></div>
+                <p class="adm-empty-title">Aucune donnée météo</p>
             </div>
             {% endif %}
 
-            <div class="mt-6 pt-4 border-t border-neutral-800 relative z-10">
-                <button onclick="refreshWeatherCache()"
-                    class="w-full text-xs font-bold text-neutral-500 hover:text-white transition-colors flex items-center justify-center gap-2 group/btn">
-                    <i class="fas fa-sync-alt group-hover/btn:rotate-180 transition-transform duration-500"></i>
-                    Actualiser le cache
-                </button>
-            </div>
+            <hr class="adm-divider">
+            <button type="button" onclick="refreshWeatherCache()"
+                class="w-full text-xs font-bold adm-c-muted hover:text-white transition-colors flex items-center justify-center gap-2 group">
+                <i class="fas fa-sync-alt group-hover:rotate-180 transition-transform duration-500"></i>
+                Actualiser le cache
+            </button>
         </div>
+
     </div>
 </section>

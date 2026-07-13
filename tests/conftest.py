@@ -32,7 +32,7 @@ def app():
         db.create_all()
         
         # Création d'un utilisateur de test
-        test_user = User(email='test@example.com', username='testuser')
+        test_user = User(username='testuser')
         test_user.set_password('password')
         test_user.is_admin = True
         db.session.add(test_user)
@@ -41,8 +41,14 @@ def app():
     yield app
     
     # Nettoyage après les tests
+    with app.app_context():
+        db.session.remove()
+        db.drop_all()
     os.close(db_fd)
-    os.unlink(db_path)
+    try:
+        os.unlink(db_path)
+    except PermissionError:
+        pass  # Windows: SQLite may hold the file lock
 
 
 @pytest.fixture
@@ -61,10 +67,10 @@ def runner(app):
 def auth(client):
     """Fixture qui fournit des méthodes pour se connecter et se déconnecter."""
     class AuthActions:
-        def login(self, email='test@example.com', password='password'):
+        def login(self, username='testuser', password='password'):
             return client.post(
                 '/auth/login',
-                data={'identifiant': email, 'password': password},
+                data={'identifiant': username, 'password': password},
                 follow_redirects=True
             )
         

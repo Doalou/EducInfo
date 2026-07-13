@@ -5,6 +5,8 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from flask_caching import Cache
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -15,6 +17,7 @@ csrf = CSRFProtect()
 login_manager = LoginManager()
 migrate = Migrate()
 cache = Cache()
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
 
 # Configuration Flask-Login optimisée
 login_manager.login_view = 'auth.login'
@@ -245,11 +248,11 @@ def configure_security_headers(app):
         if not app.debug:
             csp = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://fonts.googleapis.com; "
                 "img-src 'self' data: https:; "
-                "font-src 'self' https://cdn.jsdelivr.net; "
-                "connect-src 'self' https://api.openweathermap.org https://api.cts-strasbourg.fr"
+                "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
+                "connect-src 'self' https://api.openweathermap.org https://api.cts-strasbourg.eu"
             )
             response.headers['Content-Security-Policy'] = csp
         

@@ -1,102 +1,88 @@
-<!-- 🍽️ Menu Section -->
-<section id="menu" class="section-container mb-24 scroll-mt-24">
-    <div class="flex items-center gap-4 mb-8">
-        <div
-            class="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl flex items-center justify-center text-amber-500 text-xl shadow-sm">
-            <i class="fas fa-utensils"></i>
-        </div>
+<!-- Menu Cantine -->
+<section id="menu" class="adm-section adm-focus-amber">
+    <div class="adm-section-head">
+        <div class="adm-section-icon adm-section-icon-amber"><i class="fas fa-utensils"></i></div>
         <div>
-            <h3 class="text-2xl font-bold text-white">Menu de la Cantine</h3>
-            <p class="text-neutral-500 text-sm">Gérez les plats affichés pour le menu du jour.</p>
+            <h3 class="adm-section-title">Menu de la Cantine</h3>
+            <p class="adm-section-desc">Gérez les plats affichés pour le menu du jour.</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div class="xl:col-span-1">
-            <div class="bg-neutral-900 p-8 rounded-[2rem] border border-neutral-800 shadow-sm">
-                <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-6">
-                    {{ menu_form.hidden_tag() }}
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Nom du
-                            Plat</label>
-                        {{ menu_form.name(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-4
-                        text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50
-                        transition-all placeholder:text-neutral-700", placeholder="ex: Lasagnes à la bolognaise") }}
-                    </div>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label
-                                class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Catégorie</label>
-                            {{ menu_form.category(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl
-                            px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50
-                            focus:border-amber-500/50 transition-all placeholder:text-neutral-700") }}
+        <!-- Formulaire -->
+        <div class="adm-card adm-card-body-lg">
+            <form method="POST" action="{{ url_for('admin.dashboard') }}" class="space-y-5">
+                {{ menu_form.hidden_tag() }}
+
+                <div class="adm-field">
+                    {{ menu_form.name.label(class="adm-label") }}
+                    {{ menu_form.name(class="adm-input", placeholder="ex: Lasagnes bolognaise") }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="adm-field">
+                        {{ menu_form.category.label(class="adm-label") }}
+                        {{ menu_form.category(class="adm-input") }}
+                    </div>
+                    <div class="adm-field">
+                        {{ menu_form.date.label(class="adm-label") }}
+                        {{ menu_form.date(class="adm-input") }}
+                    </div>
+                </div>
+
+                <div class="adm-field">
+                    {{ menu_form.icons.label(class="adm-label") }}
+                    {{ menu_form.icons(class="adm-input") }}
+                </div>
+
+                <button type="submit" name="submit_menu" class="adm-btn adm-btn-amber">
+                    <i class="fas fa-plus"></i> Ajouter au menu
+                </button>
+            </form>
+        </div>
+
+        <!-- Liste -->
+        <div class="xl:col-span-2 adm-card flex flex-col">
+            <div class="adm-card-head">
+                <span class="adm-card-head-title">Plats récents (20 derniers)</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 p-4 gap-3 max-h-[560px] overflow-y-auto">
+                {% if menu_items %}
+                {% for item in menu_items %}
+                <div class="adm-item group">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-2xl flex-shrink-0">{{ item.icons or '🍽️' }}</span>
+                        <div class="min-w-0">
+                            <h4 class="text-white font-semibold text-sm truncate">{{ item.name }}</h4>
+                            <p class="text-[10px] adm-c-muted uppercase font-bold tracking-wider">
+                                {% if item.category == 1 %}Entrée
+                                {% elif item.category == 2 %}Plat
+                                {% elif item.category == 3 %}Fromage
+                                {% else %}Dessert{% endif %}
+                                · {{ item.date.strftime('%d/%m') }}
+                            </p>
                         </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Date</label>
-                            {{ menu_form.date(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5
-                            py-4 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50
-                            focus:border-amber-500/50 transition-all placeholder:text-neutral-700") }}
-                        </div>
                     </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-neutral-500 uppercase tracking-widest pl-1">Icône /
-                            Régime</label>
-                        {{ menu_form.icons(class="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-4
-                        text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50
-                        transition-all placeholder:text-neutral-700") }}
+                    <form method="POST" action="{{ url_for('admin.delete_menu_item', id=item.id) }}"
+                        onsubmit="return confirm('Retirer ce plat ?')" class="flex-shrink-0">
+                        {{ menu_form.hidden_tag() }}
+                        <button type="submit" class="adm-icon-btn adm-icon-btn-danger" title="Retirer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="col-span-2">
+                    <div class="adm-empty">
+                        <div class="adm-empty-icon adm-c-muted"><i class="fas fa-concierge-bell"></i></div>
+                        <p class="adm-empty-title">Le menu est vide</p>
                     </div>
-
-                    <button type="submit" name="submit_menu"
-                        class="bg-gradient-to-br from-amber-500 to-amber-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 w-full">
-                        <i class="fas fa-plus"></i>
-                        Ajouter au menu
-                    </button>
-                </form>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <div class="xl:col-span-2">
-            <div class="bg-neutral-900 rounded-[2rem] border border-neutral-800 overflow-hidden shadow-sm">
-                <div class="p-6 border-b border-neutral-800 bg-neutral-950/30 flex items-center justify-between">
-                    <span class="text-xs font-bold text-neutral-500 uppercase tracking-widest">Plats récents (20
-                        derniers)</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 p-6 gap-4 max-h-[600px] overflow-y-auto">
-                    {% if menu_items %}
-                    {% for item in menu_items %}
-                    <div
-                        class="bg-neutral-950 p-4 rounded-2xl border border-neutral-800 flex items-center justify-between group hover:border-neutral-700 transition-all">
-                        <div class="flex items-center gap-4">
-                            <span class="text-2xl">{{ item.icons or '🍽️' }}</span>
-                            <div>
-                                <h4 class="text-white font-bold text-sm truncate max-w-[150px]">{{ item.name }}</h4>
-                                <p class="text-[10px] text-neutral-500 uppercase font-black tracking-widest">
-                                    {% if item.category == 1 %}Entrée{% elif item.category == 2 %}Plat{% elif
-                                    item.category == 3 %}Fromage{% else %}Dessert{% endif %}
-                                    • {{ item.date.strftime('%d/%m') }}
-                                </p>
-                            </div>
-                        </div>
-                        <form method="POST" action="{{ url_for('admin.delete_menu_item', id=item.id) }}"
-                            onsubmit="return confirm('Retirer ce plat ?')">
-                            {{ menu_form.hidden_tag() }}
-                            <button type="submit"
-                                class="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-800 hover:text-rose-500 transition-all">
-                                <i class="fas fa-times text-xs"></i>
-                            </button>
-                        </form>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="col-span-2 py-10 text-center opacity-30">
-                        <p class="font-bold uppercase tracking-widest text-white">Le menu est vide</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
     </div>
 </section>

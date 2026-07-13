@@ -4,7 +4,8 @@ Ce module définit les routes et la logique d'administration du site.
 """
 from flask import render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
-from datetime import datetime, timedelta, date
+from app.utils.decorators import admin_required
+from datetime import datetime, timedelta, date, timezone
 from sqlalchemy import text
 import time
 import os
@@ -23,7 +24,7 @@ from app.models.event import Event
 from app.models.menu import MenuItem
 from app.models.config import WidgetConfig, SiteConfig, WeatherConfig
 from app.models.user import User
-from app.extensions import db, logger, cache
+from app.extensions import db, logger, cache, limiter
 from app.services import transport_service, menu_service, weather_service
 
 # Constantes CTS pour l'admin
@@ -31,7 +32,7 @@ CTS_ADMIN_PREVIEW_INTERVAL = "PT30M"
 CTS_ADMIN_MAX_VISITS = 5
 
 @bp.route('/dashboard', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def dashboard():
     """Tableau de bord d'administration."""
     forms = {
@@ -267,6 +268,7 @@ def dashboard():
         cts_results=cts_results,
         searched_cts_stop=searched_cts_stop,
         searched_vehicle_mode=searched_vehicle_mode,
+        cts_token_from_env=bool(current_app.config.get('CTS_API_TOKEN')),
         all_users=User.query.all(),
         weather=weather_service.get_weather_data()
     )
@@ -275,7 +277,7 @@ def handle_absence_deletion(request, forms, configs):
     """Gère la suppression d'une absence."""
     absence_id = request.form.get('delete_absence')
     if absence_id:
-        absence = Absence.query.get(absence_id)
+        absence = db.session.get(Absence, absence_id)
         if absence:
             try:
                 db.session.delete(absence)
@@ -394,7 +396,7 @@ def handle_event_creation(request, forms, configs):
 def handle_event_deletion(request, forms, configs):
     """Gère la suppression d'un événement."""
     event_id = request.form.get('delete_event')
-    evt = Event.query.get(event_id)
+    evt = db.session.get(Event, event_id)
     if evt:
         db.session.delete(evt)
         db.session.commit()
@@ -514,7 +516,7 @@ def handle_transport_config(request, forms, configs):
     return redirect(url_for('admin.dashboard'))
 
 @bp.route('/delete-absence/<int:id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_absence(id):
     """Supprimer une absence."""
     try:
@@ -531,7 +533,7 @@ def delete_absence(id):
     return redirect(url_for('admin.dashboard'))
 
 @bp.route('/delete-event/<int:id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_event(id):
     """Supprimer un événement."""
     try:
@@ -548,7 +550,7 @@ def delete_event(id):
     return redirect(url_for('admin.dashboard'))
 
 @bp.route('/delete-menu-item/<int:id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_menu_item(id):
     """Supprimer un élément de menu."""
     try:
@@ -565,15 +567,12 @@ def delete_menu_item(id):
     return redirect(url_for('admin.dashboard'))
 
 @bp.route('/metrics')
-@login_required
+@admin_required
 def admin_metrics():
     """
     Page des métriques système avec uniquement des données réelles mesurables.
     Suppression de toutes les estimations et données inventées.
     """
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits d'accès à cette page", "danger")
-        return redirect(url_for('admin.dashboard'))
     
     try:
         # === Métriques système réelles ===
@@ -823,12 +822,9 @@ def admin_metrics():
         return redirect(url_for('admin.dashboard'))
 
 @bp.route('/debug-users')
-@login_required
+@admin_required
 def debug_users():
     """Page de diagnostic avancé des utilisateurs pour l'administrateur"""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits d'accès à cette page", "danger")
-        return redirect(url_for('admin.dashboard'))
     
     try:
         # Récupérer les données utilisateurs
@@ -851,11 +847,11 @@ def debug_users():
         last_login = max([user.last_login for user in users_with_login]) if users_with_login else None
         
         # Utilisateurs récents (30 derniers jours)
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         recent_users = [user for user in users if user.created_at and user.created_at >= thirty_days_ago]
         
         # Utilisateurs actifs récents (connexion dans les 7 derniers jours)
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         recently_active = [user for user in users_with_login if user.last_login >= seven_days_ago]
         
         # Analyse de sécurité
@@ -863,7 +859,7 @@ def debug_users():
         
         # Vérifier les utilisateurs sans mot de passe récent
         old_users = [user for user in users if not user.last_login or 
-                    (datetime.utcnow() - user.last_login).days > 90]
+                    (datetime.now(timezone.utc) - user.last_login).days > 90]
         if old_users:
             security_alerts.append({
                 'type': 'warning',
@@ -941,12 +937,9 @@ def debug_users():
         return redirect(url_for('admin.dashboard'))
 
 @bp.route('/create-user', methods=['POST'])
-@login_required
+@admin_required
 def create_user():
     """Créer un nouvel utilisateur"""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits pour créer des utilisateurs", "danger")
-        return redirect(url_for('admin.debug_users'))
     
     from .forms import CreateUserForm
     form = CreateUserForm()
@@ -986,12 +979,9 @@ def create_user():
     return redirect(url_for('admin.debug_users'))
 
 @bp.route('/edit-user/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def edit_user(user_id):
     """Modifier un utilisateur existant"""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits pour modifier des utilisateurs", "danger")
-        return redirect(url_for('admin.debug_users'))
     
     user = User.query.get_or_404(user_id)
     
@@ -1041,12 +1031,9 @@ def edit_user(user_id):
     return redirect(url_for('admin.debug_users'))
 
 @bp.route('/delete-user/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_user(user_id):
     """Supprimer un utilisateur"""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits pour supprimer des utilisateurs", "danger")
-        return redirect(url_for('admin.debug_users'))
     
     user = User.query.get_or_404(user_id)
     
@@ -1084,11 +1071,9 @@ def delete_user(user_id):
     return redirect(url_for('admin.debug_users'))
 
 @bp.route('/get-user/<int:user_id>')
-@login_required
+@admin_required
 def get_user(user_id):
     """API pour récupérer les données d'un utilisateur (pour l'édition)"""
-    if not current_user.is_admin:
-        return jsonify({'error': 'Non autorisé'}), 403
     
     user = User.query.get_or_404(user_id)
     
@@ -1151,11 +1136,11 @@ def admin_emergency_reset():
     )
 
 @bp.route('/emergency-reset-password', methods=['POST'])
+@limiter.limit("3 per hour")
 def admin_emergency_reset_password():
     code_from_form = request.form.get('code')
     expected_code = current_app.config.get('GENERATED_EMERGENCY_CODE')
-    current_app.logger.info(f"DEBUG POST /emergency-reset-password: Expected code from config: {expected_code}")
-    current_app.logger.info(f"DEBUG POST /emergency-reset-password: Code from form: {code_from_form}")
+    current_app.logger.debug("POST /emergency-reset-password: vérification du code d'urgence")
     
     if not expected_code or not code_from_form or code_from_form != expected_code:
         flash("Code de sécurité invalide, expiré ou non généré. La réinitialisation a échoué.", 'danger')
@@ -1169,7 +1154,7 @@ def admin_emergency_reset_password():
 
         if admin_user:
             admin_user.set_password(new_password)
-            logger.info(f"Mot de passe de l'admin {admin_user.username} réinitialisé via urgence. Nouveau mot de passe : {new_password}")
+            logger.warning(f"Réinitialisation d'urgence du mot de passe admin pour : {admin_user.username}")
         else:
             flash("Aucun utilisateur admin trouvé. Aucune action effectuée.", 'warning')
             db.session.rollback() 
@@ -1197,12 +1182,9 @@ def admin_emergency_reset_password():
         return redirect(url_for('admin.admin_emergency_reset'))
 
 @bp.route('/clear-cache', methods=['POST'])
-@login_required
+@admin_required
 def admin_clear_cache():
     """Endpoint pour vider sélectivement le cache"""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits d'accès à cette fonction", "danger")
-        return redirect(url_for('admin.dashboard'))
     
     try:
         pattern = request.form.get('pattern', '').strip()
@@ -1263,12 +1245,9 @@ def admin_clear_cache():
     return redirect(url_for('admin.admin_metrics'))
 
 @bp.route('/test-notifications', methods=['POST'])
-@login_required
+@admin_required
 def test_notifications():
     """Tester les différents types de notifications flash."""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits d'accès à cette fonction", "danger")
-        return redirect(url_for('admin.dashboard'))
     
     notification_type = request.form.get('notification_type', 'all')
     
@@ -1317,12 +1296,9 @@ def test_notifications():
     return redirect(url_for('admin.dashboard') + '#settings')
 
 @bp.route('/system-status', methods=['GET'])
-@login_required  
+@admin_required
 def system_status():
     """Afficher le statut complet du système avec diagnostic."""
-    if not current_user.is_admin:
-        flash("Vous n'avez pas les droits d'accès à cette page", "danger")
-        return redirect(url_for('admin.dashboard'))
     
     try:
         # Test de la base de données
@@ -1393,7 +1369,7 @@ def system_status():
 
 
 @bp.route('/debug/weather')
-@login_required
+@admin_required
 def debug_weather():
     """Route de diagnostic pour la météo (protégée par authentification)."""
     from app.models.config import WeatherConfig
@@ -1423,7 +1399,7 @@ def debug_weather():
 
 
 @bp.route('/debug/transport')
-@login_required
+@admin_required
 def debug_transport():
     """Route de diagnostic pour le transport (protégée par authentification)."""
     try:

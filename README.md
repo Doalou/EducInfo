@@ -1,4 +1,4 @@
-# 📺 EducInfo v1.3.0
+# 📺 EducInfo v2.0.0
 
 > **Système d'affichage scolaire intelligent optimisé pour écrans TV**
 
@@ -386,8 +386,8 @@ docker-compose up -d --build
 # Voir les logs
 docker-compose logs -f
 
-# Accéder à l'application : http://localhost:5000
-# Activer le mode TV : http://localhost:5000?tv=true
+# Accéder à l'application : http://localhost:5001
+# Activer le mode TV : http://localhost:5001?tv=true
 ```
 
 #### Build manuel Docker

@@ -10,38 +10,48 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Admin Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
+                        /* Palette harmonisée avec l'écran TV (tv-mode.css dark) */
                         neutral: {
-                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
-                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
-                            800: '#262626', 900: '#171717', 950: '#0a0a0a'
+                            50: '#eef3f0', 100: '#dfe6e2', 200: '#c4d0ca', 300: '#9babb1',
+                            400: '#7a8a92', 500: '#56646c', 600: '#3d4a52', 700: '#2a3540',
+                            800: '#1e2830', 900: '#12191f', 950: '#10171d'
                         },
                         obsidian: {
                             50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
                             400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
                             800: '#1e293b', 900: '#0f172a', 950: '#020617'
                         },
-                        vibrant: {
-                            amber: '#f59e0b', terracotta: '#ea580c', sage: '#65a30d',
-                            ocean: '#0891b2', plum: '#9333ea', rose: '#e11d48'
+                        sage: {
+                            50: '#f7fee7', 100: '#ecfccb', 200: '#d9f99d', 300: '#bef264',
+                            400: '#a3e635', 500: '#84cc16', 600: '#65a30d', 700: '#4d7c0f',
+                            800: '#3f6212', 900: '#365314', 950: '#1a2e05'
+                        },
+                        plum: {
+                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+                            400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce',
+                            800: '#6b21a8', 900: '#581c87', 950: '#3b0764'
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Space Grotesk', 'Inter', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace']
                     }
                 }
@@ -50,41 +60,8 @@
     </script>
 
     <style>
-        /* Solid Obsidian Theme Overrides */
-        body {
-            background-color: #0a0a0a;
-            /* neutral-950 */
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #171717;
-            /* neutral-900 */
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #404040;
-            /* neutral-700 */
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #525252;
-            /* neutral-600 */
-        }
-
-        .sidebar-item-active {
-            background-color: #262626;
-            /* neutral-800 */
-            color: #ffffff;
-            border-right: 3px solid #f59e0b;
-            /* amber-500 */
-        }
+        /* sidebar-item-active conservé pour compatibilité JS existant */
+        .sidebar-item-active { background: #1e2830; color: #fff; border-right: 3px solid #f0c971; }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -93,7 +70,7 @@
     <div class="flex min-h-screen overflow-hidden">
         <!-- Sidebar -->
         <div id="sidebar-overlay"
-            class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm cursor-pointer"></div>
+            class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden cursor-pointer"></div>
 
         {% include 'admin/partials/_sidebar.html' %}
 
@@ -125,17 +102,15 @@
                 const targetElement = document.getElementById(targetId);
 
                 if (targetElement) {
-                    // Update Active State
                     document.querySelectorAll('nav a').forEach(a => {
                         a.classList.remove('sidebar-item-active');
-                        a.classList.remove('text-white'); // Ensure text resets
+                        a.classList.remove('text-white');
                         a.classList.add('text-neutral-400');
                     });
 
                     this.classList.add('sidebar-item-active');
                     this.classList.remove('text-neutral-400');
 
-                    // Breadcrumb
                     const breadcrumb = document.getElementById('breadcrumb-current');
                     if (breadcrumb) {
                         breadcrumb.textContent = this.querySelector('span').textContent;
@@ -157,8 +132,6 @@
                 let current = "";
                 sections.forEach(section => {
                     const sectionTop = section.offsetTop;
-                    // const sectionHeight = section.clientHeight;
-                    // Ajustement offset pour la détection
                     if (scrollArea.scrollTop >= (sectionTop - 200)) {
                         current = section.getAttribute('id');
                     }
@@ -167,7 +140,6 @@
                 if (current) {
                     document.querySelectorAll('nav a').forEach(a => {
                         a.classList.remove('sidebar-item-active');
-                        // Reset text colors
                         if (a.classList.contains('text-white')) {
                             a.classList.remove('text-white');
                             a.classList.add('text-neutral-400');

@@ -32,7 +32,8 @@ class Config:
     }
     
     # Sessions
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=2)
+    SESSION_INACTIVITY_TIMEOUT = 1800  # 30 minutes en secondes
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
@@ -81,6 +82,8 @@ class Config:
     WEATHER_CITY = os.environ.get('WEATHER_CITY', 'Strasbourg')
     CTS_BASE_URL = os.environ.get('CTS_BASE_URL', 'https://api.cts-strasbourg.eu')
     CTS_API_TOKEN = os.environ.get('CTS_API_TOKEN', '')
+    CTS_MAX_VISITS = int(os.environ.get('CTS_MAX_VISITS', '8'))
+    CTS_PREVIEW_INTERVAL = os.environ.get('CTS_PREVIEW_INTERVAL', 'PT90M')
     
     # Admin par défaut
     DEFAULT_ADMIN_USERNAME = os.environ.get('DEFAULT_ADMIN_USERNAME', 'admin')

@@ -19,9 +19,6 @@ class TransportService:
     # Constantes optimisées pour l'affichage temps réel
     CACHE_DURATION = 30  # 30 secondes pour les données temps réel
     REQUEST_TIMEOUT = 8  # Timeout augmenté pour la stabilité
-    DEFAULT_PREVIEW_INTERVAL = "PT90M"  # 1h30 par défaut (optimisé)
-    DEFAULT_MAX_VISITS = 8  # 8 prochains passages (selon spec)
-    BASE_URL = "https://api.cts-strasbourg.eu"
     
     def __init__(self):
         self.cache = current_app.extensions.get('cache')
@@ -86,8 +83,8 @@ class TransportService:
             final_stop_code = stop_code or config.cts_stop_code or current_app.config.get('CTS_STOP_CODE')
             final_api_token = api_token or config.cts_api_token or current_app.config.get('CTS_API_TOKEN')
             final_vehicle_mode = vehicle_mode or config.cts_vehicle_mode or 'undefined'
-            final_preview_interval = preview_interval or self.DEFAULT_PREVIEW_INTERVAL
-            final_max_visits = max_visits or self.DEFAULT_MAX_VISITS
+            final_preview_interval = preview_interval or current_app.config.get('CTS_PREVIEW_INTERVAL', 'PT90M')
+            final_max_visits = max_visits or current_app.config.get('CTS_MAX_VISITS', 8)
             
             # Vérifications de configuration
             if not config.show_transports:
@@ -116,8 +113,9 @@ class TransportService:
                 return cached_data
             
             # Récupération des données en temps réel
+            base_url = current_app.config.get('CTS_BASE_URL', 'https://api.cts-strasbourg.eu')
             arrivals_data = self._fetch_arrivals_data(
-                self.BASE_URL,
+                base_url,
                 final_stop_code,
                 final_vehicle_mode,
                 final_api_token,

@@ -245,7 +245,7 @@ class MenuService:
             MenuItem: L'élément de menu mis à jour, ou None en cas d'erreur
         """
         try:
-            menu_item = MenuItem.query.get(item_id)
+            menu_item = db.session.get(MenuItem, item_id)
             if not menu_item:
                 logger.warning(f"Service menu: Élément de menu {item_id} non trouvé pour mise à jour")
                 return None
@@ -275,7 +275,7 @@ class MenuService:
             bool: True si la suppression a réussi, False sinon
         """
         try:
-            menu_item = MenuItem.query.get(item_id)
+            menu_item = db.session.get(MenuItem, item_id)
             if not menu_item:
                 logger.warning(f"Service menu: Élément de menu {item_id} non trouvé pour suppression")
                 return False

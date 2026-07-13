@@ -8,9 +8,11 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app.blueprints.auth import bp
 from app.blueprints.auth.forms import LoginForm, ChangePasswordForm
 from app.models.user import User
-from app.extensions import db, logger
+from app.extensions import db, logger, limiter
 
 @bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+@limiter.limit("20 per hour")
 def login():
     """Connexion d'un utilisateur."""
     if current_user.is_authenticated:

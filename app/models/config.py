@@ -38,7 +38,7 @@ class WidgetConfig(db.Model):
             WidgetConfig: Instance unique de configuration des widgets
         """
         # Utilise get() au lieu de first() pour cibler spécifiquement ID=1
-        config = cls.query.get(1)
+        config = db.session.get(cls, 1)
         if not config:
             # Assure l'unicité en supprimant d'éventuels doublons
             cls.query.filter(cls.id != 1).delete()
@@ -46,17 +46,6 @@ class WidgetConfig(db.Model):
             db.session.add(config)
             db.session.commit()
         return config
-
-    @staticmethod  
-    def get_config_legacy():
-        """
-        Méthode statique obsolète - utiliser la méthode de classe get_config().
-        Maintenue pour compatibilité ascendante.
-        
-        Returns:
-            WidgetConfig: Instance de configuration des widgets
-        """
-        return WidgetConfig.get_config()
 
     def has_valid_transport_config(self, cts_api_token_from_config=None):
         """
@@ -116,7 +105,6 @@ class WidgetConfig(db.Model):
         for key, value in settings.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-        # db.session.commit() # Commit doit être géré par la vue/service
 
 
 class ThemeConfig(db.Model):
@@ -200,13 +188,15 @@ class WeatherConfig(db.Model):
     def get_config(cls):
         """
         Récupère la configuration météo ou en crée une par défaut si elle n'existe pas.
-        
+
         Returns:
             WeatherConfig: Instance de configuration météo
         """
         config = cls.query.first()
         if not config:
-            config = cls()
+            from flask import current_app
+            default_city = current_app.config.get('WEATHER_CITY', 'Strasbourg')
+            config = cls(city=default_city)
             db.session.add(config)
             db.session.commit()
         return config 

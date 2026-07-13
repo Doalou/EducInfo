@@ -1,5 +1,5 @@
 """Modèle d'utilisateur optimisé pour l'authentification."""
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
@@ -12,10 +12,17 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     last_login = db.Column(db.DateTime)
-    is_active = db.Column(db.Boolean, default=True, index=True)
-    is_admin = db.Column(db.Boolean, default=False, index=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False, index=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.is_active is None:
+            self.is_active = True
+        if self.is_admin is None:
+            self.is_admin = False
 
     def __repr__(self):
         return f'<User {self.username} ({"admin" if self.is_admin else "user"})>'
@@ -45,4 +52,4 @@ class User(UserMixin, db.Model):
 
     def update_last_login(self):
         """Met à jour la date de dernière connexion."""
-        self.last_login = datetime.utcnow() 
+        self.last_login = datetime.now(timezone.utc)

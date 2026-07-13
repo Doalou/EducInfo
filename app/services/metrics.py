@@ -8,7 +8,7 @@ import time
 import json
 import psutil
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any
 from flask import current_app
 from ..utils.cache import get_cached, set_cached
@@ -52,7 +52,7 @@ class MetricsAggregator:
             # === Métriques applicatives (partagées entre instances) ===
             total_users = User.query.count()
             active_users = User.query.filter_by(is_active=True).count()
-            today = datetime.utcnow().date()
+            today = datetime.now(timezone.utc).date()
             
             # Absences du jour selon le jour de la semaine
             day_mapping = {0: 'lundi', 1: 'mardi', 2: 'mercredi', 3: 'jeudi', 4: 'vendredi', 5: 'samedi'}
@@ -76,7 +76,7 @@ class MetricsAggregator:
             
             instance_metrics = {
                 'instance_id': self.instance_id,
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
                 'system': {
                     'cpu_usage': round(cpu_percent, 1),
                     'memory_usage': round(memory.percent, 1),
@@ -102,7 +102,7 @@ class MetricsAggregator:
             logger.error(f"Erreur collecte métriques instance {self.instance_id}: {e}")
             return {
                 'instance_id': self.instance_id,
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
                 'system': {'cpu_usage': 0, 'memory_usage': 0, 'disk_usage': 0, 'uptime_seconds': 0},
                 'application': {'total_users': 0, 'active_users': 0, 'absences_today': 0, 'menu_items_today': 0, 'upcoming_events': 0},
                 'health': {'status': 'error', 'response_time': None}
@@ -178,11 +178,11 @@ class MetricsAggregator:
                                     instance_metrics = json.loads(instance_data)
                                     
                                     # Vérifier que l'instance n'est pas trop ancienne (TTL + buffer)
-                                    from datetime import datetime, timedelta
+                                    from datetime import datetime, timedelta, timezone
                                     instance_time = datetime.fromisoformat(instance_metrics['timestamp'])
                                     max_age = timedelta(seconds=self.instance_ttl + 60)  # TTL + 1 minute buffer
                                     
-                                    if datetime.utcnow() - instance_time <= max_age:
+                                    if datetime.now(timezone.utc) - instance_time <= max_age:
                                         # Reformater pour compatibilité avec la structure attendue
                                         formatted_instance = {
                                             'id': instance_metrics['instance_id'],
@@ -276,7 +276,7 @@ class MetricsAggregator:
                     }
                     for inst in instances_metrics
                 ],
-                'aggregated_at': datetime.utcnow().isoformat()
+                'aggregated_at': datetime.now(timezone.utc).isoformat()
             }
             
             # Mettre en cache les métriques agrégées
@@ -295,7 +295,7 @@ class MetricsAggregator:
             'system_avg': {'cpu_usage': 0, 'memory_usage': 0, 'disk_usage': 0, 'cluster_uptime': 0},
             'application': {'total_users': 0, 'active_users': 0, 'absences_today': 0, 'menu_items_today': 0, 'upcoming_events': 0},
             'instances': [{'id': self.instance_id, 'status': 'error', 'cpu': 0, 'memory': 0, 'uptime': 0}],
-            'aggregated_at': datetime.utcnow().isoformat()
+            'aggregated_at': datetime.now(timezone.utc).isoformat()
         }
     
     def get_metrics_for_display(self) -> Dict[str, Any]:

@@ -1,172 +1,146 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="fr" class="dark">
 
-{% block title %}Emergency Diagnostic | EducInfo{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès d'urgence | EducInfo</title>
 
-{% block extra_head %}
-<style>
-    body {
-        background-color: #050505;
-        background-image:
-            radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-            radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 0.1) 0, transparent 50%),
-            radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.05) 0, transparent 50%);
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
-    .emergency-card {
-        @apply relative overflow-hidden;
-        background: rgba(15, 15, 20, 0.7);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+        };
+    </script>
 
-    .shimmer-bar {
-        height: 4px;
-        background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite linear;
-    }
-
-    @keyframes shimmer {
-        0% {
-            background-position: 200% 0;
+    <style>
+        body {
+            min-height: 100vh;
+            background: #10171d;
+            font-family: 'Inter', system-ui, sans-serif;
         }
 
-        100% {
-            background-position: -200% 0;
+        .emergency-input {
+            background: #10171d;
+            border: 1px solid #2a3540;
         }
-    }
 
-    .glass-input {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        @apply w-full rounded-2xl py-4 px-6 text-white text-lg font-mono focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 outline-none transition-all placeholder:text-slate-600;
-    }
+        .emergency-input:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.12);
+            outline: none;
+        }
+    </style>
+</head>
 
-    .btn-emergency {
-        @apply w-full py-4 rounded-2xl text-lg font-black uppercase tracking-widest transition-all active:scale-95;
-    }
+<body class="flex items-center justify-center p-4">
+{% include 'includes/flash_messages.html' %}
+<main class="w-full max-w-md">
+    <div class="text-center mb-8">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style="background: rgba(225,29,72,0.15); border: 1px solid rgba(225,29,72,0.25);">
+            <svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-white">Accès d'urgence</h1>
+        <p class="text-sm text-[#9babb1] mt-1">Réinitialisation du compte administrateur</p>
+    </div>
 
-    .status-badge {
-        @apply px-4 py-1.5 rounded-xl text-xs font-black uppercase border;
-    }
-</style>
-{% endblock %}
+    <div style="background: #12191f; border: 1px solid #2a3540;" class="rounded-xl p-6">
+        {% if error %}
+        <div class="mb-5 rounded-lg border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {{ error }}
+        </div>
+        {% endif %}
 
-{% block content %}
-<main class="min-h-screen flex items-center justify-center p-6">
-    <div class="emergency-card w-full max-w-2xl rounded-[3rem]">
-        <div class="shimmer-bar"></div>
-
-        <div class="p-10 md:p-16">
-            <!-- Header -->
-            <div class="text-center mb-12">
-                <div
-                    class="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl border border-amber-500/20 shadow-[0_0_40px_rgba(245,158,11,0.1)]">
-                    <i class="fas fa-shield-virus"></i>
-                </div>
-                <h1 class="text-3xl font-extrabold text-white tracking-tight mb-3">Réinitialisation d'Urgence</h1>
-                <p class="text-slate-500 font-medium">Diagnostic système et restauration des accès privilégiés.</p>
-            </div>
-
-            {% include 'includes/flash_messages.html' %}
-
-            {% if error %}
-            <div class="bg-rose-500/10 border border-rose-500/20 p-6 rounded-3xl flex items-center gap-4 mb-8">
-                <i class="fas fa-exclamation-circle text-rose-500 text-xl"></i>
-                <p class="text-rose-200 text-sm font-medium">{{ error }}</p>
-            </div>
-            {% endif %}
-
-            {% if reset_success %}
-            <div class="bg-sage-500/10 border border-sage-500/20 p-8 rounded-3xl text-center mb-8">
-                <div
-                    class="w-16 h-16 bg-sage-500/20 text-sage-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fas fa-check-double"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Restauré avec succès</h3>
-                <p class="text-slate-400 text-sm mb-8">Le mot de passe administrateur a été réinitialisé à <code
-                        class="bg-white/5 px-2 py-1 rounded text-sage-400">admin123</code>.</p>
-                <a href="{{ url_for('auth.login') }}"
-                    class="btn-emergency bg-sage-500 hover:bg-sage-600 text-white shadow-lg shadow-sage-500/20 flex items-center justify-center gap-3">
-                    Se Connecter <i class="fas fa-arrow-right text-sm"></i>
-                </a>
-            </div>
-            {% elif not show_form %}
-            <!-- Initial Challenge -->
-            <div class="bg-indigo-500/5 border border-indigo-500/10 p-8 rounded-3xl mb-10">
-                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Instruction de Sécurité
-                </h4>
-                <p class="text-slate-400 text-sm leading-relaxed mb-6">
-                    Un code de sécurité à usage unique est nécessaire. Vous pouvez le générer via le terminal du serveur
-                    :
+        {% if reset_success %}
+        <div class="space-y-5">
+            <div class="rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-5">
+                <p class="font-semibold text-white mb-2">Réinitialisation terminée</p>
+                <p class="text-sm text-[#c4d0ca]">
+                    Le mot de passe a été remis à
+                    <code class="rounded px-2 py-0.5 font-mono text-emerald-300 text-xs" style="background:#10171d">admin123</code>.
                 </p>
-                <div
-                    class="bg-black/40 p-4 rounded-xl border border-white/5 font-mono text-xs text-indigo-300 select-all">
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-center">
+                <div style="background:#1e2830" class="rounded-lg p-4">
+                    <p class="text-2xl font-bold text-white">{{ user_count }}</p>
+                    <p class="text-xs text-[#9babb1] mt-1">Comptes</p>
+                </div>
+                <div style="background:#1e2830" class="rounded-lg p-4">
+                    <p class="text-lg font-bold {{ 'text-emerald-400' if admin_exists else 'text-rose-400' }}">
+                        {{ 'Disponible' if admin_exists else 'Manquant' }}
+                    </p>
+                    <p class="text-xs text-[#9babb1] mt-1">Admin principal</p>
+                </div>
+            </div>
+            <a href="{{ url_for('auth.login') }}" class="block w-full text-center rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-400">
+                Retour à la connexion
+            </a>
+        </div>
+
+        {% elif not show_form %}
+        <div class="space-y-5">
+            <div class="rounded-lg border border-amber-400/20 bg-amber-400/10 p-5">
+                <p class="text-sm text-[#c4d0ca] mb-3">
+                    Générez un code unique depuis le serveur :
+                </p>
+                <div class="rounded-lg px-4 py-3 font-mono text-sm text-amber-200" style="background:#10171d">
                     flask admin generate-emergency-code
                 </div>
             </div>
-
-            <form method="get" action="{{ url_for('admin.admin_emergency_reset') }}" class="space-y-6">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-4">Code de
-                        Sécurité</label>
-                    <input type="password" name="code" required class="glass-input" placeholder="••••••••-••••">
+            <form method="get" action="{{ url_for('admin.admin_emergency_reset') }}" class="space-y-4">
+                <div>
+                    <label for="code" class="block text-sm font-medium text-[#c4d0ca] mb-1.5">Code de sécurité</label>
+                    <input id="code" type="password" name="code" required class="emergency-input block w-full rounded-xl px-4 py-2.5 text-sm font-mono tracking-widest text-white placeholder:text-[#56646c]" placeholder="••••••••-••••">
                 </div>
-                <button type="submit"
-                    class="btn-emergency bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20">
-                    Vérifier l'Identité
+                <button type="submit" class="w-full rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400">
+                    Vérifier le code
                 </button>
             </form>
-            {% else %}
-            <!-- Step 2: Confirmation -->
-            <div class="space-y-8">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass p-5 rounded-2xl border border-white/5">
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Comptes</p>
-                        <p class="text-2xl font-black text-white">{{ user_count }}</p>
-                    </div>
-                    <div class="glass p-5 rounded-2xl border border-white/5">
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Admin Principal
-                        </p>
-                        <span
-                            class="status-badge {{ 'bg-sage-500/10 text-sage-500 border-sage-500/20' if admin_exists else 'bg-rose-500/10 text-rose-500 border-rose-500/20' }}">
-                            {{ 'Actif' if admin_exists else 'Manquant' }}
-                        </span>
-                    </div>
-                </div>
+        </div>
 
-                <div class="bg-rose-500/10 border border-rose-500/20 p-6 rounded-3xl">
-                    <h4 class="text-rose-500 font-bold mb-2 flex items-center gap-2">
-                        <i class="fas fa-radiation"></i> Zone de Danger
-                    </h4>
-                    <p class="text-rose-200/70 text-sm leading-relaxed">
-                        La validation réinitialisera instantanément le compte administrateur. Les sessions actives
-                        seront invalidées.
+        {% else %}
+        <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-3 text-center">
+                <div style="background:#1e2830" class="rounded-lg p-4">
+                    <p class="text-2xl font-bold text-white">{{ user_count }}</p>
+                    <p class="text-xs text-[#9babb1] mt-1">Comptes détectés</p>
+                </div>
+                <div style="background:#1e2830" class="rounded-lg p-4">
+                    <p class="text-lg font-bold {{ 'text-emerald-400' if admin_exists else 'text-rose-400' }}">
+                        {{ 'Actif' if admin_exists else 'Absent' }}
                     </p>
+                    <p class="text-xs text-[#9babb1] mt-1">Admin principal</p>
                 </div>
-
-                <form method="post" action="{{ url_for('admin.admin_emergency_reset_password') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="code" value="{{ request.args.get('code') }}">
-                    <button type="submit"
-                        class="btn-emergency bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20">
-                        Exécuter la Réinitialisation
-                    </button>
-                </form>
-
-                <a href="{{ url_for('admin.admin_emergency_reset') }}"
-                    class="block text-center text-xs font-bold text-slate-500 hover:text-slate-300 uppercase tracking-widest">
-                    Annuler l'Opération
-                </a>
             </div>
-            {% endif %}
+            <div class="rounded-lg border border-rose-500/25 bg-rose-500/10 p-4 text-sm text-[#c4d0ca]">
+                La confirmation réinitialisera le compte administrateur et invalidera les sessions ouvertes.
+            </div>
+            <form method="post" action="{{ url_for('admin.admin_emergency_reset_password') }}" class="space-y-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="code" value="{{ request.args.get('code') }}">
+                <button type="submit" class="w-full rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-400">
+                    Confirmer la réinitialisation
+                </button>
+            </form>
+            <a href="{{ url_for('admin.admin_emergency_reset') }}" class="block w-full text-center rounded-xl px-4 py-2.5 text-sm text-[#c4d0ca] transition hover:text-white" style="border: 1px solid #2a3540; background: #1e2830;">
+                Annuler
+            </a>
         </div>
-
-        <div class="bg-white/5 p-4 text-center">
-            <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">EducInfo Security Protocol v1.4
-            </p>
-        </div>
+        {% endif %}
     </div>
+
+    <p class="text-center mt-6 text-xs text-[#56646c]">
+        <a href="{{ url_for('auth.login') }}" class="text-[#9babb1] hover:text-white transition">Retour à la connexion</a>
+    </p>
 </main>
-{% endblock %}
+</body>
+
+</html>

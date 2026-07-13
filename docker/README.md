@@ -41,7 +41,11 @@ docker-compose up -d --build
 
 ### 3. Accès
 
-L'application sera accessible sur : http://localhost:5000
+Avec `docker-compose.yml`, le port `5000` du conteneur est publié sur le port `5001` de la machine hôte.
+
+L'application sera donc accessible sur : http://localhost:5001
+
+> Note : l'exemple `docker run` plus bas expose bien `5000:5000`, donc dans ce cas précis l'accès reste `http://localhost:5000`.
 
 ## Utilisation avec Docker
 
@@ -130,4 +134,4 @@ Pour la production, modifiez :
 1. Le `SECRET_KEY` dans votre `.env`
 2. Les mots de passe administrateurs
 3. Utilisez un reverse proxy (nginx, traefik)
-4. Configurez les sauvegardes des volumes `instance/` et `logs/` 
+4. Configurez les sauvegardes des volumes `instance/` et `logs/`

@@ -76,7 +76,7 @@ html.dark .tab-button.active {
 
 /* Composants */
 .card {
-    @apply bg-white dark:bg-dark-lighter/80 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700/30;
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700;
 }
 
 .card-header {

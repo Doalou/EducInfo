@@ -253,4 +253,38 @@ class WeatherService:
             pass
         return {'success': False}
 
+    def get_weather_for_display(self):
+        """Recupere les donnees meteo normalisees pour l'affichage dans les templates."""
+        try:
+            from app.models.config import WeatherConfig
+            config = WeatherConfig.get_config()
+            if not config or not config.show_weather:
+                return None
+
+            data = self.get_weather_data()
+            if not data or 'error' in data or not data.get('success'):
+                return {
+                    'temp': None, 'temperature': None,
+                    'description': 'Service indisponible',
+                    'icon': '01d', 'icon_emoji': '🌡️',
+                    'city': config.city if config else 'Inconnue',
+                    'status': 'error',
+                }
+
+            # Normaliser temp/temperature
+            if 'temperature' in data and 'temp' not in data:
+                data['temp'] = data['temperature']
+
+            # Ajouter emoji si absent
+            if 'icon_emoji' not in data:
+                icon = data.get('icon', '01d')
+                weather_id = data.get('weather_id', 800)
+                data['icon_emoji'] = self._get_weather_emoji(icon, weather_id)
+
+            return data
+        except Exception as e:
+            logger.error(f"Erreur get_weather_for_display: {e}")
+            return None
+
+
 # Instance du service créée via lazy loading dans __init__.py 

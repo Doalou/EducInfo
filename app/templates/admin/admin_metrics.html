@@ -2,10 +2,14 @@
 
 {% block title %}Métriques Système | EducInfo{% endblock %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .metric-card {
-        @apply glass p-6 rounded-3xl border border-white/5 transition-all hover:bg-white/[0.05];
+        @apply bg-neutral-900 p-6 rounded-xl border border-neutral-800 transition-all hover:bg-neutral-800;
     }
 
     .progress-bar {
@@ -26,9 +30,9 @@
     </div>
     <div class="flex items-center gap-3">
         <button id="toggle-auto-refresh"
-            class="glass px-4 py-2 rounded-xl text-xs font-bold text-slate-400 border border-white/5 hover:text-white transition-all">
+            class="bg-neutral-900 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 border border-neutral-800 hover:text-white transition-all">
             <i class="fas fa-sync-alt mr-2"></i>
-            <span id="refresh-status">AUTO-REFRESH: OFF</span>
+            <span id="refresh-status">ACTUALISATION AUTO : OFF</span>
         </button>
         <button onclick="refreshMetrics()"
             class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 transition-all">
@@ -37,10 +41,10 @@
     </div>
 </div>
 
-<!-- Status Banner -->
+<!-- Banniere de statut -->
 <div class="mb-10">
     {% if (metrics.cpu_usage or 0) < 80 and (metrics.memory_usage or 0) < 80 and api_status.overall=='healthy' %} <div
-        class="glass border-l-4 border-l-sage-500 p-6 rounded-2xl flex items-center gap-4 bg-sage-500/5">
+        class="bg-neutral-900 border-l-4 border-l-sage-500 p-6 rounded-xl flex items-center gap-4 border border-neutral-800">
         <div class="w-10 h-10 bg-sage-500/20 rounded-full flex items-center justify-center text-sage-500">
             <i class="fas fa-check-circle"></i>
         </div>
@@ -50,7 +54,7 @@
         </div>
 </div>
 {% else %}
-<div class="glass border-l-4 border-l-amber-500 p-6 rounded-2xl flex items-center gap-4 bg-amber-500/5">
+<div class="bg-neutral-900 border-l-4 border-l-amber-500 p-6 rounded-xl flex items-center gap-4 border border-neutral-800">
     <div class="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-500">
         <i class="fas fa-exclamation-triangle"></i>
     </div>
@@ -62,7 +66,7 @@
 {% endif %}
 </div>
 
-<!-- Primary Metrics -->
+<!-- Métriques principales -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
     <div class="metric-card">
         <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Uptime</p>
@@ -87,9 +91,9 @@
     </div>
 </div>
 
-<!-- Detailed Charts/Bars -->
+<!-- Graphiques détaillés -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-    <div class="glass p-8 rounded-[2.5rem] border border-white/5">
+    <div class="bg-neutral-900 p-8 rounded-xl border border-neutral-800">
         <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3">
             <i class="fas fa-microchip text-amber-500"></i>
             Ressources Serveur
@@ -100,7 +104,7 @@
         </div>
     </div>
 
-    <div class="glass p-8 rounded-[2.5rem] border border-white/5 flex flex-col">
+    <div class="bg-neutral-900 p-8 rounded-xl border border-neutral-800 flex flex-col">
         <h3 class="text-xl font-bold text-white mb-8 flex items-center gap-3">
             <i class="fas fa-network-wired text-cyan-400"></i>
             Santé des APIs
@@ -110,10 +114,10 @@
             {% for name, status, icon in [('OpenWeatherMap', api_status.weather, 'cloud-sun'), ('CTS Realtime',
             api_status.cts, 'bus')] %}
             <div
-                class="glass p-5 rounded-2xl flex items-center justify-between border border-white/5 hover:bg-white/5 transition-all group">
+                class="bg-neutral-900 p-5 rounded-xl flex items-center justify-between border border-neutral-800 hover:bg-neutral-800 transition-all group">
                 <div class="flex items-center gap-4">
                     <div
-                        class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
+                        class="w-10 h-10 bg-neutral-800 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
                         <i class="fas fa-{{ icon }}"></i>
                     </div>
                     <span class="font-bold text-slate-200">{{ name }}</span>
@@ -126,24 +130,24 @@
             {% endfor %}
         </div>
 
-        <div class="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+        <div class="mt-8 pt-6 border-t border-neutral-800 flex items-center justify-between">
             <span class="text-xs text-slate-500">Temps de réponse moyen</span>
             <span class="text-xl font-mono font-bold text-white">{{ metrics.response_time or 0 }} ms</span>
         </div>
     </div>
 </div>
 
-<!-- Business Metrics Explorer -->
+<!-- Métriques métier -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
     {% for label, val, icon, color in [
-    ('Absences Today', db_metrics.absences, 'user-clock', 'rose'),
-    ('Menu Items', db_metrics.menus, 'utensils', 'amber'),
-    ('Upcoming Events', db_metrics.events, 'calendar-alt', 'sage'),
-    ('System Users', db_metrics.users, 'users', 'orange')
+    ('Absences du jour', db_metrics.absences, 'user-clock', 'rose'),
+    ('Plats au menu', db_metrics.menus, 'utensils', 'amber'),
+    ('Événements à venir', db_metrics.events, 'calendar-alt', 'sage'),
+    ('Utilisateurs système', db_metrics.users, 'users', 'orange')
     ] %}
-    <div class="glass p-6 rounded-3xl border border-white/5 group hover:border-{{ color }}-500/50 transition-all">
+    <div class="bg-neutral-900 p-6 rounded-xl border border-neutral-800 group hover:border-{{ color }}-500/50 transition-all">
         <div
-            class="w-12 h-12 bg-{{ color }}-500/10 rounded-2xl flex items-center justify-center text-{{ color }}-500 mb-4 group-hover:scale-110 transition-transform">
+            class="w-12 h-12 bg-{{ color }}-500/10 rounded-xl flex items-center justify-center text-{{ color }}-500 mb-4 group-hover:scale-110 transition-transform">
             <i class="fas fa-{{ icon }}"></i>
         </div>
         <p class="text-3xl font-black text-white mb-1">{{ val or 0 }}</p>
@@ -152,8 +156,8 @@
     {% endfor %}
 </div>
 
-<!-- Maintenance Tools -->
-<div class="glass p-8 rounded-[2.5rem] border border-white/5">
+<!-- Actions de maintenance -->
+<div class="bg-neutral-900 p-8 rounded-xl border border-neutral-800">
     <h3 class="text-xl font-bold text-white mb-6">Actions de Maintenance</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <form method="POST" action="{{ url_for('admin.admin_clear_cache') }}">
@@ -193,23 +197,23 @@
         autoRefreshEnabled = !autoRefreshEnabled;
 
         if (autoRefreshEnabled) {
-            status.textContent = 'AUTO-REFRESH: ON (30s)';
+            status.textContent = 'ACTUALISATION AUTO : ON (30s)';
             button.classList.add('text-sage-500', 'border-sage-500/50');
             refreshInterval = setInterval(refreshMetrics, 30000);
         } else {
-            status.textContent = 'AUTO-REFRESH: OFF';
+            status.textContent = 'ACTUALISATION AUTO : OFF';
             button.classList.remove('text-sage-500', 'border-sage-500/50');
             if (refreshInterval) clearInterval(refreshInterval);
         }
     }
 
     function refreshMetrics() {
-        window.location.reload(); // Simple reload for now to ensure all data is fresh
+        window.location.reload();
     }
 
     document.getElementById('toggle-auto-refresh').addEventListener('click', toggleAutoRefresh);
 
-    // Chart.js Configuration
+    // Configuration Chart.js
     const ctx = document.getElementById('resourcesChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
@@ -219,9 +223,9 @@
                 label: 'Utilisation (%)',
                 data: [{{ metrics.cpu_usage or 0 }}, {{ metrics.memory_usage or 0 }}, {{ metrics.disk_usage or 0 }}],
         backgroundColor: [
-        'rgba(245, 158, 11, 0.8)', // Amber
-        'rgba(147, 51, 234, 0.8)', // Plum
-        'rgba(14, 165, 233, 0.8)'  // Sky
+        'rgba(245, 158, 11, 0.8)',
+        'rgba(147, 51, 234, 0.8)',
+        'rgba(14, 165, 233, 0.8)'
     ],
         borderColor: [
         'rgba(245, 158, 11, 1)',
@@ -239,10 +243,10 @@
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                backgroundColor: '#0f172a',
                 titleColor: '#f8fafc',
                 bodyColor: '#cbd5e1',
-                borderColor: 'rgba(255,255,255,0.1)',
+                borderColor: '#1e293b',
                 borderWidth: 1,
                 padding: 10,
                 displayColors: false,

@@ -2,8 +2,8 @@
 import os
 from flask import Flask
 from app.extensions import (
-    db, login_manager, logger, migrate, cache, csrf,
-    init_cache, init_monitoring, init_health_check, 
+    db, login_manager, logger, migrate, cache, csrf, limiter,
+    init_cache, init_monitoring, init_health_check,
     configure_security_headers, setup_logger
 )
 from app.config import DevelopmentConfig, ProductionConfig, TestingConfig
@@ -37,6 +37,7 @@ def create_app(config_name=None, test_config=None):
     
     initialize_extensions(app)
     configure_security_headers(app)
+    configure_session_activity(app)
     register_blueprints(app)
     register_error_handlers(app)
     register_context_processors(app)
@@ -85,6 +86,28 @@ def init_metrics_heartbeat(app):
             app.logger.info("Pas de Redis configuré, heartbeat métriques désactivé")
 
 
+def configure_session_activity(app):
+    """Deconnecte les utilisateurs apres une periode d'inactivite."""
+    @app.before_request
+    def check_session_activity():
+        from flask import session
+        from flask_login import current_user as user
+        import time
+        if not user.is_authenticated:
+            return
+        now = time.time()
+        last_activity = session.get('_last_activity', now)
+        timeout = app.config.get('SESSION_INACTIVITY_TIMEOUT', 1800)
+        if now - last_activity > timeout:
+            from flask_login import logout_user
+            from flask import flash, redirect, url_for
+            logout_user()
+            session.clear()
+            flash('Session expiree pour inactivite.', 'warning')
+            return redirect(url_for('auth.login'))
+        session['_last_activity'] = now
+
+
 def initialize_extensions(app):
     """Initialise les extensions Flask de manière optimisée."""
     db.init_app(app)
@@ -92,13 +115,14 @@ def initialize_extensions(app):
     init_cache(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+    limiter.init_app(app)
     
     from app.models.user import User
     
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            return User.query.get(int(user_id))
+            return db.session.get(User, int(user_id))
         except (ValueError, TypeError):
             return None
     

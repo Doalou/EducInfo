@@ -1,89 +1,71 @@
-<!-- 👋 Overview Section -->
-<section id="overview" class="section-container">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<!-- Vue d'ensemble -->
+<section id="overview" class="adm-section">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-            <h2 class="text-4xl font-extrabold text-white tracking-tight mb-2">Bonjour, {{ current_user.username }} 👋
-            </h2>
-            <p class="text-neutral-400 font-medium">Voici ce qui se passe sur votre affichage aujourd'hui.</p>
+            <h2 class="text-3xl font-bold text-white tracking-tight">Bonjour, {{ current_user.username }} 👋</h2>
+            <p class="adm-c-muted text-sm mt-1">Voici l'état actuel de l'affichage.</p>
         </div>
-        <div class="bg-neutral-900 px-6 py-4 rounded-3xl flex items-center gap-4 border border-neutral-800 shadow-sm">
+        <div class="adm-card flex items-center gap-4 px-5 py-3 flex-shrink-0">
             <div class="text-right">
-                <p class="text-[10px] uppercase font-bold text-amber-500 tracking-widest">{{
-                    current_datetime.strftime('%A %d %B') }}</p>
-                <p class="text-2xl font-mono font-bold text-white leading-none" id="live-clock">{{
-                    current_datetime.strftime('%H:%M') }}</p>
+                <p class="text-[10px] uppercase font-bold tracking-widest adm-clock-accent">
+                    {{ current_datetime.strftime('%A %d %B') }}</p>
+                <p class="adm-live-clock text-xl text-white leading-none" id="live-clock">
+                    {{ current_datetime.strftime('%H:%M') }}</p>
             </div>
-            <div class="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center text-amber-500">
+            <div class="adm-clock-icon">
                 <i class="fas fa-clock"></i>
             </div>
         </div>
     </div>
 
-    <!-- Quick Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <!-- Absences Card -->
-        <div
-            class="stat-card border-l-4 border-l-rose-500 bg-neutral-900 border-y border-r border-neutral-800 p-6 rounded-2xl hover:border-neutral-700 transition-all">
-            <div class="flex justify-between items-start mb-4">
-                <div
-                    class="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-500 text-xl">
-                    <i class="fas fa-user-clock"></i>
-                </div>
-                <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Aujourd'hui</span>
+    <!-- Stats -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div class="adm-stat adm-bl-red">
+            <div class="flex justify-between items-start mb-3">
+                <div class="adm-stat-icon adm-stat-icon-red"><i class="fas fa-user-clock"></i></div>
+                <span class="text-[10px] font-bold adm-c-muted uppercase tracking-wider">Aujourd'hui</span>
             </div>
-            <p class="text-4xl font-black text-white mb-1">{{ stats.absences_today if stats else 0 }}</p>
-            <p class="text-sm text-neutral-400 font-medium">Absences Profs</p>
+            <p class="adm-stat-value">{{ stats.absences_today if stats else 0 }}</p>
+            <p class="adm-stat-label">Absences profs</p>
         </div>
 
-        <!-- Events Card -->
-        <div
-            class="stat-card border-l-4 border-l-sage-500 bg-neutral-900 border-y border-r border-neutral-800 p-6 rounded-2xl hover:border-neutral-700 transition-all">
-            <div class="flex justify-between items-start mb-4">
-                <div
-                    class="w-12 h-12 bg-sage-500/10 rounded-2xl flex items-center justify-center text-sage-500 text-xl">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Cette semaine</span>
+        <div class="adm-stat adm-bl-green">
+            <div class="flex justify-between items-start mb-3">
+                <div class="adm-stat-icon adm-stat-icon-green"><i class="fas fa-calendar-check"></i></div>
+                <span class="text-[10px] font-bold adm-c-muted uppercase tracking-wider">Cette semaine</span>
             </div>
-            <p class="text-4xl font-black text-white mb-1">{{ stats.events_this_week if stats else 0 }}</p>
-            <p class="text-sm text-neutral-400 font-medium">Événements</p>
+            <p class="adm-stat-value">{{ stats.events_this_week if stats else 0 }}</p>
+            <p class="adm-stat-label">Événements</p>
         </div>
 
-        <!-- Menu Card -->
-        <div
-            class="stat-card border-l-4 border-l-amber-500 bg-neutral-900 border-y border-r border-neutral-800 p-6 rounded-2xl hover:border-neutral-700 transition-all">
-            <div class="flex justify-between items-start mb-4">
-                <div
-                    class="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 text-xl">
-                    <i class="fas fa-utensils"></i>
-                </div>
-                <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Cantine</span>
+        <div class="adm-stat adm-bl-amber">
+            <div class="flex justify-between items-start mb-3">
+                <div class="adm-stat-icon adm-stat-icon-amber"><i class="fas fa-utensils"></i></div>
+                <span class="text-[10px] font-bold adm-c-muted uppercase tracking-wider">Cantine</span>
             </div>
-            <p class="text-4xl font-black text-white mb-1">{{ stats.menu_items_today if stats else 0 }}</p>
-            <p class="text-sm text-neutral-400 font-medium">Plats au menu</p>
+            <p class="adm-stat-value">{{ stats.menu_items_today if stats else 0 }}</p>
+            <p class="adm-stat-label">Plats au menu</p>
         </div>
 
-        <!-- ☀️ Weather Quick View (Special) -->
-        <div
-            class="stat-card bg-gradient-to-br from-sky-900/30 to-blue-900/10 border border-sky-500/20 p-6 rounded-2xl relative overflow-hidden group">
-            <div
-                class="absolute -right-4 -top-4 text-7xl opacity-10 group-hover:scale-110 transition-transform duration-500 text-white">
-                ☀️</div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <div
-                        class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-sky-400 text-xl border border-white/5">
-                        {{ weather.emoji if weather else '⛅' }}
-                    </div>
+        <!-- Météo -->
+        <div class="adm-card adm-weather-card p-5">
+            <span class="adm-weather-card-bg">☀️</span>
+            <div class="relative">
+                <div class="adm-stat-icon adm-stat-icon-blue mb-3">
+                    {{ weather.emoji if weather else '⛅' }}
                 </div>
                 <div class="flex items-baseline gap-2">
-                    <p class="text-4xl font-black text-white">{{ weather.temperature if weather else '--' }}°C</p>
-                    <p class="text-xs text-sky-200 font-bold uppercase tracking-wider">{{ weather.description if
-                        weather else 'Chargement...' }}</p>
+                    <p class="adm-stat-value">{{ weather.temperature if weather else '--' }}°</p>
+                    <p class="text-xs font-bold uppercase tracking-wider adm-c-blue">
+                        {{ weather.description if weather else '' }}</p>
                 </div>
-                <p class="text-xs text-sky-200/60 mt-2 font-medium">AQI: <span class="text-green-400 font-bold">{{
-                        weather.aqi.label if weather and weather.aqi else 'N/A' }}</span></p>
+                <p class="adm-stat-label">
+                    AQI : <span class="adm-c-green font-semibold">
+                        {{ weather.aqi.label if weather and weather.aqi else 'N/A' }}</span>
+                </p>
             </div>
         </div>
+
     </div>
 </section>
