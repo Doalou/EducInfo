@@ -4,7 +4,7 @@ Toutes les evolutions notables du projet seront documentees ici.
 
 Le format s'inspire de Keep a Changelog et le versioning suit SemVer.
 
-## [2.0.0] - 2026-04-07
+## [2.0.0] - 2026-07-13
 
 ### Sécurité
 - Suppression du mot de passe admin en dur (`admin123`) dans toute la codebase : config, CLI, scripts, Docker et fichiers d'environnement.
