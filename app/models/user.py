@@ -1,55 +1,57 @@
-"""Modèle d'utilisateur optimisé pour l'authentification."""
-from datetime import datetime, timezone
+"""Comptes et rôles de l'administration."""
+
+from datetime import UTC, datetime
+
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from app.extensions import db
 
 
 class User(UserMixin, db.Model):
-    """Modèle utilisateur avec intégration Flask-Login optimisée."""
-    __tablename__ = 'users'
-    
+    __tablename__ = "users"
+
+    ROLE_ADMIN = "admin"
+    ROLE_EDITOR = "editor"
+    ROLES = (ROLE_ADMIN, ROLE_EDITOR)
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
-    last_login = db.Column(db.DateTime)
-    is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
-    is_admin = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(16), nullable=False, default=ROLE_EDITOR, index=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    session_version = db.Column(db.Integer, nullable=False, default=1)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+    last_login = db.Column(db.DateTime(timezone=True))
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if self.is_active is None:
-            self.is_active = True
-        if self.is_admin is None:
-            self.is_admin = False
-
-    def __repr__(self):
-        return f'<User {self.username} ({"admin" if self.is_admin else "user"})>'
+    __table_args__ = (db.CheckConstraint("role IN ('admin', 'editor')", name="valid_user_role"),)
 
     @property
-    def role(self):
-        """Retourne le rôle de l'utilisateur."""
-        return "admin" if self.is_admin else "user"
+    def is_admin(self) -> bool:
+        return self.role == self.ROLE_ADMIN
+
+    @is_admin.setter
+    def is_admin(self, value: bool) -> None:
+        self.role = self.ROLE_ADMIN if value else self.ROLE_EDITOR
 
     @property
-    def identifiant(self):
-        """Alias pour username."""
-        return self.username
+    def is_editor(self) -> bool:
+        return self.role in self.ROLES
 
-    @property
-    def password(self):
-        """Alias pour password_hash."""
-        return self.password_hash
+    def get_id(self) -> str:
+        return f"{self.id}:{self.session_version}"
 
-    def set_password(self, password):
-        """Définit le mot de passe en le hashant."""
+    def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password):
-        """Vérifie si le mot de passe correspond au hash stocké."""
+    def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
-    def update_last_login(self):
-        """Met à jour la date de dernière connexion."""
-        self.last_login = datetime.now(timezone.utc)
+    def invalidate_sessions(self) -> None:
+        self.session_version += 1
+
+    def update_last_login(self) -> None:
+        self.last_login = datetime.now(UTC)
+
+    def __repr__(self) -> str:
+        return f"<User {self.username} ({self.role})>"

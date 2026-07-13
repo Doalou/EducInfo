@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}Erreur {{ code }} · EducInfo{% endblock %}
+{% block body_class %}login-page{% endblock %}
+{% block body %}<main class="login-card error-card"><p class="eyebrow">Erreur</p><h1>{{ code }}</h1><p class="muted">La page demandée ne peut pas être affichée.</p><a class="button primary" href="{{ url_for('display.index') }}">Retour à l’écran</a></main>{% endblock %}

@@ -1,80 +1,50 @@
-"""
-Configuration pytest pour les tests de l'application EducInfo.
-"""
-import os
-import tempfile
+from datetime import date, timedelta
+
 import pytest
+from sqlalchemy import text
+
 from app import create_app
 from app.extensions import db
-from app.models.user import User
+from app.models import AppSettings, Event, User
 
 
-@pytest.fixture
-def app():
-    """Fixture qui crée et configure une application Flask pour les tests."""
-    # Création d'un fichier temporaire comme base de données de test
-    db_fd, db_path = tempfile.mkstemp()
-    
-    # Configuration de l'application en mode test
-    app = create_app(test_config={
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
-        'WTF_CSRF_ENABLED': False,
-        'WEATHER_API_KEY': 'test_key',
-        'WEATHER_CITY': 'Test City',
-        'CTS_API_TOKEN': 'test_token',
-        'CTS_STOP_CODE': 'test_stop'
-    })
-    
-    # Création du contexte d'application
+@pytest.fixture()
+def app(tmp_path):
+    app = create_app(
+        "testing",
+        {
+            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{tmp_path / 'test.db'}",
+            "WTF_CSRF_ENABLED": False,
+            "WEATHER_API_KEY": "",
+            "CTS_API_TOKEN": "",
+        },
+    )
     with app.app_context():
-        # Création des tables dans la base de données de test
         db.create_all()
-        
-        # Création d'un utilisateur de test
-        test_user = User(username='testuser')
-        test_user.set_password('password')
-        test_user.is_admin = True
-        db.session.add(test_user)
+        db.session.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)"))
+        db.session.execute(text("INSERT INTO alembic_version VALUES ('0002_display_theme')"))
+        AppSettings.get()
+        admin = User(username="admin", role="admin")
+        admin.set_password("correct-horse-battery-staple")
+        editor = User(username="editor", role="editor")
+        editor.set_password("correct-horse-battery-staple")
+        db.session.add_all([admin, editor, Event(title="Réunion", date=date.today() + timedelta(days=2))])
         db.session.commit()
-    
     yield app
-    
-    # Nettoyage après les tests
     with app.app_context():
         db.session.remove()
         db.drop_all()
-    os.close(db_fd)
-    try:
-        os.unlink(db_path)
-    except PermissionError:
-        pass  # Windows: SQLite may hold the file lock
+        db.engine.dispose()
 
 
-@pytest.fixture
+@pytest.fixture()
 def client(app):
-    """Fixture qui crée un client de test pour envoyer des requêtes à l'application."""
     return app.test_client()
 
 
-@pytest.fixture
-def runner(app):
-    """Fixture qui crée un runner pour tester les commandes CLI."""
-    return app.test_cli_runner()
+@pytest.fixture()
+def login(client):
+    def authenticate(username="admin", password="correct-horse-battery-staple"):
+        return client.post("/auth/login", data={"username": username, "password": password})
 
-
-@pytest.fixture
-def auth(client):
-    """Fixture qui fournit des méthodes pour se connecter et se déconnecter."""
-    class AuthActions:
-        def login(self, username='testuser', password='password'):
-            return client.post(
-                '/auth/login',
-                data={'identifiant': username, 'password': password},
-                follow_redirects=True
-            )
-        
-        def logout(self):
-            return client.get('/auth/logout', follow_redirects=True)
-    
-    return AuthActions() 
+    return authenticate

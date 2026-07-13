@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}EducInfo · Écran d'information{% endblock %}
+{% block body_class %}display-page{% endblock %}
+{% block body %}
+<main class="display-shell{{ ' theme-dark' if dark_mode else '' }}" data-display-endpoint="{{ url_for('display.data') }}">
+  <header class="display-header broadcast-header">
+    <div class="broadcast-mark" aria-hidden="true"><span>EI</span></div>
+    <div class="broadcast-title"><p>Informations</p><h1 id="site-name">EducInfo</h1></div>
+    <div class="clock"><time id="clock-time">--:--</time><span id="clock-date">Chargement…</span></div>
+  </header>
+  <section class="display-grid" aria-label="Informations du jour">
+    <article class="board board-attendance">
+      <header class="board-heading"><div><p>Vie scolaire</p><h2>Absences</h2></div><small>Semaine type</small></header>
+      <div id="absences" class="days-grid skeleton"></div>
+    </article>
+    <article class="board board-transport">
+      <header class="board-heading"><div><p>Transports</p><h2>Prochains passages</h2></div><small id="transport-freshness">—</small></header>
+      <div id="transport" class="list skeleton"></div>
+    </article>
+    <article class="board board-menu">
+      <header class="board-heading"><div><p>Restauration</p><h2>Menu du jour</h2></div><small id="menu-count">—</small></header>
+      <div id="menu" class="list skeleton"></div>
+    </article>
+    <article class="board board-weather">
+      <header class="board-heading"><div><p>Extérieur</p><h2>Météo</h2></div><small id="weather-freshness">—</small></header>
+      <div id="weather" class="widget-state skeleton"></div>
+    </article>
+    <article class="board board-events">
+      <header class="board-heading"><div><p>Établissement</p><h2>Agenda</h2></div><small>30 jours</small></header>
+      <div id="events" class="list skeleton"></div>
+    </article>
+  </section>
+  <footer class="display-footer"><span class="footer-sign">EducInfo</span><span id="last-update">Mise à jour en attente</span><div class="footer-actions"><button id="fullscreen" class="text-button" type="button">Plein écran</button><a href="{{ url_for('auth.login') }}">Administration</a></div></footer>
+</main>
+<script src="{{ url_for('static', filename='js/display.js') }}" defer></script>
+{% endblock %}

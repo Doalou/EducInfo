@@ -1,0 +1,48 @@
+{% extends "admin/layout.html" %}
+{% block title %}Comptes · EducInfo{% endblock %}
+{% block admin_content %}
+<header class="page-heading"><div><p class="section-code">Administration</p><h1>Comptes</h1></div><div class="heading-note"><p>Les éditeurs gèrent les contenus. Les administrateurs gèrent aussi les comptes, les services et la configuration.</p></div></header>
+<div class="admin-grid">
+  <section class="admin-card">
+    <header class="card-heading"><div><p>Nouvel utilisateur</p><h2>Créer un compte</h2></div></header>
+    <form method="post" action="{{ url_for('settings.create_user') }}" class="stack-form">
+      {{ form.hidden_tag() }}
+      <label>{{ form.username.label }}{{ form.username() }}</label>
+      <label>{{ form.role.label }}{{ form.role() }}</label>
+      <label>{{ form.password.label }}{{ form.password(autocomplete="new-password") }}</label>
+      <label>{{ form.password_confirm.label }}{{ form.password_confirm(autocomplete="new-password") }}</label>
+      {{ form.submit(class="button primary", value="Créer le compte") }}
+    </form>
+  </section>
+  <section class="admin-card">
+    <header class="card-heading"><div><p>Autorisations</p><h2>Comptes existants</h2></div></header>
+    <div class="records">
+      {% for user in users %}
+      <article class="record account-record">
+        <header>
+          <div class="operator"><span>{{ user.username[:1] | upper }}</span><div><strong>{{ user.username }}</strong><small>{{ user.role }} · {{ 'actif' if user.is_active else 'désactivé' }}{% if user.id == current_user.id %} · vous{% endif %}</small></div></div>
+          {% if user.id != current_user.id %}
+          <form method="post" action="{{ url_for('settings.delete_user', user_id=user.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="icon-button" type="submit" aria-label="Supprimer {{ user.username }}">Supprimer</button>
+          </form>
+          {% endif %}
+        </header>
+        <form method="post" action="{{ url_for('settings.update_user', user_id=user.id) }}" class="account-actions">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>Rôle<select name="role"><option value="editor"{% if user.role == 'editor' %} selected{% endif %}>Éditeur</option><option value="admin"{% if user.role == 'admin' %} selected{% endif %}>Administrateur</option></select></label>
+          <label class="check"><input type="checkbox" name="is_active" value="y"{% if user.is_active %} checked{% endif %}> Compte actif</label>
+          <button class="button secondary" type="submit">Enregistrer</button>
+        </form>
+        <form method="post" action="{{ url_for('settings.change_user_password', user_id=user.id) }}" class="account-actions password-actions">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>Nouveau mot de passe<input name="password" type="password" minlength="12" required autocomplete="new-password"></label>
+          <label>Confirmation<input name="password_confirm" type="password" minlength="12" required autocomplete="new-password"></label>
+          <button class="button secondary" type="submit">Changer</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,16 +1,22 @@
-"""Decorateurs personnalises pour EducInfo."""
 from functools import wraps
-from flask import flash, abort
+
+from flask import abort
 from flask_login import current_user, login_required
 
 
-def admin_required(f):
-    """Restreint l'acces aux administrateurs uniquement."""
-    @wraps(f)
-    @login_required
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_admin:
-            flash("Acces reserve aux administrateurs.", "danger")
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
+def role_required(*roles):
+    def decorator(view):
+        @wraps(view)
+        @login_required
+        def wrapped(*args, **kwargs):
+            if current_user.role not in roles:
+                abort(403)
+            return view(*args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
+admin_required = role_required("admin")
+editor_required = role_required("admin", "editor")

@@ -1,92 +1,18 @@
-<!DOCTYPE html>
-<html lang="fr" class="dark">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion | EducInfo</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
-        };
-    </script>
-
-    <style>
-        body {
-            min-height: 100vh;
-            background: #10171d;
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-
-        .auth-input {
-            background: #10171d;
-            border: 1px solid #2a3540;
-        }
-
-        .auth-input:focus {
-            border-color: #f59e0b;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
-            outline: none;
-        }
-    </style>
-</head>
-
-<body class="flex items-center justify-center p-4">
-{% include 'includes/flash_messages.html' %}
-<main class="w-full max-w-sm">
-    <div class="text-center mb-8">
-        <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
-            </svg>
-        </div>
-        <h1 class="text-2xl font-bold text-white">EducInfo</h1>
-        <p class="text-sm text-[#9babb1] mt-1">Espace d'administration</p>
-    </div>
-
-    <div style="background: #12191f; border: 1px solid #2a3540;" class="rounded-xl p-6">
-        <form class="space-y-5" action="{{ url_for('auth.login') }}" method="POST">
-            {{ form.hidden_tag() }}
-
-            <div>
-                {{ form.identifiant.label(class="block text-sm font-medium text-[#c4d0ca] mb-1.5") }}
-                {{ form.identifiant(class="auth-input block w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#56646c]", placeholder="Votre identifiant") }}
-                {% for error in form.identifiant.errors %}
-                    <p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>
-                {% endfor %}
-            </div>
-
-            <div>
-                {{ form.password.label(class="block text-sm font-medium text-[#c4d0ca] mb-1.5") }}
-                {{ form.password(class="auth-input block w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-[#56646c]", placeholder="Votre mot de passe") }}
-                {% for error in form.password.errors %}
-                    <p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>
-                {% endfor %}
-            </div>
-
-            <div class="flex items-center justify-between">
-                <label class="inline-flex items-center gap-2 text-sm text-[#9babb1]">
-                    {{ form.remember(class="h-4 w-4 rounded border-[#2a3540] bg-[#10171d] text-amber-500 focus:ring-amber-500") }}
-                    <span>Se souvenir de moi</span>
-                </label>
-            </div>
-
-            {{ form.submit(class="w-full rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400") }}
-        </form>
-    </div>
-
-    <p class="text-center mt-6 text-xs text-[#56646c]">
-        <a href="{{ url_for('admin.admin_emergency_reset') }}" class="text-[#9babb1] hover:text-white transition">Accès d'urgence</a>
-    </p>
+{% extends "base.html" %}
+{% block title %}Connexion · EducInfo{% endblock %}
+{% block body_class %}login-page{% endblock %}
+{% block body %}
+<main class="login-card">
+  <a class="login-brand" href="{{ url_for('display.index') }}"><span>EI</span><div><strong>EducInfo</strong><small>Administration</small></div></a>
+  <div class="login-heading"><p class="section-code">Accès réservé</p><h1>Connexion</h1><p>Connectez-vous pour mettre à jour les informations de l’écran.</p></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<p class="notice {{ category }}">{{ message }}</p>{% endfor %}{% endwith %}
+  <form method="post" class="stack-form">
+    {{ form.hidden_tag() }}
+    <label>{{ form.username.label }}{{ form.username(autocomplete="username", autofocus=true) }}</label>
+    <label>{{ form.password.label }}{{ form.password(autocomplete="current-password") }}</label>
+    <label class="check">{{ form.remember() }} {{ form.remember.label.text }}</label>
+    {{ form.submit(class="button primary", value="Se connecter") }}
+  </form>
+  <p class="login-foot">EducInfo 3.0 · Accès réservé</p>
 </main>
-</body>
-
-</html>
+{% endblock %}

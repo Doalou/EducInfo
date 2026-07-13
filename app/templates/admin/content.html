@@ -1,0 +1,44 @@
+{% extends "admin/layout.html" %}
+{% block title %}Contenu · EducInfo{% endblock %}
+{% block admin_content %}
+<header class="page-heading">
+  <div><p class="section-code">Administration</p><h1>Contenu de l’écran</h1></div>
+  <div class="heading-note"><span class="role-badge">{{ current_user.role }}</span><p>Les modifications sont visibles au prochain rafraîchissement de l’écran, sous une minute.</p></div>
+</header>
+<div class="admin-grid editorial-grid">
+  <section class="admin-card absence-editor">
+    <header class="card-heading"><div><p>Vie scolaire</p><h2>Absences hebdomadaires</h2></div></header>
+    <form method="post" action="{{ url_for('content.save_absence') }}" class="stack-form">
+      {{ absence_form.hidden_tag() }}
+      <label>{{ absence_form.professeur.label }}{{ absence_form.professeur(placeholder="Nom du professeur") }}</label>
+      <fieldset class="day-selector"><legend>Jours concernés</legend>{% for day in ['lundi','mardi','mercredi','jeudi','vendredi','samedi'] %}<label>{{ absence_form[day]() }}<span>{{ absence_form[day].label.text[:3] }}</span></label>{% endfor %}</fieldset>
+      {{ absence_form.submit(class="button primary", value="Publier l’absence") }}
+    </form>
+    <div class="records"><p class="records-label">En diffusion · {{ absences|length }}</p>{% for item in absences %}<div class="record"><div><strong>{{ item.professeur }}</strong><small>{{ item.get_days_as_text() }}</small></div><form method="post" action="{{ url_for('content.delete_absence', item_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" type="submit" aria-label="Supprimer {{ item.professeur }}">Retirer</button></form></div>{% else %}<p class="empty">Aucune absence enregistrée.</p>{% endfor %}</div>
+  </section>
+  <section class="admin-card event-editor">
+    <header class="card-heading"><div><p>Calendrier</p><h2>Événements</h2></div></header>
+    <form method="post" action="{{ url_for('content.create_event') }}" class="stack-form">
+      {{ event_form.hidden_tag() }}
+      <label>{{ event_form.title.label }}{{ event_form.title(placeholder="Conseil de classe, portes ouvertes…") }}</label>
+      <label>{{ event_form.date.label }}{{ event_form.date() }}</label>
+      <label>{{ event_form.description.label }}{{ event_form.description(rows=3, placeholder="Information complémentaire") }}</label>
+      {{ event_form.submit(class="button primary", value="Ajouter à l’agenda") }}
+    </form>
+    <div class="records"><p class="records-label">À venir · {{ events|length }}</p>{% for item in events %}<div class="record"><time>{{ item.date.strftime('%d.%m') }}</time><div><strong>{{ item.title }}</strong><small>{{ item.description or 'Sans précision' }}</small></div><form method="post" action="{{ url_for('content.delete_event', item_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" type="submit" aria-label="Supprimer {{ item.title }}">Retirer</button></form></div>{% else %}<p class="empty">Aucun événement.</p>{% endfor %}</div>
+  </section>
+  <section class="admin-card admin-card-wide menu-editor">
+    <header class="card-heading"><div><p>Restauration</p><h2>Menu de cantine</h2></div></header>
+    <form method="post" action="{{ url_for('content.create_menu_item') }}" class="form-grid">
+      {{ menu_form.hidden_tag() }}
+      <label>{{ menu_form.name.label }}{{ menu_form.name(placeholder="Intitulé du plat") }}</label>
+      <label>{{ menu_form.category.label }}{{ menu_form.category() }}</label>
+      <label>{{ menu_form.date.label }}{{ menu_form.date() }}</label>
+      <label>{{ menu_form.icons.label }}{{ menu_form.icons(placeholder="🌱  Bio, végétarien…") }}</label>
+      <label class="span-2">{{ menu_form.description.label }}{{ menu_form.description(rows=2, placeholder="Composition ou allergènes") }}</label>
+      {{ menu_form.submit(class="button primary", value="Ajouter au menu") }}
+    </form>
+    <div class="records menu-records"><p class="records-label span-2">Dernières publications · {{ menu_items|length }}</p>{% for item in menu_items %}<div class="record"><span class="food-icon">{{ item.category_icon }}</span><div><strong>{{ item.name }}</strong><small>{{ item.category_label }} · {{ item.date.strftime('%d.%m.%Y') }}</small></div><form method="post" action="{{ url_for('content.delete_menu_item', item_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" type="submit" aria-label="Supprimer {{ item.name }}">Retirer</button></form></div>{% else %}<p class="empty">Aucun menu.</p>{% endfor %}</div>
+  </section>
+</div>
+{% endblock %}

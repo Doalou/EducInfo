@@ -1,0 +1,27 @@
+{% extends "admin/layout.html" %}
+{% block title %}Paramètres · EducInfo{% endblock %}
+{% block admin_content %}
+<header class="page-heading"><div><p class="section-code">Administration</p><h1>Paramètres</h1></div><div class="heading-note"><p>Configurez l’identité de l’écran et les sources externes. Les secrets restent exclusivement dans l’environnement.</p></div></header>
+<div class="admin-grid settings-grid">
+  <section class="admin-card admin-card-wide">
+    <header class="card-heading"><div><p>Configuration générale</p><h2>Écran et services</h2></div></header>
+    <form method="post" class="form-grid settings-form">
+      {{ form.hidden_tag() }}
+      <label>{{ form.site_name.label }}{{ form.site_name() }}<small>Apparaît dans l’en-tête de l’écran public.</small></label>
+      <label>{{ form.weather_city.label }}{{ form.weather_city() }}</label>
+      <label class="theme-choice span-2">{{ form.dark_mode() }}<span><strong>{{ form.dark_mode.label.text }}</strong><small>Utilise une palette sombre à contraste élevé sur l’écran public.</small></span></label>
+      <fieldset class="widget-switches span-2"><legend>Modules diffusés</legend>{% for field in [form.show_weather,form.show_menu,form.show_transport] %}<label>{{ field() }}<span><strong>{{ field.label.text }}</strong><small>Afficher ce module sur l’écran</small></span></label>{% endfor %}</fieldset>
+      <label>{{ form.cts_stop_code.label }}{{ form.cts_stop_code(placeholder="Ex. 123") }}</label>
+      <label>{{ form.cts_stop_label.label }}{{ form.cts_stop_label(placeholder="Nom public de l’arrêt") }}</label>
+      <label>{{ form.cts_vehicle_mode.label }}{{ form.cts_vehicle_mode() }}</label>
+      <div class="secret-state"><p>État des connexions</p><span>OpenWeather <strong class="{{ 'online' if weather_key_configured else '' }}">{{ 'Prêt' if weather_key_configured else 'Absent' }}</strong></span><span>CTS <strong class="{{ 'online' if cts_token_configured else '' }}">{{ 'Prêt' if cts_token_configured else 'Absent' }}</strong></span></div>
+      {{ form.submit(class="button primary", value="Enregistrer la configuration") }}
+    </form>
+  </section>
+  <section class="admin-card maintenance-card">
+    <header class="card-heading"><div><p>Exploitation</p><h2>Maintenance</h2></div></header>
+    <p>Le cache conserve uniquement la dernière réponse fiable des services météo et transport.</p>
+    <form method="post" action="{{ url_for('settings.clear_cache') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button secondary" type="submit">Vider le cache externe</button></form>
+  </section>
+</div>
+{% endblock %}

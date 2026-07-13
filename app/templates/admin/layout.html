@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block body_class %}admin-shell{% endblock %}
+{% block body %}
+<div class="control-room">
+  <aside class="admin-rail">
+    <a class="rail-brand" href="{{ url_for('content.index') }}"><span class="rail-monogram">EI</span><span><strong>EducInfo</strong><small>Administration</small></span></a>
+    <div class="on-air"><i></i><span><small>État de l’écran</small>En ligne</span></div>
+    <nav aria-label="Administration">
+      <p class="nav-label">Navigation</p>
+      <a class="{{ 'active' if request.endpoint.startswith('content.') else '' }}" href="{{ url_for('content.index') }}"><span>Contenu<small>Informations affichées</small></span></a>
+      {% if current_user.is_admin %}
+      <a class="{{ 'active' if request.endpoint == 'settings.index' else '' }}" href="{{ url_for('settings.index') }}"><span>Paramètres<small>Écran et services</small></span></a>
+      <a class="{{ 'active' if request.endpoint and 'users' in request.endpoint else '' }}" href="{{ url_for('settings.users') }}"><span>Comptes<small>Utilisateurs et rôles</small></span></a>
+      {% endif %}
+    </nav>
+    <div class="rail-footer">
+      <a class="screen-link" href="{{ url_for('display.index') }}" target="_blank" rel="noopener">Ouvrir l'écran <span>↗</span></a>
+      <div class="operator"><span>{{ current_user.username[:1] | upper }}</span><div><strong>{{ current_user.username }}</strong><small>{{ current_user.role }}</small></div></div>
+      <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="rail-logout" type="submit">Déconnexion</button></form>
+    </div>
+  </aside>
+  <main class="admin-main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="notices" aria-live="polite">{% for category, message in messages %}<p class="notice {{ category }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block admin_content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

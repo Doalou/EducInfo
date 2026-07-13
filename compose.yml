@@ -1,0 +1,24 @@
+services:
+  educinfo:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: educinfo:3.0.0
+    ports:
+      - "${APP_PORT:-5001}:5000"
+    environment:
+      APP_ENV: production
+      SECRET_KEY: ${SECRET_KEY:?Définissez SECRET_KEY dans le fichier .env}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
+      WEATHER_CITY: ${WEATHER_CITY:-Strasbourg}
+      CTS_API_TOKEN: ${CTS_API_TOKEN:-}
+      DEMO_MODE: ${DEMO_MODE:-false}
+    volumes:
+      - educinfo_data:/app/instance
+    restart: unless-stopped
+
+volumes:
+  educinfo_data:

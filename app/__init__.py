@@ -1,209 +1,141 @@
-"""Application principale EducInfo - Factory pattern Flask optimisé."""
+"""Factory Flask d'EducInfo 3."""
+
+from __future__ import annotations
+
+import logging
 import os
-from flask import Flask
-from app.extensions import (
-    db, login_manager, logger, migrate, cache, csrf, limiter,
-    init_cache, init_monitoring, init_health_check,
-    configure_security_headers, setup_logger
-)
-from app.config import DevelopmentConfig, ProductionConfig, TestingConfig
+from logging.config import dictConfig
+
+from flask import Flask, jsonify, render_template
+from sqlalchemy import text
+
+from app.config import CONFIGS
+from app.extensions import csrf, db, login_manager, migrate
+from app.integrations import ExternalDataCache, TransportClient, WeatherClient
+from app.security import LoginThrottle
+from app.services import DisplayService
 
 
-def create_app(config_name=None, test_config=None):
-    """Factory pour créer l'application Flask configurée."""
+def migrations_directory() -> str:
+    """Retourne le chemin des migrations incluses dans le paquet installé."""
+    return os.path.join(os.path.dirname(__file__), "migrations")
+
+
+def create_app(config_name: str | None = None, test_config: dict | None = None) -> Flask:
+    environment = config_name or os.getenv("APP_ENV", "development")
+    config_class = CONFIGS.get(environment, CONFIGS["development"])
     app = Flask(__name__, instance_relative_config=True)
-    
-    config_name = config_name or os.environ.get('FLASK_ENV', 'development')
-    
-    # Configuration
+    app.config.from_object(config_class)
     if test_config:
-        app.config.from_mapping(test_config)
-    elif config_name == 'production':
-        app.config.from_object(ProductionConfig)
-        ProductionConfig.init_app(app)
-    elif config_name == 'testing':
-        app.config.from_object(TestingConfig)
-        TestingConfig.init_app(app)
-    else:
-        app.config.from_object(DevelopmentConfig)
-        DevelopmentConfig.init_app(app)
-    
-    app.config.from_prefixed_env()
-    app.config.from_pyfile('config.py', silent=True)
-    
-    # Initialisation optimisée
-    global logger
-    logger = setup_logger(app)
-    
-    initialize_extensions(app)
-    configure_security_headers(app)
-    configure_session_activity(app)
-    register_blueprints(app)
-    register_error_handlers(app)
-    register_context_processors(app)
-    register_cli_commands(app)
-    
-    init_monitoring(app)
-    init_health_check(app)
-    init_metrics_heartbeat(app)
-    
-    logger.info(f"EducInfo {app.config.get('APP_VERSION', '2.0.0')} initialisé en mode {config_name}")
-    
+        app.config.update(test_config)
+    config_class.init_app(app)
+    _configure_logging(app)
+    _init_extensions(app)
+    _init_services(app)
+    _register_blueprints(app)
+    _register_health(app)
+    _register_errors(app)
+    _register_headers(app)
     return app
 
 
-def init_metrics_heartbeat(app):
-    """Initialise le système de heartbeat pour les métriques en mode cluster."""
-    if not app.config.get('TESTING', False):  # Pas de heartbeat en mode test
-        import threading
-        import time
-        
-        def heartbeat_worker():
-            """Worker thread pour envoyer périodiquement les métriques au cache partagé."""
-            while True:
-                try:
-                    with app.app_context():
-                        from app.services.metrics import store_current_instance_metrics
-                        success = store_current_instance_metrics()
-                        if success:
-                            app.logger.debug("Heartbeat métriques envoyé")
-                        else:
-                            app.logger.warning("Échec heartbeat métriques")
-                except Exception as e:
-                    app.logger.error(f"Erreur heartbeat métriques: {e}")
-                
-                # Attendre avant le prochain heartbeat
-                update_interval = int(os.environ.get('METRICS_UPDATE_INTERVAL', 60))
-                time.sleep(update_interval)
-        
-        # Démarrer le thread de heartbeat uniquement si Redis est configuré
-        redis_url = app.config.get('REDIS_URL') or os.environ.get('REDIS_URL')
-        if redis_url:
-            heartbeat_thread = threading.Thread(target=heartbeat_worker, daemon=True)
-            heartbeat_thread.start()
-            app.logger.info(f"Heartbeat métriques démarré (intervalle: {os.environ.get('METRICS_UPDATE_INTERVAL', 60)}s)")
-        else:
-            app.logger.info("Pas de Redis configuré, heartbeat métriques désactivé")
+def _configure_logging(app: Flask) -> None:
+    dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {"default": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                    "stream": "ext://sys.stdout",
+                }
+            },
+            "root": {"handlers": ["console"], "level": "INFO"},
+        }
+    )
+    app.logger.setLevel(logging.INFO)
 
 
-def configure_session_activity(app):
-    """Deconnecte les utilisateurs apres une periode d'inactivite."""
-    @app.before_request
-    def check_session_activity():
-        from flask import session
-        from flask_login import current_user as user
-        import time
-        if not user.is_authenticated:
-            return
-        now = time.time()
-        last_activity = session.get('_last_activity', now)
-        timeout = app.config.get('SESSION_INACTIVITY_TIMEOUT', 1800)
-        if now - last_activity > timeout:
-            from flask_login import logout_user
-            from flask import flash, redirect, url_for
-            logout_user()
-            session.clear()
-            flash('Session expiree pour inactivite.', 'warning')
-            return redirect(url_for('auth.login'))
-        session['_last_activity'] = now
-
-
-def initialize_extensions(app):
-    """Initialise les extensions Flask de manière optimisée."""
+def _init_extensions(app: Flask) -> None:
     db.init_app(app)
-    migrate.init_app(app, db)
-    init_cache(app)
+    migrate.init_app(app, db, directory=migrations_directory())
     csrf.init_app(app)
     login_manager.init_app(app)
-    limiter.init_app(app)
-    
-    from app.models.user import User
-    
+
+    from app.models import User
+
     @login_manager.user_loader
-    def load_user(user_id):
+    def load_user(identity: str):
         try:
-            return db.session.get(User, int(user_id))
+            user_id, version = identity.split(":", 1)
+            user = db.session.get(User, int(user_id))
+            return user if user and user.session_version == int(version) and user.is_active else None
         except (ValueError, TypeError):
             return None
-    
-    @login_manager.unauthorized_handler
-    def unauthorized():
-        from flask import flash, redirect, url_for, request
-        flash('Vous devez être connecté pour accéder à cette page.', 'warning')
-        return redirect(url_for('auth.login', next=request.url))
-    
-    logger.info("Extensions Flask initialisées")
 
 
-def register_blueprints(app):
-    """Enregistre les blueprints."""
-    from app.blueprints.public import bp as public_bp
+def _init_services(app: Flask) -> None:
+    cache = ExternalDataCache()
+    weather = WeatherClient(cache, app.config.get("WEATHER_API_KEY", ""), app.config.get("DEMO_MODE", False))
+    transport = TransportClient(cache, app.config["CTS_BASE_URL"], app.config.get("CTS_API_TOKEN", ""))
+    app.extensions["external_cache"] = cache
+    app.extensions["display_service"] = DisplayService(weather, transport)
+    app.extensions["login_throttle"] = LoginThrottle()
+
+
+def _register_blueprints(app: Flask) -> None:
     from app.blueprints.auth import bp as auth_bp
-    from app.blueprints.admin import bp as admin_bp
-    from app.blueprints.api import bp as api_bp
-    from app.blueprints.errors import bp as errors_bp
-    
-    app.register_blueprint(public_bp)
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.register_blueprint(api_bp, url_prefix='/api')
-    app.register_blueprint(errors_bp)
-    
-    logger.info("Blueprints enregistrés")
+    from app.blueprints.content import bp as content_bp
+    from app.blueprints.display import bp as display_bp
+    from app.blueprints.settings import bp as settings_bp
+
+    app.register_blueprint(display_bp)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(content_bp)
+    app.register_blueprint(settings_bp)
 
 
-def register_error_handlers(app):
-    """Enregistre les gestionnaires d'erreurs globaux."""
-    from flask import jsonify, request
-    from flask_wtf.csrf import CSRFError
-    
-    @app.errorhandler(429)
-    def ratelimit_handler(e):
-        if request.path.startswith('/api/'):
-            return jsonify({
-                'error': 'Rate limit exceeded',
-                'message': str(e.description)
-            }), 429
-        return "Trop de requêtes. Veuillez réessayer plus tard.", 429
-    
-    @app.errorhandler(CSRFError)
-    def handle_csrf_error(e):
-        if request.path.startswith('/api/'):
-            return jsonify({
-                'error': 'CSRF token missing or invalid',
-                'message': str(e.description)
-            }), 400
-        from flask import flash, redirect, url_for
-        flash('Erreur de sécurité. Veuillez réessayer.', 'error')
-        return redirect(url_for('public.home'))
-    
-    logger.info("Gestionnaires d'erreurs configurés")
+def _register_health(app: Flask) -> None:
+    @app.get("/health/live")
+    def live():
+        return jsonify(status="ok", version=app.config["APP_VERSION"])
+
+    @app.get("/health/ready")
+    def ready():
+        try:
+            revision = db.session.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+            expected = app.config["APP_SCHEMA_REVISION"]
+            if revision != expected:
+                return jsonify(status="unavailable", database="migration_required"), 503
+            return jsonify(status="ready", database="ok", revision=revision)
+        except Exception:
+            db.session.rollback()
+            app.logger.exception("Readiness check failed")
+            return jsonify(status="unavailable", database="error"), 503
 
 
-def register_context_processors(app):
-    """Enregistre les processeurs de contexte."""
-    from app.utils.context_processors import (
-        common_context, absence_context, menu_context, register_template_filters
-    )
-    
-    app.context_processor(common_context)
-    app.context_processor(absence_context)
-    app.context_processor(menu_context)
-    register_template_filters(app)
-    
-    @app.context_processor
-    def app_context():
-        return {
-            'app_name': app.config.get('APP_NAME', 'EducInfo'),
-            'app_version': app.config.get('APP_VERSION', '2.0.0'),
-            'debug_mode': app.debug
-        }
-    
-    logger.info("Processeurs de contexte configurés")
+def _register_errors(app: Flask) -> None:
+    for code in (400, 403, 404, 405):
+        app.register_error_handler(
+            code, lambda _error, status=code: (render_template("errors/error.html", code=status), status)
+        )
+
+    @app.errorhandler(500)
+    def internal_error(_error):
+        db.session.rollback()
+        return render_template("errors/error.html", code=500), 500
 
 
-def register_cli_commands(app):
-    """Enregistre les commandes CLI personnalisées."""
-    from app.cli import register_commands
-    register_commands(app)
-    logger.info("Commandes CLI enregistrées") 
+def _register_headers(app: Flask) -> None:
+    @app.after_request
+    def security_headers(response):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+        )
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response

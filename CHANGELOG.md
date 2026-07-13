@@ -4,6 +4,30 @@ Toutes les evolutions notables du projet seront documentees ici.
 
 Le format s'inspire de Keep a Changelog et le versioning suit SemVer.
 
+## [3.0.0] - 2026-07-13
+
+### Refonte
+- Nouvelle architecture Flask organisée par domaines : affichage, contenu, paramètres et authentification.
+- Nouvelle identité de signalétique publique pour l'écran TV et administration assortie, en CSS et JavaScript locaux sans CDN.
+- API interne agrégée `GET /internal/display` avec états de fraîcheur météo et transport.
+- Rôles `admin` et `editor`, invalidation des sessions et récupération du mot de passe uniquement en CLI.
+- Documentation complète de l'installation, de l'exploitation, des sauvegardes, de l'architecture et du dépannage.
+- Mode sombre configurable pour l'écran public et amélioration de la lisibilité interne des modules.
+- Couleurs officielles des lignes CTS récupérées depuis `lines-discovery` avec cache de 24 heures.
+
+### Exploitation
+- Déploiement recentré sur une instance Docker avec SQLite et migrations Alembic.
+- Dépendances de production verrouillées et migrations embarquées pour rendre la CLI installable autonome.
+- Suppression du mode cluster, de Redis, PostgreSQL, Nginx, Prometheus et Grafana.
+- Configuration de production stricte, health checks séparés et journalisation sur stdout.
+
+### Sécurité et qualité
+- Mise à jour vers Flask 3.1.3 et suppression des secrets dans les URL, la base et les journaux.
+- Neutralisation des erreurs des services externes afin qu'aucune clé ne puisse apparaître dans l'API.
+- Gestion des rôles, de l'activation et des mots de passe depuis l'administration.
+- CSP sans scripts ou styles inline, mutations POST protégées par CSRF.
+- CI unifiée avec Ruff, pytest, couverture, audit des dépendances et smoke test Docker.
+
 ## [2.0.0] - 2026-07-13
 
 ### Sécurité
