@@ -1,0 +1,697 @@
+/* =============================================================
+   EducInfo — Admin Design System
+   Palette et composants alignés sur tv-mode.css (dark)
+   ============================================================= */
+
+/* ── Variables ───────────────────────────────────────────── */
+:root {
+  /* Fond & surfaces — identiques à tv-mode.css dark */
+  --adm-bg:        #10171d;
+  --adm-surface:   #12191f;
+  --adm-raised:    #1e2830;
+  --adm-border:    #2a3540;
+  --adm-border-hi: #3d4a52;
+
+  /* Texte */
+  --adm-ink:   #eef3f0;
+  --adm-muted: #9babb1;
+  --adm-faint: #56646c;
+
+  /* Ombre */
+  --adm-shadow: 0 1px 4px rgba(0, 0, 0, .22);
+
+  /* Accents contextuels (TV dark palette) */
+  --adm-red:    #ff8d7d;
+  --adm-amber:  #f0c971;
+  --adm-green:  #8fd0b2;
+  --adm-blue:   #79b4d9;
+  --adm-purple: #c4afdf;
+  --adm-orange: #fdba74;
+
+  /* Fond accent (semi-transparent) */
+  --adm-red-bg:    rgba(255, 141, 125, .10);
+  --adm-amber-bg:  rgba(240, 201, 113, .10);
+  --adm-green-bg:  rgba(143, 208, 178, .10);
+  --adm-blue-bg:   rgba(121, 180, 217, .10);
+  --adm-purple-bg: rgba(196, 175, 223, .10);
+  --adm-orange-bg: rgba(253, 186, 116, .10);
+
+  /* Bordure accent */
+  --adm-red-br:    rgba(255, 141, 125, .22);
+  --adm-amber-br:  rgba(240, 201, 113, .22);
+  --adm-green-br:  rgba(143, 208, 178, .22);
+  --adm-blue-br:   rgba(121, 180, 217, .22);
+  --adm-purple-br: rgba(196, 175, 223, .22);
+  --adm-orange-br: rgba(253, 186, 116, .22);
+
+  /* Typographie */
+  --adm-font:      "Space Grotesk", "Inter", system-ui, sans-serif;
+  --adm-font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
+
+  /* Rayons */
+  --adm-r-sm: 8px;
+  --adm-r-md: 10px;
+  --adm-r-lg: 12px;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+body {
+  font-family: var(--adm-font);
+  background: var(--adm-bg);
+  color: var(--adm-ink);
+}
+
+/* ── Sections ────────────────────────────────────────────── */
+.adm-section {
+  margin-bottom: 5rem;
+  scroll-margin-top: 5.5rem;
+}
+
+.adm-section-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.adm-section-icon {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  box-shadow: var(--adm-shadow);
+}
+
+.adm-section-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--adm-ink);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.adm-section-desc {
+  font-size: 0.8125rem;
+  color: var(--adm-muted);
+  margin: 0.2rem 0 0;
+}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.adm-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-lg);
+  box-shadow: var(--adm-shadow);
+  overflow: hidden;
+}
+
+.adm-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--adm-border);
+  background: rgba(16, 23, 29, .25);
+}
+
+.adm-card-head-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--adm-muted);
+}
+
+.adm-card-body {
+  padding: 1.5rem;
+}
+
+.adm-card-body-lg {
+  padding: 2rem;
+}
+
+/* ── Formulaires ─────────────────────────────────────────── */
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.adm-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .4rem;
+}
+
+.adm-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--adm-muted);
+  padding-left: .2rem;
+}
+
+.adm-input {
+  width: 100%;
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  padding: .7rem 1rem;
+  color: var(--adm-ink);
+  font-family: var(--adm-font);
+  font-size: .9375rem;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  outline: none;
+  appearance: none;
+}
+.adm-input::placeholder { color: var(--adm-border); }
+.adm-input:focus {
+  border-color: rgba(121, 180, 217, .55);
+  box-shadow: 0 0 0 3px rgba(121, 180, 217, .11);
+}
+
+/* Focus contextuel par section */
+.adm-focus-red .adm-input:focus   { border-color: rgba(255,141,125,.55); box-shadow: 0 0 0 3px rgba(255,141,125,.11); }
+.adm-focus-amber .adm-input:focus { border-color: rgba(240,201,113,.55); box-shadow: 0 0 0 3px rgba(240,201,113,.11); }
+.adm-focus-green .adm-input:focus { border-color: rgba(143,208,178,.55); box-shadow: 0 0 0 3px rgba(143,208,178,.11); }
+.adm-focus-blue .adm-input:focus  { border-color: rgba(121,180,217,.55); box-shadow: 0 0 0 3px rgba(121,180,217,.11); }
+.adm-focus-purple .adm-input:focus{ border-color: rgba(196,175,223,.55); box-shadow: 0 0 0 3px rgba(196,175,223,.11); }
+
+.adm-hint {
+  font-size: .6875rem;
+  color: var(--adm-faint);
+  padding-left: .2rem;
+}
+
+/* ── Boutons ─────────────────────────────────────────────── */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .625rem;
+  width: 100%;
+  padding: .9rem 2rem;
+  border-radius: var(--adm-r-md);
+  font-family: var(--adm-font);
+  font-weight: 700;
+  font-size: .9375rem;
+  border: none;
+  cursor: pointer;
+  transition: filter .15s ease, background .15s ease, color .15s ease;
+  text-decoration: none;
+}
+
+.adm-btn-red    { background: var(--adm-red);    color: var(--adm-bg); }
+.adm-btn-amber  { background: var(--adm-amber);  color: var(--adm-bg); }
+.adm-btn-green  { background: var(--adm-green);  color: var(--adm-bg); }
+.adm-btn-blue   { background: var(--adm-blue);   color: var(--adm-bg); }
+.adm-btn-purple { background: var(--adm-purple); color: var(--adm-bg); }
+.adm-btn-orange { background: var(--adm-orange); color: var(--adm-bg); }
+.adm-btn-red:hover,.adm-btn-amber:hover,.adm-btn-green:hover,
+.adm-btn-blue:hover,.adm-btn-purple:hover,.adm-btn-orange:hover {
+  filter: brightness(1.1);
+}
+
+/* Variante compacte (dans les card-head) */
+.adm-btn-sm {
+  width: auto;
+  padding: .45rem 1rem;
+  font-size: .8125rem;
+}
+
+.adm-btn-ghost {
+  background: var(--adm-raised);
+  color: var(--adm-ink);
+  border: 1px solid var(--adm-border);
+  padding: .7rem 2rem;
+}
+.adm-btn-ghost:hover { background: #243038; color: #fff; }
+
+.adm-btn-danger-ghost {
+  background: var(--adm-red-bg);
+  color: var(--adm-red);
+  border: 1px solid var(--adm-red-br);
+}
+.adm-btn-danger-ghost:hover { background: rgba(255,141,125,.18); }
+
+/* Bouton icône carré */
+.adm-icon-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--adm-muted);
+  font-size: .75rem;
+  cursor: pointer;
+  transition: all .15s ease;
+  text-decoration: none;
+}
+.adm-icon-btn:hover                 { color: var(--adm-ink);    border-color: var(--adm-border-hi); }
+.adm-icon-btn-amber:hover           { color: var(--adm-amber);  border-color: var(--adm-amber-br); }
+.adm-icon-btn-danger:hover          { color: var(--adm-red);    border-color: var(--adm-red-br); }
+.adm-icon-btn-orange:hover          { color: var(--adm-orange); border-color: var(--adm-orange-br); }
+
+/* ── Badges ──────────────────────────────────────────────── */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  padding: .2rem .65rem;
+  font-size: .6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.adm-badge-red    { background: var(--adm-red-bg);    color: var(--adm-red);    border-color: var(--adm-red-br); }
+.adm-badge-amber  { background: var(--adm-amber-bg);  color: var(--adm-amber);  border-color: var(--adm-amber-br); }
+.adm-badge-green  { background: var(--adm-green-bg);  color: var(--adm-green);  border-color: var(--adm-green-br); }
+.adm-badge-blue   { background: var(--adm-blue-bg);   color: var(--adm-blue);   border-color: var(--adm-blue-br); }
+.adm-badge-purple { background: var(--adm-purple-bg); color: var(--adm-purple); border-color: var(--adm-purple-br); }
+.adm-badge-orange { background: var(--adm-orange-bg); color: var(--adm-orange); border-color: var(--adm-orange-br); }
+.adm-badge-neutral{ background: var(--adm-raised);    color: var(--adm-muted);  border-color: var(--adm-border); }
+
+/* Badge carré (pour les rôles) */
+.adm-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: .2rem .55rem;
+  font-size: .6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  border-radius: var(--adm-r-sm);
+  border: 1px solid transparent;
+}
+.adm-tag-amber   { background: var(--adm-amber-bg);  color: var(--adm-amber);  border-color: var(--adm-amber-br); }
+.adm-tag-neutral { background: var(--adm-raised);    color: var(--adm-muted);  border-color: var(--adm-border); }
+.adm-tag-green   { background: var(--adm-green-bg);  color: var(--adm-green);  border-color: var(--adm-green-br); }
+
+/* ── Items de liste ──────────────────────────────────────── */
+.adm-item {
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: border-color .15s ease;
+}
+.adm-item:hover { border-color: var(--adm-border-hi); }
+
+/* ── Checkbox jours ──────────────────────────────────────── */
+.adm-day-label {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.adm-day-label input[type="checkbox"] { display: none; }
+.adm-day-box {
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  padding: .6rem;
+  text-align: center;
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--adm-muted);
+  transition: all .15s ease;
+}
+.adm-day-label input:checked + .adm-day-box {
+  background: var(--adm-red);
+  border-color: var(--adm-red);
+  color: var(--adm-bg);
+  box-shadow: 0 2px 12px rgba(255, 141, 125, .25);
+}
+.adm-day-label:hover .adm-day-box { background: var(--adm-raised); }
+
+/* ── Jours indicateurs (badges compacts) ─────────────────── */
+.adm-day-dot {
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: var(--adm-r-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: all .15s ease;
+}
+.adm-day-dot-on  { background: var(--adm-red);    color: var(--adm-bg); box-shadow: 0 0 8px rgba(255,141,125,.3); }
+.adm-day-dot-off { background: var(--adm-raised); color: var(--adm-faint); }
+
+/* ── Stats cards (overview) ──────────────────────────────── */
+.adm-stat {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-lg);
+  border-left-width: 3px;
+  padding: 1.25rem;
+  transition: border-color .15s ease;
+  box-shadow: var(--adm-shadow);
+}
+.adm-stat:hover { border-color: var(--adm-border-hi); }
+.adm-stat-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--adm-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.adm-stat-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--adm-ink);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.adm-stat-label {
+  font-size: .8125rem;
+  color: var(--adm-muted);
+  font-weight: 500;
+  margin-top: .25rem;
+}
+
+/* ── Toggle checkbox (show widget) ──────────────────────── */
+.adm-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(16,23,29,.5);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.adm-toggle-label:hover { background: var(--adm-raised); border-color: var(--adm-border-hi); }
+.adm-toggle-label input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 6px;
+  accent-color: var(--adm-blue);
+  flex-shrink: 0;
+}
+.adm-toggle-title { font-weight: 700; color: var(--adm-ink); font-size: .9375rem; }
+.adm-toggle-desc  { font-size: .75rem; color: var(--adm-muted); margin-top: .1rem; }
+
+/* ── Actions système ─────────────────────────────────────── */
+.adm-action-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .9rem 1rem;
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  cursor: pointer;
+  transition: background .15s ease;
+  text-decoration: none;
+  color: inherit;
+  font-family: var(--adm-font);
+}
+.adm-action-row:hover { background: var(--adm-surface); }
+.adm-action-danger {
+  background: var(--adm-red-bg);
+  border-color: var(--adm-red-br);
+}
+.adm-action-danger:hover { background: rgba(255,141,125,.18); }
+
+/* ── Divider ─────────────────────────────────────────────── */
+.adm-divider {
+  border: none;
+  border-top: 1px solid var(--adm-border);
+  margin: 1.75rem 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.adm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  opacity: .35;
+  text-align: center;
+}
+.adm-empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.adm-empty-title { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--adm-ink); }
+.adm-empty-desc  { font-size: .8125rem; color: var(--adm-muted); margin-top: .35rem; }
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+#sidebar { background: var(--adm-bg); border-right-color: var(--adm-border); }
+
+.adm-nav-section {
+  padding: .3rem 1rem .5rem;
+  font-size: .6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--adm-faint);
+  margin-top: 1.25rem;
+}
+
+.adm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .65rem 1rem;
+  border-radius: var(--adm-r-md);
+  color: var(--adm-muted);
+  font-weight: 500;
+  font-size: .9375rem;
+  transition: background .15s ease, color .15s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+.adm-nav-item:hover { background: var(--adm-raised); color: var(--adm-ink); }
+.adm-nav-item.active {
+  background: var(--adm-raised);
+  color: #fff;
+  border-right: 3px solid var(--adm-amber);
+  font-weight: 600;
+}
+.adm-nav-item i { width: 1.1rem; text-align: center; font-size: .875rem; transition: color .15s ease; }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--adm-bg); }
+::-webkit-scrollbar-thumb { background: var(--adm-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--adm-border-hi); }
+
+/* ── Misc ────────────────────────────────────────────────── */
+.adm-live-clock {
+  font-family: var(--adm-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* ── Couleurs utilitaires contextuelles ──────────────────── */
+/* Texte */
+.adm-c-red    { color: var(--adm-red); }
+.adm-c-amber  { color: var(--adm-amber); }
+.adm-c-green  { color: var(--adm-green); }
+.adm-c-blue   { color: var(--adm-blue); }
+.adm-c-purple { color: var(--adm-purple); }
+.adm-c-orange { color: var(--adm-orange); }
+.adm-c-muted  { color: var(--adm-muted); }
+
+/* Bordure gauche des stats / cards */
+.adm-bl-red    { border-left-color: var(--adm-red); }
+.adm-bl-amber  { border-left-color: var(--adm-amber); }
+.adm-bl-green  { border-left-color: var(--adm-green); }
+.adm-bl-blue   { border-left-color: var(--adm-blue); }
+.adm-bl-purple { border-left-color: var(--adm-purple); }
+.adm-bl-orange { border-left-color: var(--adm-orange); }
+
+/* Bordure gauche 3px sur une card (settings, etc.) */
+.adm-card-lborder { border-left-width: 3px; }
+
+/* Items avec bordure gauche colorée (événements, etc.) */
+.adm-item-green  { border-left-width: 3px; border-left-color: var(--adm-green); }
+.adm-item-red    { border-left-width: 3px; border-left-color: var(--adm-red); }
+.adm-item-amber  { border-left-width: 3px; border-left-color: var(--adm-amber); }
+.adm-item-purple { border-left-width: 3px; border-left-color: var(--adm-purple); }
+
+/* Icônes de section — fond + couleur pré-combinés */
+.adm-section-icon-red    { color: var(--adm-red);    background: var(--adm-red-bg); }
+.adm-section-icon-amber  { color: var(--adm-amber);  background: var(--adm-amber-bg); }
+.adm-section-icon-green  { color: var(--adm-green);  background: var(--adm-green-bg); }
+.adm-section-icon-blue   { color: var(--adm-blue);   background: var(--adm-blue-bg); }
+.adm-section-icon-purple { color: var(--adm-purple); background: var(--adm-purple-bg); }
+.adm-section-icon-orange { color: var(--adm-orange); background: var(--adm-orange-bg); }
+.adm-section-icon-neutral{ color: var(--adm-muted);  background: var(--adm-raised); }
+
+/* Icônes de stat (même pattern, taille différente via .adm-stat-icon) */
+.adm-stat-icon-red    { color: var(--adm-red);    background: var(--adm-red-bg); }
+.adm-stat-icon-amber  { color: var(--adm-amber);  background: var(--adm-amber-bg); }
+.adm-stat-icon-green  { color: var(--adm-green);  background: var(--adm-green-bg); }
+.adm-stat-icon-blue   { color: var(--adm-blue);   background: var(--adm-blue-bg); }
+.adm-stat-icon-purple { color: var(--adm-purple); background: var(--adm-purple-bg); }
+.adm-stat-icon-orange { color: var(--adm-orange); background: var(--adm-orange-bg); }
+
+/* Card météo spéciale */
+.adm-weather-card {
+  position: relative;
+  overflow: hidden;
+  border-left-width: 3px;
+  border-left-color: var(--adm-blue);
+}
+.adm-weather-card-bg {
+  position: absolute;
+  right: -0.75rem;
+  top: -0.75rem;
+  font-size: 4rem;
+  opacity: .07;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Horloge card */
+.adm-clock-accent { color: var(--adm-amber); }
+.adm-clock-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--adm-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--adm-amber-bg);
+  color: var(--adm-amber);
+  font-size: .875rem;
+}
+
+/* Formulaire toggle de widget */
+.adm-toggle-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--adm-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Preview card aperçu */
+.adm-preview-card {
+  background: linear-gradient(135deg, rgba(18,25,31,.6) 0%, rgba(16,23,29,.95) 100%);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-lg);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--adm-shadow);
+}
+.adm-preview-deco {
+  position: absolute;
+  right: -1rem;
+  top: -1rem;
+  font-size: 6rem;
+  opacity: .05;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Résultats CTS */
+.adm-cts-line {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .6rem;
+  font-weight: 700;
+  background: var(--adm-raised);
+  color: var(--adm-muted);
+}
+.adm-cts-time {
+  font-family: var(--adm-font-mono);
+  font-weight: 700;
+  font-size: .875rem;
+  background: var(--adm-purple-bg);
+  color: var(--adm-purple);
+  padding: .2rem .5rem;
+  border-radius: var(--adm-r-sm);
+}
+
+/* User avatar */
+.adm-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .875rem;
+  flex-shrink: 0;
+  background: var(--adm-orange-bg);
+  color: var(--adm-orange);
+  border: 1px solid var(--adm-orange-br);
+}
+
+/* Séparateur interne de card */
+.adm-inner-sep { border-color: var(--adm-border); }
+
+/* Status dot */
+.adm-dot {
+  width: .5rem;
+  height: .5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.adm-dot-on  { background: var(--adm-green); box-shadow: 0 0 6px rgba(143,208,178,.5); }
+.adm-dot-off { background: var(--adm-red); }
+
+/* Date box événement */
+.adm-event-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--adm-bg);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-md);
+  flex-shrink: 0;
+}
+.adm-event-date-month {
+  font-size: .55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--adm-green);
+}
+.adm-event-date-day {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--adm-ink);
+  line-height: 1;
+}
